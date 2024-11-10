@@ -1,0 +1,101 @@
+/**/
+/* Navbar */
+/**/
+/* .stored, .logout{
+    background-color: #ffffff;
+    color: black;
+} */
+.container{
+    max-width: 100vw; /* Sets the container to take up the entire viewport width */
+}
+
+.logout{
+    color: #fff;
+    border-radius: 8px;
+    border: 1px solid white;
+}
+
+.logout:hover{
+    background-color: #ffffff;
+    color: black;
+}
+
+#navbarNav{
+    justify-content: center;
+}
+
+/* hover effect on nav-links inside buttons */
+.buttons>.nav-link:hover{
+    cursor: default; /* Keeps the cursor as default when hovering over nav links in buttons */
+}
+
+/* Navbar */
+.navbar{
+    margin-bottom: 1rem;
+}
+
+/* navbar items */
+.navbar-nav{
+    width: fit-content; /* Adjusts navbar items to fit their content */
+}
+
+/* Nav item hover effect for unselected items */
+.nav-item>a:hover:not(.selected){
+    background-color: #ffffff;
+    color: black !important;
+}
+
+/* Smooth transition for background color on nav item hover */
+.nav-item>a{
+    transition: background-color 0.3s ease-in-out;
+}
+
+.adminButton{
+    border-radius: 8px;
+    border: 1px solid white;
+    color: white;
+    padding: 10px 20px;
+    font-size: 16px;
+    transition: background-position 0.3s ease-in-out;
+    background-size: 200% 100%;
+    background-position: right center;
+}
+.adminButton:hover{
+    background: #ffffff;
+    background-position: left center;
+    color: black !important;
+}
+
+
+
+body{
+    overflow-x: hidden; /* Hides horizontal overflow, no scrolling */
+}
+
+/* Styles for selected items */
+.selected{
+    background-color: #ffffff !important; /* White background */
+    color: black !important; /* Black text color*/
+}
+
+/* Hover effect for selected items */
+.selected:hover{
+    background-color: #ffffff !important;
+}
+
+/* Button styles with dark background */
+.btn-bg-dark{
+    background-color: #0B0C38 !important;
+    color: white !important;
+}
+
+/* Hover effect for dark buttons */
+.btn-bg-dark:hover{
+    background-color: #00B5E3 !important;
+    color: white;
+}
+
+/* paragraph inside dark buttons does not have extra bottom margin */
+.btn-bg-dark>p{
+    margin-bottom: 0;
+}

@@ -1,0 +1,52 @@
+{% load humanize %}
+{% load custom_filters %}
+<div class="memberContent">
+    <ul class="list-group list-group-flush ul-left">
+        <li class="list-group-item"><strong>First Name</strong> <br> {{ member.name }}</li>
+        <li class="list-group-item"><strong>Second Name</strong> <br> {{ member.surname }}</li>
+        <li class="list-group-item"><strong>Email</strong> <br> {{ member.primary_email }}</li>
+        <li class="list-group-item"><strong>Start Date</strong> <br> {{ member.start_date|date:"Y-m-d" }}</li>
+        <li class="list-group-item"><strong>End Date</strong> <br> {% if member.end_date %} {{ member.end_date|date:"Y-m-d" }} {% else %} N/A {% endif %}</li>
+    </ul>
+    <ul class="list-group list-group-flush ul-right">
+        <li class="list-group-item"><strong>Role</strong> <br> {{ member.get_role_display }}</li>
+        <li class="list-group-item"><strong>Duty</strong> <br> {{ member.duty.name }}</li>
+        <li class="list-group-item"><strong>Institute</strong> <br> {{ member.institute.name }}</li>
+        <li class="list-group-item"><strong>Group</strong> <br> {{ member.institute.group.name }}</li>
+        <li class="list-group-item"><strong>Country</strong> <br> {{ member.institute.group.country.name }}</li>
+    </ul>
+</div>
+
+{% if member.authorship_start and member.authorship_end %}
+    <h4>Authorship Period</h4>
+    <div class="cards">
+        <div class="card">
+            <div class="cardContent">
+                <strong>Authorship Start</strong> <br> {{ member.authorship_start|date:"Y-m-d" }}
+            </div>
+        </div>
+        <div class="card">
+            <div class="cardContent">
+                <strong>Authorship End</strong> <br> {{ member.authorship_end|date:"Y-m-d" }}
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Duty History Section -->
+<h4>Duty History</h4>
+<div class="dutyHistory">
+    {% if member.duty_history.all %}
+        <ul class="list-group list-group-flush">
+            {% for duty in member.duty_history.all %}
+                <li class="list-group-item">
+                    <strong>{{ duty.duty.name }}</strong> <br>
+                    <em>From {{ duty.start_date|date:"Y-m-d" }} to
+                    {% if duty.end_date %} {{ duty.end_date|date:"Y-m-d" }} {% else %} ongoing {% endif %}</em>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No duty history available for this member.</p>
+    {% endif %}
+</div>

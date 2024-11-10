@@ -1,0 +1,27 @@
+{% extends "login/base.html" %}
+{% load crispy_forms_tags%}
+{% load static %}
+
+{% block content %}
+<div class="row">
+	<div class="col-11 col-md-4 mx-auto mt-5">
+        <div class="card card-default rounded-0 shadow">
+            <div class="card-header text-center">
+                <img src="{% static 'images/CTAOLSTCollaboration_Logo.png' %}" alt="Logo" class="img-fluid w-75">
+            </div>
+            <div class="card-body">
+                <div class="container-fluid">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+			<div class="text-center">
+                            <button class="btn btn-outline-dark">Log In</button>
+			</div>
+                    </form>
+                    <p class="mt-3 text-center">Go back to <a href="{% url 'index' %}">the main page.</a></p>
+                </div>
+            </div>
+        </div>
+	</div>
+</div>
+{% endblock content %}

@@ -1,0 +1,104 @@
+{% load custom_filter %}
+<div class="container-fluid">
+    <div class="err-msg"></div>
+    <form action="" id="member-form">
+        {% csrf_token %}
+        <input type="hidden" name="id" value="{{ member.id }}">
+        <div class="row">
+            <!-- Left Column -->
+            <div class="col-md-6">
+                <div class="form-group mb-3 position-relative">
+                    <label for="name" class="control-label">First Name</label>
+                    <input type="text" class="form-control rounded-0" id="name" name="name" value="{{ member.name }}" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="primary_email" class="control-label">Primary Email</label>
+                    <input type="email" class="form-control rounded-0" id="primary_email" name="primary_email" value="{{ member.primary_email }}" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="add_secondary_email" class="control-label">Add Secondary Email</label>
+                    <input type="checkbox" class="form-check-input" id="add_secondary_email" {% if member.secondary_email %} checked {% endif %}>
+                </div>
+                <div id="secondary-email-field" class="form-group mb-3 {% if not member.secondary_email %} d-none {% endif %}">
+                    <label for="secondary_email" class="control-label">Secondary Email</label>
+                    <input type="email" class="form-control rounded-0" id="secondary_email" name="secondary_email" value="{{ member.secondary_email }}">
+                </div>
+                <div class="form-group mb-3">
+                    <label for="start_date" class="control-label">Membership Start</label>
+                    <input type="date" class="form-control rounded-0" id="start_date" name="start_date" value="{{ member.start_date }}" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="end_date" class="control-label">Membership End</label>
+                    <input type="date" class="form-control rounded-0" id="end_date" name="end_date" value="{{ member.end_date }}">
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-md-6">
+                <div class="form-group mb-3 position-relative">
+                    <label for="surname" class="control-label">Surname</label>
+                    <input type="text" class="form-control rounded-0" id="surname" name="surname" value="{{ member.surname }}" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="role" class="control-label">Role</label>
+                    <select class="form-control rounded-0" name="role" id="role" required>
+                        <option value="student" {% if member.role == "student" %} selected {% endif %}>Student</option>
+                        <option value="technician" {% if member.role == "technician" %} selected {% endif %}>Technician</option>
+                        <option value="researcher" {% if member.role == "researcher" %} selected {% endif %}>Researcher</option>
+                        <option value="affiliated" {% if member.role == "affiliated" %} selected {% endif %}>Affiliated</option>
+                    </select>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="is_author" class="control-label">Is Author</label>
+                    <input type="checkbox" class="form-check-input" id="is_author" name="is_author" {% if member.is_author %} checked {% endif %}>
+                </div>
+                <div id="authorship-fields" class="{% if not member.is_author %} d-none {% endif %}">
+                    <div class="form-group mb-3">
+                        <label for="authorship_start" class="control-label">Authorship Start</label>
+                        <input type="date" class="form-control rounded-0" id="authorship_start" name="authorship_start" value="{{ member.authorship_start }}">
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="authorship_end" class="control-label">Authorship End</label>
+                        <input type="date" class="form-control rounded-0" id="authorship_end" name="authorship_end" value="{{ member.authorship_end }}">
+                    </div>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="institute" class="control-label">Institute</label>
+                    <select class="form-control rounded-0" name="institute" id="institute">
+                        <option value="" {% if not member.institute %} selected {% endif %}>-----</option>
+                        {% for institute in institutes %}
+                            <option value="{{ institute.id }}" {% if institute.id == member.institute.id %} selected {% endif %}>{{ institute.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const isAuthorCheckbox = document.getElementById('is_author');
+        const authorshipFields = document.getElementById('authorship-fields');
+        const addSecondaryEmailCheckbox = document.getElementById('add_secondary_email');
+        const secondaryEmailField = document.getElementById('secondary-email-field');
+
+        // Toggle authorship fields based on 'Is Author' checkbox
+        isAuthorCheckbox.addEventListener('change', function () {
+            if (this.checked) {
+                authorshipFields.classList.remove('d-none');
+            } else {
+                authorshipFields.classList.add('d-none');
+            }
+        });
+
+        // Toggle secondary email field based on 'Add Secondary Email' checkbox
+        addSecondaryEmailCheckbox.addEventListener('change', function () {
+            if (this.checked) {
+                secondaryEmailField.classList.remove('d-none');
+            } else {
+                secondaryEmailField.classList.add('d-none');
+            }
+        });
+    });
+</script>
