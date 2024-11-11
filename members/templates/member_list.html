@@ -71,6 +71,7 @@
 
 {% block ScriptBlock %}
 <script>
+    let institutes = {{ institutes|safe }};
     $(function() {
         $('#add_new').click(function() {
             // Create the header for the modal
@@ -117,6 +118,123 @@
             // Append submit button to the modal footer
             modalFooter.appendChild(submitButton);
         });
+
+        //remove the default 'Search' text for all DataTable search boxes
+        $.extend(true, $.fn.dataTable.defaults, {
+            language: {
+                search: ""
+            }
+        });
+        let table = $('#member-list').DataTable({
+            dom: '<"top1"<"top1Start"><"top1End"Bf>>t<"bottom"<"bottomStart"i><"bottomCenter"l><"bottomEnd"p>>',
+            buttons: [
+                {
+                    extend: 'copy',
+                    exportOptions: {
+                        columns: ':not(:last-child)' // Exclude the last column (Actions/Details)
+                    }
+                },
+                {
+                    extend: 'csv',
+                    exportOptions: {
+                        columns: ':not(:last-child)'
+                    }
+                },
+                {
+                    extend: 'excel',
+                    exportOptions: {
+                        columns: ':not(:last-child)'
+                    }
+                },
+                {
+                    extend: 'print',
+                    exportOptions: {
+                        columns: ':not(:last-child)'
+                    }
+                }
+            ],
+            columnDefs: [
+                { orderable: false, targets: [0, 3, 7, 10] }, // Disable ordering for specific columns
+                {
+                    targets: 0,
+                    searchable: false,
+                    render: function(data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1; // Row numbering
+                    }
+                },
+            ],
+            drawCallback: function(settings) {
+                let api = this.api();
+                api.rows({ page: 'current' }).every(function(rowIdx, tableLoop, rowLoop) {
+                    $('td:eq(0)', this.node()).html(rowLoop + 1); // Update row numbers
+                });
+            }
+        });
+        // Define custom filter elements and behavior
+        let data = table.data().toArray()
+        let filterLabels = ['Institute: '];
+        let mainDiv = document.querySelector('.top1Start');
+        let generalDiv = document.createElement('div');
+        mainDiv.classList.add('filters');
+        for (let label of filterLabels) {
+            let divInput = document.createElement('div');
+            divInput.classList.add('filterInput');
+
+            let input = document.createElement('select');
+            input.classList.add('rounded-pill');
+            let defaultOption = document.createElement('option');
+            defaultOption.appendChild(document.createTextNode('All'));
+            input.appendChild(defaultOption);
+
+            // Filter by Institute
+            if (label.toLowerCase().includes('institute')) {
+                input.addEventListener('change', function(e) {
+                    if (e.target.value != 'All') {
+                        table.column(4).search(e.target.value).draw();
+                    } else {
+                        table.column(4).search('').draw();
+                    }
+                });
+                // Populate options with Institutes (adjust based on actual list)
+                for (let institute of institutes) { // Replace with `institutes` array
+                    let option = document.createElement('option');
+                    option.value = institute.name;
+                    option.appendChild(document.createTextNode(institute.name));
+                    input.appendChild(option);
+                }
+            }
+
+            // Set up the label and input for each filter
+            let inputLabel = document.createElement('label');
+            inputLabel.appendChild(document.createTextNode(label));
+            inputLabel.setAttribute('for', label);
+            divInput.appendChild(inputLabel);
+            divInput.appendChild(input);
+            generalDiv.appendChild(divInput);
+        }
+        mainDiv.appendChild(generalDiv);
+
+        // Custom Search placeholders and Clear Filter button
+        $('[type=search]').each(function () {
+            $(this).attr("placeholder", "Search...");
+            $(this).attr("autocomplete", "off");
+            $(this).before('<span class="fa fa-search"></span>');
+        });
+
+        let top1End = document.querySelector('.top1End');
+        let clearFilterButton = document.createElement('div');
+        clearFilterButton.classList.add('btn', 'btn-clear', 'rounded-xl');
+        clearFilterButton.appendChild(document.createTextNode('Clear filters'));
+        clearFilterButton.addEventListener('click', function() {
+            let inputs = document.querySelectorAll('.filterInput > select');
+            inputs.forEach(input => {
+                input.selectedIndex = 0;
+                let event = new Event('change');
+                input.dispatchEvent(event);
+            });
+            table.search('').draw();
+        });
+        top1End.appendChild(clearFilterButton);
     });
 </script>
 {% endblock ScriptBlock %}
