@@ -106,9 +106,9 @@
         $('#member-form').submit(function(e) {
             // preventing from page reload and default actions
             e.preventDefault()
-            let form = new FormData($(this)[0])
-            console.log(form)
             var _this = $(this)
+            let form = new FormData($(this)[0])
+            console.log("is Author:", form.get('is_author'));
             $('.err-msg').remove();
             var el = $('<div>')
             el.addClass("alert alert-danger err-msg")

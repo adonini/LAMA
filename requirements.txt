@@ -1,0 +1,10 @@
+Django==5.0.6
+psycopg2-binary==2.9.9
+django-crispy-forms==2.3
+crispy-bootstrap5==2024.2
+python-dotenv==1.0.1
+django-auth-ldap
+pytz
+gunicorn==22.0.0
+python-ldap>=3.0
+psycopg
