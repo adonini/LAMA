@@ -14,7 +14,6 @@
     </div>
     <div class="body">
         <div class="table-container-list">
-
             <table class="table table-sm table-responsive table-hover" style="width:100%" id="member-list">
                 <thead class="">
                     <tr class="">
@@ -35,15 +34,15 @@
                     {% for member in members %}
                     <tr>
                         <td class="align-center text-center light-text">{{ forloop.counter }}</td>
-                        <td class="align-center text-center light-text">{{ member.name }}</td>
-                        <td class="align-center text-center light-text">{{ member.surname }}</td>
-                        <td class="align-center text-center light-text">{{ member.primary_email }}</td>
-                        <td class="align-center text-center light-text">{{ member.institute.name }}</td>
-                        <td class="align-center text-center light-text">{{ member.membership_start|date:"Y-m-d" }}</td>
-                        <td class="align-center text-center light-text">{{ member.membership_end|date:"Y-m-d" }}</td>
+                        <td class="align-center text-center light-text">{{ member.name|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ member.surname|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ member.primary_email|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ member.institute.name|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ member.start_date|date:"Y-m-d"|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ member.end_date|date:"Y-m-d"|default:"-"  }}</td>
                         <td class="align-center text-center light-text">{{ member.is_author|yesno:"Yes,No" }}</td>
-                        <td class="align-center text-center light-text">{{ member.authorship_start|date:"Y-m-d" }}</td>
-                        <td class="align-center text-center light-text">{{ member.authorship_end|date:"Y-m-d" }}</td>
+                        <td class="align-center text-center light-text">{{ member.authorship_start|date:"Y-m-d"|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ member.authorship_end|date:"Y-m-d"|default:"-"  }}</td>
                         <td class="align-center text-center light-text d-flex flex-wrap justify-content-around">
                             <div>
                                 {% if user|has_group:"admin" %}

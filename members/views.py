@@ -147,12 +147,19 @@ class AddMember(LoginRequiredMixin, View):
 
             if form.is_valid():
                 # Saving the member instance
-                newMember = form.save()
+                newMember = form.save(commit=False)
+                if not form.cleaned_data['end_date']:
+                    newMember.end_date = None
+
                 if 'is_author' in request.POST:
                     newMember.is_author = True
-                    newMember.authorship_start = request.POST['authorship_start']
-                    newMember.authorship_end = request.POST['authorship_end']
-                    newMember.save()
+                    newMember.authorship_start = request.POST.get('authorship_start') or None
+                    newMember.authorship_end = request.POST.get('authorship_end') or None
+                else:
+                    newMember.is_author = False
+                    newMember.authorship_start = None
+                    newMember.authorship_end = None
+                newMember.save()
                 messages.success(request, 'Member has been saved successfully!')
                 resp['status'] = 'success'
             else:
