@@ -132,6 +132,7 @@ class AddMember(LoginRequiredMixin, View):
     def post(self, request):
         resp = {'status': 'failed', 'msg': ''}
         currentUser = User.objects.get(username=request.user)
+        print(request.POST)
         if request.method == 'POST':
             if request.POST['id'].isnumeric():
                 member = Member.objects.get(pk=request.POST['id'])
@@ -187,5 +188,6 @@ class ManageMember(LoginRequiredMixin, View):
             context['member'] = {}
             context['roles'] = Member.ROLE_CHOICES
 
+        context['institutes'] = Institute.objects.all()
         # Return the context to the template for rendering
         return render(request, 'manage_member.html', context)

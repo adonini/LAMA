@@ -77,15 +77,16 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    $(document).ready(function() {
         const isAuthorCheckbox = document.getElementById('is_author');
         const authorshipFields = document.getElementById('authorship-fields');
         const addSecondaryEmailCheckbox = document.getElementById('add_secondary_email');
         const secondaryEmailField = document.getElementById('secondary-email-field');
 
         // Toggle authorship fields based on 'Is Author' checkbox
-        isAuthorCheckbox.addEventListener('change', function () {
-            if (this.checked) {
+        isAuthorCheckbox.addEventListener('change', function (e) {
+            console.log(e.target.checked)
+            if (e.target.checked) {
                 authorshipFields.classList.remove('d-none');
             } else {
                 authorshipFields.classList.add('d-none');
@@ -93,12 +94,61 @@
         });
 
         // Toggle secondary email field based on 'Add Secondary Email' checkbox
-        addSecondaryEmailCheckbox.addEventListener('change', function () {
-            if (this.checked) {
+        addSecondaryEmailCheckbox.addEventListener('change', function (e) {
+            console.log(e.target.checked)
+            if (e.target.checked) {
                 secondaryEmailField.classList.remove('d-none');
             } else {
                 secondaryEmailField.classList.add('d-none');
             }
         });
-    });
+        
+        $('#member-form').submit(function(e) {
+            // preventing from page reload and default actions
+            e.preventDefault()
+            let form = new FormData($(this)[0])
+            console.log(form)
+            var _this = $(this)
+            $('.err-msg').remove();
+            var el = $('<div>')
+            el.addClass("alert alert-danger err-msg")
+            el.hide()
+            if (_this[0].checkValidity() == false) {
+                _this[0].reportValidity();
+                return false;
+            }
+            start_loader();
+            $.ajax({
+                url: "{% url 'add-member' %}",
+                data: form,
+                cache: false,
+                contentType: false,
+                processData: false,
+                method: 'POST',
+                type: 'POST',
+                dataType: 'json',
+                error: err => {
+                    console.log(err)
+                    alert("An error occured ", 'error');
+                    end_loader();
+                },
+                success: function(resp) {
+                    if (typeof resp == 'object' && resp.status == 'success') {
+                        el.removeClass("alert alert-success err-msg ")
+                        location.reload()
+                    } else if (resp.status == 'failed' && !!resp.msg) {
+                        el.html(resp.msg)
+                    } else {
+                        el.text("An error occured ", 'error');
+                        end_loader();
+                        console.error(resp)
+                    }
+                    _this.prepend(el)
+                    el.show('slow')
+                    $("html, body, .modal ").scrollTop(0);
+                    end_loader()
+                }
+            })
+        }) 
+    })
 </script>
