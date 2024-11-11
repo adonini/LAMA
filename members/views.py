@@ -13,6 +13,9 @@ from datetime import date
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def logout_user(request):
@@ -132,7 +135,6 @@ class AddMember(LoginRequiredMixin, View):
     def post(self, request):
         resp = {'status': 'failed', 'msg': ''}
         currentUser = User.objects.get(username=request.user)
-        print(request.POST)
         if request.method == 'POST':
             if request.POST['id'].isnumeric():
                 member = Member.objects.get(pk=request.POST['id'])
@@ -146,6 +148,11 @@ class AddMember(LoginRequiredMixin, View):
             if form.is_valid():
                 # Saving the member instance
                 newMember = form.save()
+                if 'is_author' in request.POST:
+                    newMember.is_author = True
+                    newMember.authorship_start = request.POST['authorship_start']
+                    newMember.authorship_end = request.POST['authorship_end']
+                    newMember.save()
                 messages.success(request, 'Member has been saved successfully!')
                 resp['status'] = 'success'
             else:
