@@ -49,27 +49,35 @@ class Index(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
+        # Calculate the total counts
         total_members = Member.objects.count()
         total_authors = Member.objects.filter(is_author=True).count()
-        # Members who will become authors after 6 months of membership
-        six_months_ago = timezone.now() - relativedelta(months=6)
-        members_becoming_authors = Member.objects.filter(
-            start_date__lte=six_months_ago,
-            is_author=True
-        ).count()
-        non_members_with_authorship = Member.objects.filter(
-            end_date__lt=timezone.now(),
-            is_author=True
-        ).count()
+        six_months_ago = timezone.now() - timedelta(days=6 * 30)
+        members_becoming_authors = Member.objects.filter(start_date__lte=six_months_ago, is_author=True).count()
+        non_members_with_authorship = Member.objects.filter(end_date__lt=timezone.now(), is_author=True).count()
+        total_institutes = Institute.objects.count()
+        total_groups = Group.objects.count()
+        total_countries = Country.objects.count()
 
-        # Add these values to the context
+        # Count institutes and groups per country
+        institutes_per_country = {}
+        groups_per_country = {}
+        for country in Country.objects.all():
+            institutes_per_country[country.name] = Institute.objects.filter(group__country=country).count()
+            groups_per_country[country.name] = Group.objects.filter(country=country).count()
+
+        # Prepare the context to pass to the template
         context.update({
             'total_members': total_members,
             'total_authors': total_authors,
             'members_becoming_authors': members_becoming_authors,
-            'non_members_with_authorship': non_members_with_authorship
+            'non_members_with_authorship': non_members_with_authorship,
+            'total_institutes': total_institutes,
+            'total_groups': total_groups,
+            'total_countries': total_countries,
+            'institutes_per_country': institutes_per_country,
+            'groups_per_country': groups_per_country,
         })
-
         return context
 
 

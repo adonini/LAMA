@@ -167,15 +167,30 @@ div.dt-paging> button.dt-paging-button:not(.disabled){
 }
 
 /* */
-/* DataTable */
+/* Cards home*/
 /* */
+.container-1{
+    display: flex;
+    flex-direction: column;  /* Aligns content in a column */
+    min-height: 100vh; /* Ensures the container takes up at least the full height of the viewport */
+    padding: 0 20px; /* Adds padding to the sides to prevent the cards from touching the edges */
+}
+
 /* Ensures the cards are all the same height */
 .card {
-    display: flex;
+    display: flex; /* Allows the card to shrink or expand based on content */
     flex-direction: column;
     border: 4px solid;
     border-radius: 8px;
     height: 100%;
+    width: auto;
+}
+
+.custom-card-header {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: black;
+    background-color: #f8f9fa; /* Light background color to contrast with the text */
 }
 
 .card-body {
@@ -188,12 +203,12 @@ div.dt-paging> button.dt-paging-button:not(.disabled){
 
 .card-title {
     font-weight: bold;
-    font-size: 1.25rem;
+    font-size: 1rem;
     color: black !important;
 }
 
 .card-text {
-    font-size: 1.5rem;
+    /* font-size: 1.5rem; */
     color: black !important;
 }
 
@@ -202,9 +217,26 @@ div.dt-paging> button.dt-paging-button:not(.disabled){
     margin-top: 1px;
 }
 
-/* Adjust responsive behavior */
-@media (max-width: 768px) {
-    .col-md-3 {
-        flex: 0 0 100%; /* Make cards full width on smaller screens */
+/* Responsive design for smaller screens */
+/* Responsive Design for screens smaller than 900px */
+@media (max-width: 900px) {
+    /* Set the first four cards to be on two rows */
+    .container-1 .row {
+        flex-wrap: wrap; /* Allow wrapping of cards onto new rows */
     }
+
+    .container-1 .col-md-3 {
+        flex: 0 0 50%; /* Make each card take up 50% width on smaller screens */
+        max-width: 50%; /* Ensure the cards don't stretch too wide */
+    }
+}
+
+/* Column styling for consistent layout */
+.col-md-3, .col-md-6 {
+    padding: 0 10px; /* Adds horizontal padding between columns */
+}
+
+/* Ensures spacing between the cards */
+.mb-4 {
+    margin-bottom: 1.5rem; /* Spacing between the cards */
 }

@@ -3,7 +3,7 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-<div class="container mt-1">
+<div class="container-1 mt-1">
     <div class="row justify-content-center">
         {% if not user.is_authenticated %}
         <div class="col-12 d-flex justify-content-center align-items-center" style="height: 60vh;">
@@ -15,45 +15,106 @@
             </div>
         </div>
         {% endif %}
+
         {% if user.is_authenticated %}
+        <!-- Summary Cards (Total Members, Authors, etc.) -->
         <div class="col-12 d-flex justify-content-center" style="margin-top: 5px;">
-            <div class="row justify-content-center w-100">
+            <div class="row w-100">
                 <!-- Total Members Card -->
                 <div class="col-md-3 mb-4">
-                    <div class="card shadow text-center" style="border: 4px solid #007bff;">
-                        <div class="card-body">
-                            <h5 class="card-title font-weight-bold">Total Members</h5>
-                            <p class="card-text">{{ total_members }}</p>
+                    <div class="card shadow" style="border: 4px solid #007bff;">
+                        <div class="card-header custom-card-header text-center">
+                            Members
+                        </div>
+                        <div class="card-body text-center">
+                            <p class="card-text"><strong>{{ total_members }}</strong> # Total</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Total Authors Card -->
                 <div class="col-md-3 mb-4">
-                    <div class="card shadow text-center" style="border: 4px solid #28a745;">
-                        <div class="card-body">
-                            <h5 class="card-title font-weight-bold">Total Authors</h5>
-                            <p class="card-text">{{ total_authors }}</p>
+                    <div class="card shadow" style="border: 4px solid #28a745;">
+                        <div class="card-header custom-card-header text-center">
+                            Authors
+                        </div>
+                        <div class="card-body text-center">
+                            <p class="card-text"><strong>{{ total_authors }}</strong> # Total</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Members Becoming Authors in 6 Months Card -->
                 <div class="col-md-3 mb-4">
-                    <div class="card shadow text-center" style="border: 4px solid #ffc107;">
-                        <div class="card-body">
-                            <h5 class="card-title font-weight-bold">Becoming Authors in within 6 Months</h5>
-                            <p class="card-text">{{ members_becoming_authors }}</p>
+                    <div class="card shadow" style="border: 4px solid #ffc107;">
+                        <div class="card-header custom-card-header text-center">
+                            Becoming Authors in 6 Months
+                        </div>
+                        <div class="card-body text-center">
+                            <p class="card-text"><strong>{{ members_becoming_authors }}</strong> # Total</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Non-members with Authorship Card -->
                 <div class="col-md-3 mb-4">
-                    <div class="card shadow text-center" style="border: 4px solid #dc3545;">
-                        <div class="card-body">
-                            <h5 class="card-title font-weight-bold">Non-members with Authorship</h5>
-                            <p class="card-text">{{ non_members_with_authorship }}</p>
+                    <div class="card shadow" style="border: 4px solid #dc3545;">
+                        <div class="card-header custom-card-header text-center">
+                            Non-members with Authorship
+                        </div>
+                        <div class="card-body text-center">
+                            <p class="card-text"><strong>{{ non_members_with_authorship }}</strong> # Total</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Second set of cards (Countries, Groups, Institutes) -->
+        <div class="col-12 d-flex justify-content-center">
+            <div class="row w-100">
+                <!-- Total Countries Card -->
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <div class="card shadow" style="border: 4px solid #17a2b8;">
+                        <div class="card-header custom-card-header text-center">
+                            Countries
+                        </div>
+                        <div class="card-body text-center">
+                            <p class="card-text"><strong>{{ total_countries }}</strong> # Total</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 d-flex justify-content-center">
+            <div class="row w-100">
+                <!-- Total Groups Card with Breakdown per Country -->
+                <div class="col-md-6 col-sm-12 mb-4">
+                    <div class="card shadow" style="border: 4px solid #93088D;">
+                        <div class="card-header custom-card-header text-center">
+                            Groups
+                        </div>
+                        <div class="card-body text-center">
+                            <p class="card-text"><strong>{{ total_groups }}</strong> # Total</p>
+                            {% for country, count in groups_per_country.items %}
+                                <p class="card-text"><strong>{{ count }}</strong> # in {{ country }}</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Institutes Card with Breakdown per Country -->
+                <div class="col-md-6 col-sm-12 mb-4">
+                    <div class="card shadow" style="border: 4px solid #081393;">
+                        <div class="card-header custom-card-header text-center">
+                            Institutes
+                        </div>
+                        <div class="card-body text-center">
+                            <p class="card-text"><strong>{{ total_institutes }}</strong> # Total</p>
+                            {% for country, count in institutes_per_country.items %}
+                                <p class="card-text"><strong>{{ count }}</strong> # in {{ country }}</p>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
