@@ -8,3 +8,4 @@ pytz
 gunicorn==22.0.0
 python-ldap>=3.0
 psycopg
+python-dateutil

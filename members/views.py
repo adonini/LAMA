@@ -14,6 +14,10 @@ from django.contrib.auth.models import User
 from django.http import HttpResponse
 import json
 import logging
+from django.utils import timezone
+from datetime import timedelta
+from dateutil.relativedelta import relativedelta
+
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +48,28 @@ class Index(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        total_members = Member.objects.count()
+        total_authors = Member.objects.filter(is_author=True).count()
+        # Members who will become authors after 6 months of membership
+        six_months_ago = timezone.now() - relativedelta(months=6)
+        members_becoming_authors = Member.objects.filter(
+            start_date__lte=six_months_ago,
+            is_author=True
+        ).count()
+        non_members_with_authorship = Member.objects.filter(
+            end_date__lt=timezone.now(),
+            is_author=True
+        ).count()
+
+        # Add these values to the context
+        context.update({
+            'total_members': total_members,
+            'total_authors': total_authors,
+            'members_becoming_authors': members_becoming_authors,
+            'non_members_with_authorship': non_members_with_authorship
+        })
+
         return context
 
 

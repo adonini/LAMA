@@ -3,28 +3,63 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-</style>
 <div class="container mt-1">
-    <div class="row">
+    <div class="row justify-content-center">
         {% if not user.is_authenticated %}
-			<div class="col-12 d-flex justify-content-center align-items-center" style="height: 60vh;">
-				<div class="text-center">
-					<p class="fw-light fs-5">This application helps manage members of the collaboration.</p>
-                    <p class="fw-light fs-5">Only authorized users can log in to view and manage member information.</p>
-					<br/>
-					<a href="{% url 'login' %}" class="btn btn-primary p-4 fs-5 font-weight-bold rounded shadow">Log In To Get Started!</a>
-				</div>
-			</div>
-		{% endif %}
-		{% if user.is_authenticated %}
         <div class="col-12 d-flex justify-content-center align-items-center" style="height: 60vh;">
             <div class="text-center">
-                <p class="fw-light fs-5">Hi!!!!.</p>
+                <p class="fw-light fs-5">This application helps manage members of the collaboration.</p>
+                <p class="fw-light fs-5">Only authorized users can log in to view and manage member information.</p>
+                <br/>
+                <a href="{% url 'login' %}" class="btn btn-primary p-4 fs-5 font-weight-bold rounded shadow">Log In To Get Started!</a>
+            </div>
+        </div>
+        {% endif %}
+        {% if user.is_authenticated %}
+        <div class="col-12 d-flex justify-content-center" style="margin-top: 5px;">
+            <div class="row justify-content-center w-100">
+                <!-- Total Members Card -->
+                <div class="col-md-3 mb-4">
+                    <div class="card shadow text-center" style="border: 4px solid #007bff;">
+                        <div class="card-body">
+                            <h5 class="card-title font-weight-bold">Total Members</h5>
+                            <p class="card-text">{{ total_members }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Authors Card -->
+                <div class="col-md-3 mb-4">
+                    <div class="card shadow text-center" style="border: 4px solid #28a745;">
+                        <div class="card-body">
+                            <h5 class="card-title font-weight-bold">Total Authors</h5>
+                            <p class="card-text">{{ total_authors }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Members Becoming Authors in 6 Months Card -->
+                <div class="col-md-3 mb-4">
+                    <div class="card shadow text-center" style="border: 4px solid #ffc107;">
+                        <div class="card-body">
+                            <h5 class="card-title font-weight-bold">Becoming Authors in within 6 Months</h5>
+                            <p class="card-text">{{ members_becoming_authors }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Non-members with Authorship Card -->
+                <div class="col-md-3 mb-4">
+                    <div class="card shadow text-center" style="border: 4px solid #dc3545;">
+                        <div class="card-body">
+                            <h5 class="card-title font-weight-bold">Non-members with Authorship</h5>
+                            <p class="card-text">{{ non_members_with_authorship }}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         {% endif %}
     </div>
 </div>
-<script>
-</script>
 {% endblock content %}
