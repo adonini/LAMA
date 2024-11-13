@@ -90,3 +90,6 @@ db.sqlite3
 *.log
 local_settings.py
 staticfiles
+LST_members.csv
+members/management/commands/import_members.py
+populate.sh

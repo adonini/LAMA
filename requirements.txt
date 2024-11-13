@@ -1,4 +1,5 @@
 Django==5.0.6
+pandas
 psycopg2-binary==2.9.9
 django-crispy-forms==2.3
 crispy-bootstrap5==2024.2

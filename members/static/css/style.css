@@ -240,3 +240,48 @@ div.dt-paging> button.dt-paging-button:not(.disabled){
 .mb-4 {
     margin-bottom: 1.5rem; /* Spacing between the cards */
 }
+.memberContent{
+    display: flex;
+    justify-content: space-evenly;
+}
+.cardHeader{
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    align-items: center;
+}
+.modal-title{
+    width: 100%;
+}
+i{
+    pointer-events: none;
+}
+.selected{
+    background-color: #00FCCC !important;
+    color: #0B0C38 !important;
+}
+.selected:hover{
+    background-color: #00cea8 !important;
+}
+.highlight-color{
+    background-color: #FF6F61 !important;
+    color: white;
+}
+.highlight-color:hover:not(.highlight-color.oldPill){
+    background-color: #E65C50 !important;
+    cursor: pointer;
+}
+.widerIcon{
+    width: 5.5rem;
+}
+.edit{
+    display: flex;
+    align-items: center;
+    margin: .05rem 1rem;
+}
+.modal-footer{
+    justify-content: center;
+}
+button>p{
+    margin: 0;
+}
