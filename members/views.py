@@ -3,11 +3,9 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from .forms import LoginForm
 from django.views.generic import TemplateView
-from django.shortcuts import render
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import Member, Institute, Group, Duty, Country
-from django.http import JsonResponse
 from .forms import AddMemberForm
 from datetime import date
 from django.contrib.auth.models import User
@@ -15,7 +13,7 @@ from django.http import HttpResponse
 import json
 import logging
 from django.utils import timezone
-from datetime import timedelta
+from datetime import datetime, timedelta
 from django.db.models import Q
 
 
@@ -247,3 +245,116 @@ class ManageMember(LoginRequiredMixin, View):
         context['institutes'] = Institute.objects.all()
         # Return the context to the template for rendering
         return render(request, 'manage_member.html', context)
+
+
+class Statistics(TemplateView):
+    template_name = 'statistics.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        today = timezone.now().date()
+
+        # Year range for the histogram
+        start_year = 2018
+        end_year = today.year
+        years = range(start_year, end_year + 1)
+
+        # Structure to hold monthly member and author counts
+        year_data = {year: {'members': [], 'authors': []} for year in years}
+
+        # Monthly member and author counts
+        for year in years:
+            for month in range(1, 13):
+                check_date = datetime(year, month, 15).date()
+
+                # Members active on the 15th of the month
+                monthly_member_count = Member.objects.filter(
+                    start_date__lte=check_date,
+                ).filter(
+                    Q(end_date__isnull=True) | Q(end_date__gt=check_date)
+                ).count()
+
+                # Authors active on the 15th of the month
+                monthly_author_count = Member.objects.filter(
+                    authorship_start__lte=check_date,
+                ).filter(
+                    Q(authorship_end__isnull=True) | Q(authorship_end__gt=check_date)
+                ).count()
+
+                print(f"Year: {year}, Month: {month}, Members: {monthly_member_count}, Authors: {monthly_author_count}")
+                # Append monthly counts
+                year_data[year]['members'].append(monthly_member_count)
+                year_data[year]['authors'].append(monthly_author_count)
+
+        # Calculate yearly averages for members and authors
+        year_averages = []
+        member_averages = []
+        author_averages = []
+        for year, data in year_data.items():
+            avg_members = sum(data['members']) / 12
+            avg_authors = sum(data['authors']) / 12
+            year_averages.append({
+                'year': year,
+                'avg_members': avg_members,
+                'avg_authors': avg_authors
+            })
+            member_averages.append(avg_members)
+            author_averages.append(avg_authors)
+            print(f"Year: {year}, Avg Members: {avg_members}, Avg Authors: {avg_authors}")
+
+        # Lists for years, members and authors (monthly data)
+        years_list = list(years)
+        members_count_list = [data['members'] for data in year_data.values()]  # Monthly counts for members
+        authors_count_list = [data['authors'] for data in year_data.values()]  # Monthly counts for authors
+
+        #####################################################
+        # Calculations for total active members and authors
+        #####################################################
+        # Filter members whose membership is currently active
+        total_members = (Member.objects.filter(end_date__gt=today) | Member.objects.filter(end_date__isnull=True)).count()
+        # Filter authors with a valid authorship period
+        total_authors = Member.objects.filter(authorship_start__lte=today).filter(
+            Q(authorship_end__isnull=True) | Q(authorship_end__gt=today)
+        ).count()
+        print(f"Total Members: {total_members}")
+        print(f"Total Authors: {total_authors}")
+        # Members and authors by country with percentage calculations
+        countries_data = []
+        for country in Country.objects.order_by('name'):
+            # Current members in each country
+            country_members = Member.objects.filter(
+                institute__group__country=country,
+                start_date__lte=today,
+                # end_date__gt=today
+            ).filter(Q(end_date__isnull=True) | Q(end_date__gt=today)).count()
+
+            # Current authors in each country
+            country_authors = Member.objects.filter(
+                institute__group__country=country,
+                authorship_start__lte=today
+            ).filter(Q(authorship_end__isnull=True) | Q(authorship_end__gt=today)).count()
+
+            # Calculate percentages
+            member_percentage = (country_members / total_members * 100) if total_members > 0 else 0
+            author_percentage = (country_authors / total_authors * 100) if total_authors > 0 else 0
+
+            countries_data.append({
+                'country': country.name,
+                'members_count': country_members,
+                'authors_count': country_authors,
+                'member_percentage': member_percentage,
+                'author_percentage': author_percentage,
+            })
+
+        context.update({
+            'total_members': total_members,
+            'total_authors': total_authors,
+            'countries_data': countries_data,
+            'member_averages': member_averages,
+            'author_averages': author_averages,
+            'year_averages': year_averages,
+            'years_list': years_list,
+            'members_count_list': members_count_list,  # Monthly counts for members
+            'authors_count_list': authors_count_list,  # Monthly counts for authors
+        })
+        return context
