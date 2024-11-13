@@ -16,7 +16,7 @@ import json
 import logging
 from django.utils import timezone
 from datetime import timedelta
-from dateutil.relativedelta import relativedelta
+from django.db.models import Q
 
 
 logger = logging.getLogger(__name__)
@@ -50,11 +50,19 @@ class Index(TemplateView):
         context = super().get_context_data(**kwargs)
 
         # Calculate the total counts
-        total_members = Member.objects.count()
-        total_authors = Member.objects.filter(is_author=True).count()
+        today = timezone.now().date()
+        # Count of active members, defined as those with no end date or an end date in the future
+        total_members = (Member.objects.filter(end_date__gt=today) | Member.objects.filter(end_date__isnull=True)).count()
+        # Count of members who have an authorship start date on or before today and either no authorship end date or an authorship end date in the future
+        total_authors = Member.objects.filter(authorship_start__lte=today).filter(
+            Q(authorship_end__isnull=True) | Q(authorship_end__gt=today)
+        ).count()
+        # Calculate a date six months ago from today, approximating a month as 30 days
         six_months_ago = timezone.now() - timedelta(days=6 * 30)
-        members_becoming_authors = Member.objects.filter(start_date__lte=six_months_ago, is_author=True).count()
-        non_members_with_authorship = Member.objects.filter(end_date__lt=timezone.now(), is_author=True).count()
+        # Count of members who joined within the last six months and have an authorship start date
+        members_becoming_authors = Member.objects.filter(start_date__gte=six_months_ago, authorship_start__isnull=False).count()
+        # Count of non-members (with an end date in the past) who still have an active authorship period (authorship end date is in the future).
+        non_members_with_authorship = Member.objects.filter(end_date__lt=timezone.now(), authorship_end__gt=today).count()
         total_institutes = Institute.objects.count()
         total_groups = Group.objects.count()
         total_countries = Country.objects.count()
