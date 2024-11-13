@@ -60,6 +60,7 @@ class Member(models.Model):
         if self.secondary_email:
             if Member.objects.exclude(pk=self.pk).filter(secondary_email=self.secondary_email).exists():
                 raise ValidationError({'Secondary Email': 'This email is already in use.'})
+
     def save(self, *args, **kwargs):
         # Automatically set authorship dates if the member is an author
         if self.is_author:
@@ -70,7 +71,7 @@ class Member(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.first_name} {self.second_name} ({self.institute})"
+        return f"{self.name} {self.surname} ({self.institute})"
 
 
 class MemberDuty(models.Model):
