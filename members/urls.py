@@ -11,4 +11,6 @@ urlpatterns = [
     path('manage_member/', views.ManageMember.as_view(), name='manage-member'),
     path('manage_member/<int:pk>/', views.ManageMember.as_view(), name='manage-member-pk'),
     path('add_member/', views.AddMember.as_view(), name='add-member'),
+    path('statistics/', views.Statistics.as_view(), name='statistics'),
+
 ]
