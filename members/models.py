@@ -3,6 +3,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.core.exceptions import ValidationError
 
+
 class Country(models.Model):
     name = models.CharField(max_length=50)
 
@@ -19,7 +20,7 @@ class Group(models.Model):
 
 
 class Institute(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=150)
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='institutes')
 
     def __str__(self):
