@@ -5,7 +5,7 @@ from .forms import LoginForm
 from django.views.generic import TemplateView
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import Member, Institute, Group, Duty, Country
+from .models import Member, Institute, Group, Duty, Country, MemberDuty
 from .forms import AddMemberForm
 from datetime import date
 from django.contrib.auth.models import User
@@ -150,7 +150,7 @@ class MemberRecord(LoginRequiredMixin, View):
                 messages.error(request, "Member not found")
                 return redirect('member_list')
             # Fetch related duties and roles for the member
-            duties = Duty.objects.filter(member=member)
+            duties = MemberDuty.objects.filter(member=member)
             role = member.role if member.role else 'No role assigned'
             # Get the institutes and their related group information
             institute = member.institute if member.institute else 'No institute assigned'
@@ -158,8 +158,8 @@ class MemberRecord(LoginRequiredMixin, View):
             country = group.country if group else 'No country assigned'
             # Get the member's historical duties if any
             historical_duties = []
-            if member.duty:
-                historical_duties = Duty.objects.filter(member=member).order_by('start_date')
+            if MemberDuty.objects.filter(member=member):
+                historical_duties = MemberDuty.objects.filter(member=member).order_by('start_date')
 
             context['member'] = member
             context['duties'] = duties
@@ -168,11 +168,30 @@ class MemberRecord(LoginRequiredMixin, View):
             context['group'] = group
             context['country'] = country
             context['historical_duties'] = historical_duties
+            context['institutes'] = Institute.objects.all()
             return render(request, 'member_record.html', context)
 
 
 class AddMember(LoginRequiredMixin, View):
-    def post(self, request):
+    def get(self, request):
+        context = {
+            'page_title': "Manage Member",
+            'today': date.today(),
+            'countries': Country.objects.all(),
+        }
+        institute_data = {}
+        countries = Country.objects.all()
+        for country in countries:
+            institutes = list(Institute.objects.filter(group__country=country).values('id', 'name', 'group'))
+            if institutes:
+                institute_data[country.id] = institutes
+        context['institute_data'] = json.dumps(institute_data)
+        context['member'] = {}
+        context['roles'] = Member.ROLE_CHOICES
+        context['institutes'] = Institute.objects.all()
+        # Return the context to the template for rendering
+        return render(request, 'manage_member.html', context)
+    def post(self, request, pk=None):
         resp = {'status': 'failed', 'msg': ''}
         currentUser = User.objects.get(username=request.user)
         if request.method == 'POST':
@@ -231,10 +250,13 @@ class ManageMember(LoginRequiredMixin, View):
 
         if pk:
             # Retrieve and display a specific member if pk is provided
+            logger.debug(pk)
             try:
                 member = Member.objects.get(id=pk)
                 context['member'] = member
-                context['duties'] = Duty.objects.filter(member=member)
+                context['duties'] = MemberDuty.objects.filter(member=member)
+                context['institute_list'] = Institute.objects.all()
+                return render(request, 'manage_member.html', context)
             except Member.DoesNotExist:
                 messages.error(request, "Member not found.")
                 return redirect('member-list')
@@ -242,7 +264,7 @@ class ManageMember(LoginRequiredMixin, View):
             context['member'] = {}
             context['roles'] = Member.ROLE_CHOICES
 
-        context['institutes'] = Institute.objects.all()
+        context['institute_list'] = Institute.objects.all()
         # Return the context to the template for rendering
         return render(request, 'manage_member.html', context)
 

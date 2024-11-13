@@ -1,19 +1,19 @@
 {% load humanize %}
-{% load custom_filters %}
+{% load custom_filter %}
 <div class="memberContent">
     <ul class="list-group list-group-flush ul-left">
-        <li class="list-group-item"><strong>First Name</strong> <br> {{ member.name }}</li>
-        <li class="list-group-item"><strong>Second Name</strong> <br> {{ member.surname }}</li>
-        <li class="list-group-item"><strong>Email</strong> <br> {{ member.primary_email }}</li>
-        <li class="list-group-item"><strong>Start Date</strong> <br> {{ member.start_date|date:"Y-m-d" }}</li>
-        <li class="list-group-item"><strong>End Date</strong> <br> {% if member.end_date %} {{ member.end_date|date:"Y-m-d" }} {% else %} N/A {% endif %}</li>
+        <li class="list-group-item"><strong>First Name</strong> <br> {{ member.name|default:"-" }}</li>
+        <li class="list-group-item"><strong>Second Name</strong> <br> {{ member.surname|default:"-" }}</li>
+        <li class="list-group-item"><strong>Email</strong> <br> {{ member.primary_email|default:"-" }}</li>
+        <li class="list-group-item"><strong>Start Date</strong> <br> {{ member.start_date|date:"Y-m-d"|default:"-" }}</li>
+        <li class="list-group-item"><strong>End Date</strong> <br> {% if member.end_date %} {{ member.end_date|date:"Y-m-d"|default:"-" }} {% else %} N/A {% endif %}</li>
     </ul>
     <ul class="list-group list-group-flush ul-right">
-        <li class="list-group-item"><strong>Role</strong> <br> {{ member.get_role_display }}</li>
-        <li class="list-group-item"><strong>Duty</strong> <br> {{ member.duty.name }}</li>
-        <li class="list-group-item"><strong>Institute</strong> <br> {{ member.institute.name }}</li>
-        <li class="list-group-item"><strong>Group</strong> <br> {{ member.institute.group.name }}</li>
-        <li class="list-group-item"><strong>Country</strong> <br> {{ member.institute.group.country.name }}</li>
+        <li class="list-group-item"><strong>Role</strong> <br> {{ member.get_role_display|default:"-" }}</li>
+        <li class="list-group-item"><strong>Duty</strong> <br> {{ member.duty.name|default:"-" }}</li>
+        <li class="list-group-item"><strong>Institute</strong> <br> {{ member.institute.name|default:"-" }}</li>
+        <li class="list-group-item"><strong>Group</strong> <br> {{ member.institute.group.name|default:"-" }}</li>
+        <li class="list-group-item"><strong>Country</strong> <br> {{ member.institute.group.country.name|default:"-" }}</li>
     </ul>
 </div>
 
@@ -22,12 +22,12 @@
     <div class="cards">
         <div class="card">
             <div class="cardContent">
-                <strong>Authorship Start</strong> <br> {{ member.authorship_start|date:"Y-m-d" }}
+                <strong>Authorship Start</strong> <br> {{ member.authorship_start|date:"Y-m-d"|default:"-" }}
             </div>
         </div>
         <div class="card">
             <div class="cardContent">
-                <strong>Authorship End</strong> <br> {{ member.authorship_end|date:"Y-m-d" }}
+                <strong>Authorship End</strong> <br> {{ member.authorship_end|date:"Y-m-d"|default:"-" }}
             </div>
         </div>
     </div>
