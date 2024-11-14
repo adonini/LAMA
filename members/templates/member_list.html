@@ -22,6 +22,8 @@
                         <th class="text-center dark-text">Last Name</th>
                         <th class="text-center dark-text">Email</th>
                         <th class="text-center dark-text">Institute</th>
+                        <th class="text-center dark-text">Group</th>
+                        <th class="text-center dark-text">Country</th>
                         <th class="text-center dark-text">Membership Start</th>
                         <th class="text-center dark-text">Membership End</th>
                         <th class="text-center dark-text">Author</th>
@@ -37,12 +39,14 @@
                         <td class="align-center text-center light-text">{{ member.name|default:"-"  }}</td>
                         <td class="align-center text-center light-text">{{ member.surname|default:"-"  }}</td>
                         <td class="align-center text-center light-text">{{ member.primary_email|default:"-"  }}</td>
-                        <td class="align-center text-center light-text">{{ member.institute.name|default:"-"  }}</td>
-                        <td class="align-center text-center light-text">{{ member.start_date|date:"Y-m-d"|default:"-"  }}</td>
-                        <td class="align-center text-center light-text">{{ member.end_date|date:"Y-m-d"|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ member.institute_name|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ member.group_name|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ member.country_name|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ member.start_date|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ member.end_date|default:"-"  }}</td>
                         <td class="align-center text-center light-text">{{ member.is_author|yesno:"Yes,No" }}</td>
-                        <td class="align-center text-center light-text">{{ member.authorship_start|date:"Y-m-d"|default:"-"  }}</td>
-                        <td class="align-center text-center light-text">{{ member.authorship_end|date:"Y-m-d"|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ member.authorship_start|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ member.authorship_end|default:"-"  }}</td>
                         <td class="align-center text-center light-text d-flex flex-wrap justify-content-around">
                             <div class="d-flex">
                                 {% if user|has_group:"admin" %}
@@ -67,6 +71,9 @@
 {% block ScriptBlock %}
 <script>
     let institutes = {{ institutes|safe }};
+    let groups = {{ groups|safe }};
+    let countries = {{ countries|safe }};
+    console.log(groups);
     $(function() {
         $('#add_new').click(function() {
             // Create the header for the modal
@@ -149,7 +156,7 @@
                 }
             ],
             columnDefs: [
-                { orderable: false, targets: [0, 3, 7, 10] }, // Disable ordering for specific columns
+                { orderable: false, targets: [0, 3, 9, 12] }, // Disable ordering for specific columns
                 {
                     targets: 0,
                     searchable: false,
@@ -167,7 +174,7 @@
         });
         // Define custom filter elements and behavior
         let data = table.data().toArray()
-        let filterLabels = ['Institute: '];
+        let filterLabels = ['Country: ', 'Group: ', 'Institute: '];
         let mainDiv = document.querySelector('.top1Start');
         let generalDiv = document.createElement('div');
         mainDiv.classList.add('filters');
@@ -195,6 +202,40 @@
                     let option = document.createElement('option');
                     option.value = institute.name;
                     option.appendChild(document.createTextNode(institute.name));
+                    input.appendChild(option);
+                }
+            }
+            // Filter by group
+            if (label.toLowerCase().includes('group')) {
+                input.addEventListener('change', function(e) {
+                    if (e.target.value != 'All') {
+                        table.column(5).search(e.target.value).draw();
+                    } else {
+                        table.column(5).search('').draw();
+                    }
+                });
+                // Populate options with Groups
+                for (let group of groups) {
+                    let option = document.createElement('option');
+                    option.value = group.name;
+                    option.appendChild(document.createTextNode(group.name));
+                    input.appendChild(option);
+                }
+            }
+            // Filter by country
+            if (label.toLowerCase().includes('country')) {
+                input.addEventListener('change', function(e) {
+                    if (e.target.value != 'All') {
+                        table.column(6).search(e.target.value).draw();
+                    } else {
+                        table.column(6).search('').draw();
+                    }
+                });
+                // Populate options with country
+                for (let country of countries) {
+                    let option = document.createElement('option');
+                    option.value = country.name;
+                    option.appendChild(document.createTextNode(country.name));
                     input.appendChild(option);
                 }
             }

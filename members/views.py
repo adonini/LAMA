@@ -98,32 +98,26 @@ class MemberList(LoginRequiredMixin, View):
             'end_date',
             'role',
             'institute_id',
+            'is_author',
+            'authorship_start',
+            'authorship_end'
         ))
 
         # fetch related group and country for each member
         for member in member_list:
             institute = Institute.objects.filter(id=member['institute_id']).select_related('group__country').first()
-            if institute:
-                # Add group and country data to each member
-                member['institute_name'] = institute.name
-                member['group_name'] = institute.group.name if institute.group else None
-                member['country_name'] = institute.group.country.name if institute.group and institute.group.country else None
-            else:
-                # If no institute found, assign default values
-                member['institute_name'] = 'N/A'
-                member['group_name'] = 'N/A'
-                member['country_name'] = 'N/A'
-
-        # Format dates
-        for member in member_list:
+            member['group_name'] = institute.group.name  # If group exists, assign its name
+            member['country_name'] = institute.group.country.name if institute.group and institute.group.country else 'No Country'
+            member['institute_name'] = institute.name
             member['start_date'] = str(member['start_date'])
             member['end_date'] = str(member['end_date']) if member['end_date'] else 'N/A'
-
+            member['authorship_start'] = member['authorship_start'].strftime('%Y-%m-%d') if member['authorship_start'] else 'N/A'
+            member['authorship_end'] = member['authorship_end'].strftime('%Y-%m-%d') if member['authorship_end'] else 'N/A'
         member_json = json.dumps(member_list)
 
         context = {
             'page_title': 'Member List',
-            'members': members,
+            'members': member_list,
             'member_data': member_json,
             'duties': list(Duty.objects.order_by('name').values('id', 'name')),
             'institutes': list(Institute.objects.order_by('name').values('id', 'name')),
@@ -191,6 +185,7 @@ class AddMember(LoginRequiredMixin, View):
         context['institutes'] = Institute.objects.all()
         # Return the context to the template for rendering
         return render(request, 'manage_member.html', context)
+
     def post(self, request, pk=None):
         resp = {'status': 'failed', 'msg': ''}
         currentUser = User.objects.get(username=request.user)
@@ -368,6 +363,21 @@ class Statistics(TemplateView):
                 'author_percentage': author_percentage,
             })
 
+        # Get lists for filtering options
+        country_list = Country.objects.values_list('name', flat=True).order_by('name')
+        # Retrieve all countries and their groups
+        countries_groups = {
+            country.name: list(Group.objects.filter(country=country).values_list('name', flat=True))
+            for country in Country.objects.all()
+        }
+
+        # Retrieve all groups and their institutes
+        groups_institutes = {
+            group.name: list(Institute.objects.filter(group=group).values_list('name', flat=True))
+            for group in Group.objects.all()
+        }
+
+
         context.update({
             'total_members': total_members,
             'total_authors': total_authors,
@@ -378,5 +388,8 @@ class Statistics(TemplateView):
             'years_list': years_list,
             'members_count_list': members_count_list,  # Monthly counts for members
             'authors_count_list': authors_count_list,  # Monthly counts for authors
+            'country_list': country_list,
+            'countries_groups': countries_groups,
+            'groups_institutes': groups_institutes,
         })
         return context
