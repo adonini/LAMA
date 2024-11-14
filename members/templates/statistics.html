@@ -1,0 +1,249 @@
+{% extends 'login/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-1">
+    <!-- Row for Stats Overview and Histogram -->
+    <div class="row">
+        <!-- Stats Table Column (50% width) -->
+        <div class="col-md-6">
+            <!-- Total Members and Authors Overview -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card shadow text-center">
+                        <div class="card-body">
+                            <h5 class="card-title font-weight-bold">Total Members</h5>
+                            <p class="card-text display-6">{{ total_members }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card shadow text-center">
+                        <div class="card-body">
+                            <h5 class="card-title font-weight-bold">Total Authors</h5>
+                            <p class="card-text display-6">{{ total_authors }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Members and Authors by Country Table -->
+            <div class="table-responsive">
+                <table class="table table-striped text-center">
+                    <thead>
+                        <tr>
+                            <th>Country</th>
+                            <th>Members</th>
+                            <th>Authors</th>
+                            <th>% of Total Members</th>
+                            <th>% of Total Authors</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in countries_data %}
+                        <tr>
+                            <td>{{ data.country }}</td>
+                            <td>{{ data.members_count }}</td>
+                            <td>{{ data.authors_count }}</td>
+                            <td>{{ data.member_percentage|floatformat:2 }}%</td>
+                            <td>{{ data.author_percentage|floatformat:2 }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Histogram Column (50% width) -->
+        <div class="col-md-6">
+            <!-- First row for the main chart -->
+            <div class="card shadow text-center mb-4" style="height: 450px;">
+                <div class="card-body p-2"> <!-- Remove padding for tight fit -->
+                    <h5 class="card-title font-weight-bold p-1">Members and Authors Over the Years</h5>
+                    <canvas id="membersAuthorsHistogram"></canvas>
+                </div>
+            </div>
+
+            <!-- Second row for the monthly averages chart -->
+            <div class="card shadow text-center mb-4" style="height: 550px;">
+                <div class="card-body p-2"> <!-- Remove padding for tight fit -->
+                    <h5 class="card-title font-weight-bold p-1">Members and Authors Average per Month</h5>
+
+                    <!-- Year Selector -->
+                    <select id="yearSelector" class="form-select mb-3">
+                        <option value="" disabled>Select a Year</option>
+                        {% for year in years_list %}
+                            <option value="{{ year }}">{{ year }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <!-- Chart Container -->
+                    <canvas id="monthlyMembersAuthorsHistogram"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var years = {{ years_list|safe }};
+        var members = {{ member_averages|safe }};  // yearly average
+        var authors = {{ author_averages|safe }};  // yearly average
+        var monthlyMembersData = {{ members_count_list|safe }};
+        var monthlyAuthorsData = {{ authors_count_list|safe }};
+        var currentYear = new Date().getFullYear();
+
+        // Round the member and author averages to no decimal places
+        members = members.map(function(item) {
+            return Math.round(item);
+        });
+        authors = authors.map(function(item) {
+            return Math.round(item);
+        });
+
+        //console.log("Years:", years);
+        //console.log("Member Averages:", members);
+        //console.log("Author Averages:", authors);
+        //console.log("Monthly Members Count List:", monthlyMembersData);
+        //console.log("Monthly Authors Count List:", monthlyAuthorsData);
+
+        // First chart (Average members and authors over the years)
+        const ctx1 = document.getElementById('membersAuthorsHistogram').getContext('2d');
+        new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: years,
+                datasets: [
+                    {
+                        label: 'Average Members Count',
+                        data: members,
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        barPercentage: 0.4,
+                        categoryPercentage: 1.0,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Average Authors Count',
+                        data: authors,
+                        backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                        barPercentage: 0.4,
+                        categoryPercentage: 1.0,
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Year'
+                        },
+                        stacked: false, // Remove stacking for overlapping bars
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Count'
+                        },
+                        stacked: false // Remove stacking for overlapping bars
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                }
+            }
+        });
+
+        // Second chart (montlhy members and authors counts over each year)
+        // Set default year in the dropdown
+        var yearSelector = document.getElementById('yearSelector');
+        if (years.includes(currentYear)) {
+            yearSelector.value = currentYear;
+            loadMonthlyChart(currentYear); // Call the function to load the chart for the default year
+        }
+
+        // Function to load the monthly chart
+        function loadMonthlyChart(selectedYear) {
+            const yearIndex = years.indexOf(selectedYear);
+            if (yearIndex !== -1) {
+                const monthlyMembers = monthlyMembersData[yearIndex];
+                const monthlyAuthors = monthlyAuthorsData[yearIndex];
+
+                // If the chart already exists, destroy it before creating a new one
+                if (window.monthlyChart) {
+                    window.monthlyChart.destroy();
+                }
+
+                const ctx2 = document.getElementById('monthlyMembersAuthorsHistogram').getContext('2d');
+                window.monthlyChart = new Chart(ctx2, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                        datasets: [
+                            {
+                                label: 'Monthly Members Count',
+                                data: monthlyMembers,
+                                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                                barPercentage: 0.4,
+                                categoryPercentage: 1.0,
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Monthly Authors Count',
+                                data: monthlyAuthors,
+                                backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                                barPercentage: 0.4,
+                                categoryPercentage: 1.0,
+                                borderColor: 'rgba(153, 102, 255, 1)',
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Month'
+                                },
+                                stacked: false
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Count'
+                                },
+                                stacked: false
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Event listener for the dropdown selection
+        yearSelector.addEventListener('change', function(e) {
+            const selectedYear = parseInt(e.target.value);
+            loadMonthlyChart(selectedYear);
+        });
+    });
+</script>
+{% endblock content %}

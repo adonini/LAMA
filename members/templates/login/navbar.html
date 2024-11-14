@@ -14,6 +14,11 @@
                             <i class="fa-solid fa-users me-1"></i> Members
                         </a>
                     </li>
+                    <li class="nav-item me-4">
+                        <a class="btn border-white rounded-pill text-white {% if request.path == '/statistics/' %}selected{% endif %}" href="{% url 'statistics' %}">
+                            <i class="fa-solid fa-chart-column me-1"></i> Statistics
+                        </a>
+                    </li>
                 </ul>
             </div>
 
