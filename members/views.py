@@ -89,30 +89,42 @@ class Index(TemplateView):
 
 class MemberList(LoginRequiredMixin, View):
     def get(self, request):
-        members = Member.objects.all().select_related('institute')
-        member_list = list(members.values(
-            'name',
-            'surname',
-            'primary_email',
-            'start_date',
-            'end_date',
-            'role',
-            'institute_id',
-            'is_author',
-            'authorship_start',
-            'authorship_end'
-        ))
+        # Fetch all members with related data
+        members = Member.objects.all().select_related('institute', 'institute__group__country')
+        member_list = []
+        today = date.today()
 
-        # fetch related group and country for each member
-        for member in member_list:
-            institute = Institute.objects.filter(id=member['institute_id']).select_related('group__country').first()
-            member['group_name'] = institute.group.name  # If group exists, assign its name
-            member['country_name'] = institute.group.country.name if institute.group and institute.group.country else 'No Country'
-            member['institute_name'] = institute.name
-            member['start_date'] = str(member['start_date'])
-            member['end_date'] = str(member['end_date']) if member['end_date'] else None
-            member['authorship_start'] = member['authorship_start'].strftime('%Y-%m-%d') if member['authorship_start'] else None
-            member['authorship_end'] = member['authorship_end'].strftime('%Y-%m-%d') if member['authorship_end'] else None
+        for member in members:
+            # Calculate is_author status
+            # Initialize as False
+            is_author = False
+
+            # Authorship start must exist to define is_author
+            if member.authorship_start:
+                if (member.authorship_start < today and (member.authorship_end is None or member.authorship_end > today)):
+                    is_author = True
+
+            # Update and save the is_author field only if it has changed
+            if member.is_author != is_author:
+                member.is_author = is_author
+                member.save()
+
+            # Prepare the dictionary for JSON serialization
+            member_list.append({
+                'name': member.name,
+                'surname': member.surname,
+                'primary_email': member.primary_email,
+                'start_date': str(member.start_date),
+                'end_date': str(member.end_date) if member.end_date else None,
+                'role': member.role,
+                'is_author': member.is_author,
+                'authorship_start': member.authorship_start.strftime('%Y-%m-%d') if member.authorship_start else None,
+                'authorship_end': member.authorship_end.strftime('%Y-%m-%d') if member.authorship_end else None,
+                'group_name': member.institute.group.name if member.institute and member.institute.group else 'No Group',
+                'country_name': member.institute.group.country.name if member.institute and member.institute.group and member.institute.group.country else 'No Country',
+                'institute_name': member.institute.name if member.institute else 'No Institute',
+            })
+
         member_json = json.dumps(member_list)
 
         context = {
