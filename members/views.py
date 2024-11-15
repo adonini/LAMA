@@ -110,9 +110,9 @@ class MemberList(LoginRequiredMixin, View):
             member['country_name'] = institute.group.country.name if institute.group and institute.group.country else 'No Country'
             member['institute_name'] = institute.name
             member['start_date'] = str(member['start_date'])
-            member['end_date'] = str(member['end_date']) if member['end_date'] else 'N/A'
-            member['authorship_start'] = member['authorship_start'].strftime('%Y-%m-%d') if member['authorship_start'] else 'N/A'
-            member['authorship_end'] = member['authorship_end'].strftime('%Y-%m-%d') if member['authorship_end'] else 'N/A'
+            member['end_date'] = str(member['end_date']) if member['end_date'] else None
+            member['authorship_start'] = member['authorship_start'].strftime('%Y-%m-%d') if member['authorship_start'] else None
+            member['authorship_end'] = member['authorship_end'].strftime('%Y-%m-%d') if member['authorship_end'] else None
         member_json = json.dumps(member_list)
 
         context = {
