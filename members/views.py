@@ -111,6 +111,7 @@ class MemberList(LoginRequiredMixin, View):
 
             # Prepare the dictionary for JSON serialization
             member_list.append({
+                'pk': member.pk,
                 'name': member.name,
                 'surname': member.surname,
                 'primary_email': member.primary_email,

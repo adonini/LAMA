@@ -273,7 +273,6 @@
         top1End.appendChild(clearFilterButton);
         $(document).on('click', '.item-data', function(e) {
             let id = e.target.dataset.id
-            console.log(e.target)
             let baseUrl = "{% url 'member-record' 0 %}";
             let finalUrl = baseUrl.replace('0', id);
             let headerDiv = document.createElement('div')
@@ -327,7 +326,6 @@
             let id = e.target.dataset.id
             let baseUrl = "{% url 'manage-member-pk' 0 %}";
             let finalUrl = baseUrl.replace('0', id);
-            console.log(finalUrl)
             let modalFooter = document.querySelector('.modal-footer')
             let headerDiv = document.createElement('div')
             headerDiv.classList.add("cardHeader")
