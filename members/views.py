@@ -83,6 +83,7 @@ class Index(TemplateView):
             'total_countries': total_countries,
             'institutes_per_country': institutes_per_country,
             'groups_per_country': groups_per_country,
+            'current_date': datetime.now().strftime('%B %d, %Y')
         })
         return context
 
@@ -137,6 +138,7 @@ class MemberList(LoginRequiredMixin, View):
             'groups': list(Group.objects.order_by('name').values('id', 'name')),
             'countries': list(Country.objects.order_by('name').values('id', 'name')),
             'userGroups': list(request.user.groups.values_list('name', flat=True)),
+            'current_date': datetime.now().strftime('%B %d, %Y')
         }
 
         # Render the template with context data
@@ -390,7 +392,6 @@ class Statistics(TemplateView):
             for group in Group.objects.all()
         }
 
-
         context.update({
             'total_members': total_members,
             'total_authors': total_authors,
@@ -404,5 +405,6 @@ class Statistics(TemplateView):
             'country_list': country_list,
             'countries_groups': countries_groups,
             'groups_institutes': groups_institutes,
+            'current_date': datetime.now().strftime('%B %d, %Y')
         })
         return context
