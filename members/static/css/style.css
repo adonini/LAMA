@@ -287,3 +287,28 @@ i{
 button>p{
     margin: 0;
 }
+
+/* */
+/* Collapsable cards icon*/
+/* */
+.clickable-icon {
+    transition: transform 0.3s ease;
+}
+
+.clickable-icon.rotated {
+    transform: rotate(180deg);
+}
+
+/* Custom CSS for larger and bolder numbers */
+.large-bold-number {
+    font-size: 2.5rem;
+    font-weight: 900; /* Bolder weight */
+}
+
+.bold-number2 {
+    font-weight: 600; /* Bolder weight */
+}
+
+.large {
+    font-size: 1.5rem;
+}

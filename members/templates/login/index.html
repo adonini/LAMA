@@ -3,7 +3,7 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-<div class="container-1 mt-1">
+<div class="container mt-4">
     <div class="row justify-content-center">
         {% if not user.is_authenticated %}
         <div class="col-12 d-flex justify-content-center align-items-center" style="height: 60vh;">
@@ -17,104 +17,114 @@
         {% endif %}
 
         {% if user.is_authenticated %}
-        <!-- Summary Cards (Total Members, Authors, etc.) -->
-        <div class="col-12 d-flex justify-content-center" style="margin-top: 5px;">
-            <div class="row w-100">
-                <!-- Total Members Card -->
-                <div class="col-md-3 mb-4">
-                    <div class="card shadow" style="border: 4px solid #007bff;">
+        <!-- Welcome Text -->
+        <div class="col-12 text-center mb-4">
+            <h1>Welcome to LAMA!</h1>
+            <p><strong>LST Administration of Members and Authors</strong></p>
+            <p class="fw-light">Below is an overview of the collaboration's current status:</p>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="col-12">
+            <div class="row justify-content-center">
+                <!-- First Row with 3 Cards -->
+                <div class="col-md-4 col-sm-6 mb-4">
+                    <div class="card shadow">
                         <div class="card-header custom-card-header text-center">
-                            Members
+                            <i class="fa-solid fa-users"></i> Members
                         </div>
                         <div class="card-body text-center">
-                            <p class="card-text"><strong>{{ total_members }}</strong> # Total</p>
+                            <p class="card-text"><strong class="large-bold-number">{{ total_members }}</strong></p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Total Authors Card -->
-                <div class="col-md-3 mb-4">
-                    <div class="card shadow" style="border: 4px solid #28a745;">
+                <div class="col-md-4 col-sm-6 mb-4">
+                    <div class="card shadow">
                         <div class="card-header custom-card-header text-center">
-                            Authors
+                            <i class="fa-regular fa-pen-to-square"></i> Authors
                         </div>
                         <div class="card-body text-center">
-                            <p class="card-text"><strong>{{ total_authors }}</strong> # Total</p>
+                            <p class="card-text"><strong class="large-bold-number">{{ total_authors }}</strong></p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Members Becoming Authors in 6 Months Card -->
-                <div class="col-md-3 mb-4">
-                    <div class="card shadow" style="border: 4px solid #ffc107;">
+                <div class="col-md-4 col-sm-6 mb-4">
+                    <div class="card shadow">
+                        <div class="card-header custom-card-header text-center">
+                            <i class="fa-regular fa-flag"></i> Countries
+                        </div>
+                        <div class="card-body text-center">
+                            <p class="card-text"><strong class="large-bold-number">{{ total_countries }}</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Second Row with 2 Cards -->
+            <div class="row justify-content-center">
+                <div class="col-md-4 col-sm-12 mb-4">
+                    <div class="card shadow">
                         <div class="card-header custom-card-header text-center">
                             Becoming Authors in 6 Months
                         </div>
                         <div class="card-body text-center">
-                            <p class="card-text"><strong>{{ members_becoming_authors }}</strong> # Total</p>
+                            <p class="card-text"><strong class="large-bold-number">{{ members_becoming_authors }}</strong></p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Non-members with Authorship Card -->
-                <div class="col-md-3 mb-4">
-                    <div class="card shadow" style="border: 4px solid #dc3545;">
+                <div class="col-md-4 col-sm-12 mb-4">
+                    <div class="card shadow">
                         <div class="card-header custom-card-header text-center">
                             Non-members with Authorship
                         </div>
                         <div class="card-body text-center">
-                            <p class="card-text"><strong>{{ non_members_with_authorship }}</strong> # Total</p>
+                            <p class="card-text"><strong class="large-bold-number">{{ non_members_with_authorship }}</strong></p>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Second set of cards (Countries, Groups, Institutes) -->
-        <div class="col-12 d-flex justify-content-center">
-            <div class="row w-100">
-                <!-- Total Countries Card -->
-                <div class="col-md-3 col-sm-6 mb-4">
-                    <div class="card shadow" style="border: 4px solid #17a2b8;">
+            <!-- Third Row with 2 Cards -->
+            <div class="row justify-content-center">
+                <!-- Groups Card -->
+                <div class="col-md-5 col-sm-12 mb-4">
+                    <div class="card shadow">
                         <div class="card-header custom-card-header text-center">
-                            Countries
+                            <i class="fa-solid fa-people-roof"></i> Groups
                         </div>
                         <div class="card-body text-center">
-                            <p class="card-text"><strong>{{ total_countries }}</strong> # Total</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-12 d-flex justify-content-center">
-            <div class="row w-100">
-                <!-- Total Groups Card with Breakdown per Country -->
-                <div class="col-md-6 col-sm-12 mb-4">
-                    <div class="card shadow" style="border: 4px solid #93088D;">
-                        <div class="card-header custom-card-header text-center">
-                            Groups
-                        </div>
-                        <div class="card-body text-center">
-                            <p class="card-text"><strong>{{ total_groups }}</strong> # Total</p>
-                            {% for country, count in groups_per_country.items %}
-                                <p class="card-text"><strong>{{ count }}</strong> # in {{ country }}</p>
-                            {% endfor %}
+                            <p class="card-text"><strong class="large-bold-number">{{ total_groups }}</strong></p>
+                            <!-- Arrow Icon as Toggle Button -->
+                            <button class="fa-solid fa-chevron-down clickable-icon" id="toggleGroups" style="cursor: pointer;" type="button" data-bs-toggle="collapse" data-bs-target="#groupsBreakdown" aria-expanded="false" aria-controls="groupsBreakdown"></button>
+                            <!-- Collapsible Content -->
+                            <div class="collapse mt-3" id="groupsBreakdown">
+                                {% for country, count in groups_per_country.items %}
+                                    <p class="card-text large mb-0">{{ country }}: <strong class="bold-number2">{{ count }}</strong> </p>
+                                {% endfor %}
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Total Institutes Card with Breakdown per Country -->
-                <div class="col-md-6 col-sm-12 mb-4">
-                    <div class="card shadow" style="border: 4px solid #081393;">
+                <!-- Institutes Card -->
+                <div class="col-md-5 col-sm-12 mb-4">
+                    <div class="card shadow">
                         <div class="card-header custom-card-header text-center">
-                            Institutes
+                            <i class="fa-solid fa-building-columns"></i> Institutes
                         </div>
                         <div class="card-body text-center">
-                            <p class="card-text"><strong>{{ total_institutes }}</strong> # Total</p>
-                            {% for country, count in institutes_per_country.items %}
-                                <p class="card-text"><strong>{{ count }}</strong> # in {{ country }}</p>
-                            {% endfor %}
+                            <p class="card-text"><strong class="large-bold-number">{{ total_institutes }}</strong></p>
+                            <!-- Arrow Icon as Toggle Button -->
+                            <button class="fa-solid fa-chevron-down clickable-icon" id="toggleInstitutes" style="cursor: pointer;" type="button" data-bs-toggle="collapse" data-bs-target="#institutesBreakdown" aria-expanded="false" aria-controls="institutesBreakdown"></button>
+                            <!-- Collapsible Content -->
+                            <div class="collapse mt-3" id="institutesBreakdown">
+                                {% for country, count in institutes_per_country.items %}
+                                    <p class="card-text large mb-0">{{ country }}: <strong class="bold-number2">{{ count }}</strong></p>
+                                {% endfor %}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -123,4 +133,28 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+    $(document).ready(function() {
+        // Adding collapse event listeners to change the icon rotation for Institutes
+        $('#toggleInstitutes').on('click', function () {
+            var isExpanded = $('#institutesBreakdown').hasClass('show');
+            if (isExpanded) {
+                $(this).removeClass('rotated'); // Collapse
+            } else {
+                $(this).addClass('rotated'); // Expand
+            }
+        });
+
+        // Adding collapse event listeners to change the icon rotation for Groups
+        $('#toggleGroups').on('click', function () {
+            var isExpanded = $('#groupsBreakdown').hasClass('show');
+            if (isExpanded) {
+                $(this).removeClass('rotated'); // Collapse
+            } else {
+                $(this).addClass('rotated'); // Expand
+            }
+        });
+    });
+</script>
 {% endblock content %}
