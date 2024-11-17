@@ -96,13 +96,20 @@
                             <i class="fa-solid fa-people-roof"></i> Groups
                         </div>
                         <div class="card-body text-center">
-                            <p class="card-text"><strong class="large-bold-number">{{ total_groups }}</strong></p>
-                            <!-- Arrow Icon as Toggle Button -->
-                            <button class="fa-solid fa-chevron-down clickable-icon" id="toggleGroups" style="cursor: pointer;" type="button" data-bs-toggle="collapse" data-bs-target="#groupsBreakdown" aria-expanded="false" aria-controls="groupsBreakdown"></button>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <!-- Number centered -->
+                                <p class="card-text mb-0 flex-grow-1 text-center">
+                                    <strong class="large-bold-number">{{ total_groups }}</strong>
+                                </p>
+                                <!-- Arrow Icon aligned to the right -->
+                                <button class="fa-solid fa-chevron-down clickable-icon ms-2" id="toggleGroups" style="cursor: pointer;" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#groupsBreakdown" aria-expanded="false" aria-controls="groupsBreakdown">
+                                </button>
+                            </div>
                             <!-- Collapsible Content -->
                             <div class="collapse mt-3" id="groupsBreakdown">
                                 {% for country, count in groups_per_country.items %}
-                                    <p class="card-text large mb-0">{{ country }}: <strong class="bold-number2">{{ count }}</strong> </p>
+                                    <p class="card-text large mb-0">{{ country }}: <strong class="bold-number2">{{ count }}</strong></p>
                                 {% endfor %}
                             </div>
                         </div>
@@ -116,9 +123,16 @@
                             <i class="fa-solid fa-building-columns"></i> Institutes
                         </div>
                         <div class="card-body text-center">
-                            <p class="card-text"><strong class="large-bold-number">{{ total_institutes }}</strong></p>
-                            <!-- Arrow Icon as Toggle Button -->
-                            <button class="fa-solid fa-chevron-down clickable-icon" id="toggleInstitutes" style="cursor: pointer;" type="button" data-bs-toggle="collapse" data-bs-target="#institutesBreakdown" aria-expanded="false" aria-controls="institutesBreakdown"></button>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <!-- Number centered -->
+                                <p class="card-text mb-0 flex-grow-1 text-center">
+                                    <strong class="large-bold-number">{{ total_institutes }}</strong>
+                                </p>
+                                <!-- Arrow Icon aligned to the right -->
+                                <button class="fa-solid fa-chevron-down clickable-icon ms-2" id="toggleInstitutes" style="cursor: pointer;" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#institutesBreakdown" aria-expanded="false" aria-controls="institutesBreakdown">
+                                </button>
+                            </div>
                             <!-- Collapsible Content -->
                             <div class="collapse mt-3" id="institutesBreakdown">
                                 {% for country, count in institutes_per_country.items %}
@@ -134,26 +148,20 @@
     </div>
 </div>
 
-<script>
-    $(document).ready(function() {
-        // Adding collapse event listeners to change the icon rotation for Institutes
-        $('#toggleInstitutes').on('click', function () {
-            var isExpanded = $('#institutesBreakdown').hasClass('show');
-            if (isExpanded) {
-                $(this).removeClass('rotated'); // Collapse
-            } else {
-                $(this).addClass('rotated'); // Expand
-            }
+<<script>
+    $(document).ready(function () {
+        // Handle Institutes toggle
+        $('#institutesBreakdown').on('shown.bs.collapse', function () {
+            $('#toggleInstitutes').addClass('rotated'); // Expand (Arrow up)
+        }).on('hidden.bs.collapse', function () {
+            $('#toggleInstitutes').removeClass('rotated'); // Collapse (Arrow down)
         });
 
-        // Adding collapse event listeners to change the icon rotation for Groups
-        $('#toggleGroups').on('click', function () {
-            var isExpanded = $('#groupsBreakdown').hasClass('show');
-            if (isExpanded) {
-                $(this).removeClass('rotated'); // Collapse
-            } else {
-                $(this).addClass('rotated'); // Expand
-            }
+        // Handle Groups toggle
+        $('#groupsBreakdown').on('shown.bs.collapse', function () {
+            $('#toggleGroups').addClass('rotated'); // Expand (Arrow up)
+        }).on('hidden.bs.collapse', function () {
+            $('#toggleGroups').removeClass('rotated'); // Collapse (Arrow down)
         });
     });
 </script>
