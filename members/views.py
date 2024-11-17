@@ -13,9 +13,10 @@ from django.http import HttpResponse
 import json
 import logging
 from django.utils import timezone
-from datetime import datetime, timedelta
+from datetime import datetime
 from django.db.models import Q
-
+from dateutil.relativedelta import relativedelta
+from django.utils.timezone import now
 
 logger = logging.getLogger(__name__)
 
@@ -56,11 +57,18 @@ class Index(TemplateView):
             Q(authorship_end__isnull=True) | Q(authorship_end__gt=today)
         ).count()
         # Calculate a date six months ago from today, approximating a month as 30 days
-        six_months_ago = timezone.now() - timedelta(days=6 * 30)
+        six_months_ago = timezone.now() - relativedelta(months=6)
+        six_months_future = timezone.now() + relativedelta(months=6)
         # Count of members who joined within the last six months and have an authorship start date
         members_becoming_authors = Member.objects.filter(start_date__gte=six_months_ago, authorship_start__isnull=False).count()
         # Count of non-members (with an end date in the past) who still have an active authorship period (authorship end date is in the future).
         non_members_with_authorship = Member.objects.filter(end_date__lt=timezone.now(), authorship_end__gt=today).count()
+        # Count of all people leaving auth in the next 6 months
+        people_leaving_authorship = Member.objects.filter(authorship_end__gt=today, authorship_end__lt=six_months_future).count()
+        # Count members contributing to CF
+        cf = Member.objects.filter(authorship_start__lte=six_months_future).filter(
+            Q(authorship_end__isnull=True) | Q(authorship_end__gt=six_months_future)
+        ).count()
         total_institutes = Institute.objects.count()
         total_groups = Group.objects.count()
         total_countries = Country.objects.count()
@@ -78,6 +86,8 @@ class Index(TemplateView):
             'total_authors': total_authors,
             'members_becoming_authors': members_becoming_authors,
             'non_members_with_authorship': non_members_with_authorship,
+            'people_leaving_authorship': people_leaving_authorship,
+            'cf': cf,
             'total_institutes': total_institutes,
             'total_groups': total_groups,
             'total_countries': total_countries,
@@ -94,6 +104,7 @@ class MemberList(LoginRequiredMixin, View):
         members = Member.objects.all().select_related('institute', 'institute__group__country')
         member_list = []
         today = date.today()
+        six_months_future = (now() + relativedelta(months=6)).date()  # Convert to date
 
         for member in members:
             # Calculate is_author status
@@ -110,6 +121,9 @@ class MemberList(LoginRequiredMixin, View):
                 member.is_author = is_author
                 member.save()
 
+            # Check if the member is contributing to CF
+            is_cf = (member.authorship_start and member.authorship_start <= six_months_future and (member.authorship_end is None or member.authorship_end > six_months_future))
+
             # Prepare the dictionary for JSON serialization
             member_list.append({
                 'pk': member.pk,
@@ -120,6 +134,7 @@ class MemberList(LoginRequiredMixin, View):
                 'end_date': str(member.end_date) if member.end_date else None,
                 'role': member.role,
                 'is_author': member.is_author,
+                'is_cf': is_cf,
                 'authorship_start': member.authorship_start.strftime('%Y-%m-%d') if member.authorship_start else None,
                 'authorship_end': member.authorship_end.strftime('%Y-%m-%d') if member.authorship_end else None,
                 'group_name': member.institute.group.name if member.institute and member.institute.group else 'No Group',

@@ -26,6 +26,7 @@
                         <th class="text-center dark-text">Country</th>
                         <th class="text-center dark-text">Membership Start</th>
                         <th class="text-center dark-text">Membership End</th>
+                        <th class="text-center dark-text">CF</th>
                         <th class="text-center dark-text">Author</th>
                         <th class="text-center dark-text">Authorship Start</th>
                         <th class="text-center dark-text">Authorship End</th>
@@ -44,6 +45,7 @@
                         <td class="align-center text-center light-text">{{ member.country_name|default:"-"  }}</td>
                         <td class="align-center text-center light-text">{{ member.start_date|default:"-"  }}</td>
                         <td class="align-center text-center light-text">{{ member.end_date|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ member.is_cf|yesno:"Yes,No" }}</td>
                         <td class="align-center text-center light-text">{{ member.is_author|yesno:"Yes,No" }}</td>
                         <td class="align-center text-center light-text">{{ member.authorship_start|default:"-"  }}</td>
                         <td class="align-center text-center light-text">{{ member.authorship_end|default:"-"  }}</td>
