@@ -72,7 +72,6 @@ class Index(TemplateView):
         total_institutes = Institute.objects.count()
         total_groups = Group.objects.count()
         total_countries = Country.objects.count()
-
         # Count institutes and groups per country
         institutes_per_country = {}
         groups_per_country = {}
@@ -144,6 +143,18 @@ class MemberList(LoginRequiredMixin, View):
 
         member_json = json.dumps(member_list)
 
+        # Data for the filters
+        countries = Country.objects.prefetch_related('groups__institutes').order_by('name')
+        filters_data = {
+            country.name: {
+                "groups": list(country.groups.values_list('name', flat=True)),
+                "institutes": list(
+                    Institute.objects.filter(group__country=country).values_list('name', flat=True)
+                )
+            }
+            for country in countries
+        }
+
         context = {
             'page_title': 'Member List',
             'members': member_list,
@@ -153,6 +164,7 @@ class MemberList(LoginRequiredMixin, View):
             'groups': list(Group.objects.order_by('name').values('id', 'name')),
             'countries': list(Country.objects.order_by('name').values('id', 'name')),
             'userGroups': list(request.user.groups.values_list('name', flat=True)),
+            'filters': filters_data,
             'current_date': datetime.now().strftime('%B %d, %Y')
         }
 
