@@ -131,37 +131,18 @@
         });
         let table = $('#member-list').DataTable({
             dom: '<"top1"<"top1Start"><"top1End"Bf>>t<"bottom"<"bottomStart"i><"bottomCenter"l><"bottomEnd"p>>',
-            buttons: [
-                {
-                    extend: 'copy',
-                    exportOptions: {
-                        columns: ':not(:last-child)' // Exclude the last column (Actions/Details)
-                    }
+            buttons: [{extend: 'copy', exportOptions: {columns: ':not(:last-child)'} // Exclude the last column (Actions/Details)
                 },
-                {
-                    extend: 'csv',
-                    exportOptions: {
-                        columns: ':not(:last-child)'
-                    }
+                {extend: 'csv', exportOptions: {columns: ':not(:last-child)'}
                 },
-                {
-                    extend: 'excel',
-                    exportOptions: {
-                        columns: ':not(:last-child)'
-                    }
+                {extend: 'excel',exportOptions: {columns: ':not(:last-child)'}
                 },
-                {
-                    extend: 'print',
-                    exportOptions: {
-                        columns: ':not(:last-child)'
-                    }
+                {extend: 'print',exportOptions: {columns: ':not(:last-child)'}
                 }
             ],
             columnDefs: [
-                { orderable: false, targets: [0, 3, 9, 12] }, // Disable ordering for specific columns
-                {
-                    targets: 0,
-                    searchable: false,
+                { orderable: false, targets: [0, 3, 9, 10, 12] }, // Disable ordering for specific columns
+                {targets: 0, searchable: false,
                     render: function(data, type, row, meta) {
                         return meta.row + meta.settings._iDisplayStart + 1; // Row numbering
                     }
@@ -174,18 +155,22 @@
                 });
             }
         });
+
         // Define custom filter elements and behavior
         let data = table.data().toArray()
-        let filterLabels = ['Country: ', 'Group: ', 'Institute: '];
+        let filterLabels = ['Country: ', 'Group: ', 'Institute: ', 'Author: ', 'CF: '];
         let mainDiv = document.querySelector('.top1Start');
         let generalDiv = document.createElement('div');
+        generalDiv.classList.add('d-flex', 'flex-wrap');
         mainDiv.classList.add('filters');
         for (let label of filterLabels) {
             let divInput = document.createElement('div');
             divInput.classList.add('filterInput');
+            divInput.style.marginBottom = '5px';
+            divInput.style.marginRight = '5px';
 
             let input = document.createElement('select');
-            input.classList.add('rounded-pill');
+            input.classList.add('rounded-pill', 'form-select');
             let defaultOption = document.createElement('option');
             defaultOption.appendChild(document.createTextNode('All'));
             input.appendChild(defaultOption);
@@ -242,6 +227,39 @@
                 }
             }
 
+            // Filter by Author
+            if (label.toLowerCase().includes('author')) {
+                input.addEventListener('change', function (e) {
+                    if (e.target.value !== 'All') {
+                        table.column(9).search(e.target.value).draw();
+                    } else {
+                        table.column(9).search('').draw();
+                    }
+                });
+                ['Yes', 'No'].forEach(authorStatus => {
+                    let option = document.createElement('option');
+                    option.value = authorStatus;
+                    option.appendChild(document.createTextNode(authorStatus));
+                    input.appendChild(option);
+                });
+            }
+
+            // Filter by CF
+            if (label.toLowerCase().includes('cf')) {
+                input.addEventListener('change', function (e) {
+                    if (e.target.value !== 'All') {
+                        table.column(10).search(e.target.value).draw();
+                    } else {
+                        table.column(10).search('').draw();
+                    }
+                });
+                ['Yes', 'No'].forEach(cfStatus => {
+                    let option = document.createElement('option');
+                    option.value = cfStatus;
+                    option.appendChild(document.createTextNode(cfStatus));
+                    input.appendChild(option);
+                });
+            }
             // Set up the label and input for each filter
             let inputLabel = document.createElement('label');
             inputLabel.appendChild(document.createTextNode(label));
@@ -273,26 +291,36 @@
             table.search('').draw();
         });
         top1End.appendChild(clearFilterButton);
+
         $(document).on('click', '.item-data', function(e) {
             let id = e.target.dataset.id
             let baseUrl = "{% url 'member-record' 0 %}";
             let finalUrl = baseUrl.replace('0', id);
+
+            // Create header for the modal
             let headerDiv = document.createElement('div')
             headerDiv.classList.add("cardHeader")
+
             let title = document.createElement('h4')
             title.classList.add('dark-text')
             title.innerHTML = "Member Information"
+
             let anchor = document.createElement('div')
             anchor.classList.add('btn', 'btn-danger', 'dark-text', 'close')
             anchor.addEventListener('click', (e)=>{
                 $('#uni_modal').modal('hide');
             })
-            let icon = document.createElement('i')
-            icon.classList.add('fa', 'fa-times')
-            anchor.appendChild(icon)
-            headerDiv.appendChild(title)
-            headerDiv.appendChild(anchor)
+            let icon = document.createElement('i');
+            icon.classList.add('fa', 'fa-times');
+            anchor.appendChild(icon);
+
+            headerDiv.appendChild(title);
+            headerDiv.appendChild(anchor);
+
+            // Open the modal
             uni_modal(headerDiv, finalUrl, 'modal-md')
+
+            // Configure the modal footer
             let ref = "{% url 'member_list' %}"
             let modalFooter = document.querySelector('.modal-footer')
             modalFooter.innerHTML = ''
