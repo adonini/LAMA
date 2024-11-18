@@ -5,12 +5,12 @@
 {% load humanize %}
 <div class="container-fluid">
     <div class="header position-relative d-flex align-items-center">
-        <div class="d-flex align-items-center w-100 mt-0 mb-2 ms-3">
-            {% comment %} {% if user|has_group:"admin" %} {% endcomment %}
+        <div class="d-flex align-items-center w-100 mt-0 mb-2">
+            {% if user|has_group:"admin" %}
             <div class="tools">
                 <button type="button" class="btn-new-member" id='add_new'><i class="fa fa-plus"></i> New Member</button>
             </div>
-            {% comment %} {% endif %} {% endcomment %}
+            {% endif %}
         </div>
     </div>
     <div class="body">

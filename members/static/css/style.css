@@ -229,9 +229,10 @@ div.dt-paging> button.dt-paging-button:not(.disabled){
 }
 .filterInput>label{
     display: inline-block;
-    width: 7rem;
-    margin-right: 0.5rem;
-    text-align: right;
+    width: auto;
+    margin-right: 0.2rem;
+    margin-left: 0.3rem;
+    text-align: left;
     color: #0B0C38 !important;
 }
 .filterInput>select, .dt-length>select{
@@ -243,10 +244,11 @@ div.dt-paging> button.dt-paging-button:not(.disabled){
     padding: 0 0.75rem !important;
     flex: 1;
     min-width: 50%;
+    margin-left: 0;
 }
 
 .dt-search {
-    margin-left: 35px;
+    /* margin-left: 35px; */
     margin-top: 10px;
 }
 /* */
