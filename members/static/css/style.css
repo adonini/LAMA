@@ -66,8 +66,6 @@
     color: black !important;
 }
 
-
-
 body{
     overflow-x: hidden; /* Hides horizontal overflow, no scrolling */
 }
@@ -109,6 +107,32 @@ body{
 }
 
 /* */
+/* New Member button */
+/* */
+.btn-new-member {
+    border-radius: 10px;
+    background-color: black;
+    color: white;
+    font-size: 1rem; /* fs-5 */
+    padding: 0.375rem 0.75rem; /* btn-sm look */
+    border: none;
+    display: inline-flex; /* Align icon and text properly */
+    align-items: center; /* Center icon and text vertically */
+    gap: 0.5rem; /* Space between icon and text */
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.btn-new-member:hover {
+    background-color: lightgray;
+    color: black;
+    border: 1px solid black;
+}
+
+.btn-new-member i {
+    font-size: 1rem;
+}
+
+/* */
 /* DataTable */
 /* */
 .table{
@@ -137,7 +161,8 @@ table>th{
     margin-bottom: 1rem;
 }
 .dt-search{
-    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    min-width: 15rem;
 }
 .dt-search>input{
     border-radius: 7.5px !important;
@@ -174,6 +199,56 @@ div.dt-paging> button.dt-paging-button:not(.disabled){
     display: flex;
 }
 
+/* */
+/* Filter clear button*/
+/* */
+.btn-clear{
+    padding: 0.25rem 0.5rem;
+    margin-top: 1rem;
+    background-color: #FF6F61;
+    border: 1px solid black;
+    color: black;
+    border-radius: 8px;
+}
+.btn-clear:hover{
+    background-color: #E65C50;
+    border: 1px solid black;
+}
+
+.filters{
+    width: 80%;
+    height: 100%;
+    /* display: flex; */
+    justify-content: space-between;
+}
+.filterInput{
+    min-width: 15rem;
+    /* margin-top: 1rem; */
+    display: flex;
+    align-items: center;
+}
+.filterInput>label{
+    display: inline-block;
+    width: 7rem;
+    margin-right: 0.5rem;
+    text-align: right;
+    color: #0B0C38 !important;
+}
+.filterInput>select, .dt-length>select{
+    background-color: #fff !important;
+    border: 1px solid #0B0C38 !important;
+    color: #3D4357!important;
+}
+.filterInput>select{
+    padding: 0 0.75rem !important;
+    flex: 1;
+    min-width: 50%;
+}
+
+.dt-search {
+    margin-left: 35px;
+    margin-top: 10px;
+}
 /* */
 /* Cards home*/
 /* */

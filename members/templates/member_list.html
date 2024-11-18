@@ -5,11 +5,12 @@
 {% load humanize %}
 <div class="container-fluid">
     <div class="header position-relative d-flex align-items-center">
-        <div class="d-flex align-items-center w-100">
-            <h3 class="card-title dark-text fw-normal me-3">Members</h3>
+        <div class="d-flex align-items-center w-100 mt-0 mb-2 ms-3">
+            {% comment %} {% if user|has_group:"admin" %} {% endcomment %}
             <div class="tools">
-                <button type="button" class="btn btn-primary rounded-xl btn-sm" id='add_new'><i class="fa fa-plus"></i> New Member</button>
+                <button type="button" class="btn-new-member" id='add_new'><i class="fa fa-plus"></i> New Member</button>
             </div>
+            {% comment %} {% endif %} {% endcomment %}
         </div>
     </div>
     <div class="body">
@@ -131,7 +132,7 @@
             }
         });
         let table = $('#member-list').DataTable({
-            dom: '<"top1"<"top1Start"><"top1End"Bf>>t<"bottom"<"bottomStart"i><"bottomCenter"l><"bottomEnd"p>>',
+            dom: '<"top1"<"top1Start"f><"top1End"B>>t<"bottom"<"bottomStart"i><"bottomCenter"l><"bottomEnd"p>>',
             buttons: [{extend: 'copy', exportOptions: {columns: ':not(:last-child)'} // Exclude the last column (Actions/Details)
                 },
                 {extend: 'csv', exportOptions: {columns: ':not(:last-child)'}
@@ -165,6 +166,13 @@
         generalDiv.classList.add('d-flex', 'flex-wrap');
         mainDiv.classList.add('filters');
         let countryDropdown, groupDropdown, instituteDropdown; // Variables to store dropdowns
+
+        // Create a container for Author and CF filters
+        let authorCFContainer = document.createElement('div');
+        authorCFContainer.classList.add('d-flex', 'flex-wrap');
+        // Create a container for Country, Group, and Institute filters
+        let filtersContainer = document.createElement('div');
+        filtersContainer.classList.add('d-flex', 'flex-wrap');
 
         // Helper function to update options dynamically
         function updateDropdown(dropdown, options, selectedValue) {
@@ -244,8 +252,7 @@
         for (let label of filterLabels) {
             let divInput = document.createElement('div');
             divInput.classList.add('filterInput');
-            divInput.style.marginBottom = '5px';
-            divInput.style.marginRight = '5px';
+            divInput.style.marginTop = '5px';
 
             let input = document.createElement('select');
             input.classList.add('rounded-pill', 'form-select');
@@ -257,7 +264,6 @@
             if (label.toLowerCase().includes('country')) {
                 countryDropdown = input;
                 input.addEventListener('change', () => updateFilters('country'));
-
                 // Populate with all countries initially
                 for (let country in filters) {
                     let option = document.createElement('option');
@@ -265,26 +271,28 @@
                     option.appendChild(document.createTextNode(country));
                     input.appendChild(option);
                 }
+                filtersContainer.appendChild(divInput);
             }
 
             // Filter by Group
             if (label.toLowerCase().includes('group')) {
                 groupDropdown = input;
                 input.addEventListener('change', () => updateFilters('group'));
-
                 // Initially empty; will be populated dynamically
+                filtersContainer.appendChild(divInput);
             }
 
             // Filter by Institute
             if (label.toLowerCase().includes('institute')) {
                 instituteDropdown = input;
                 input.addEventListener('change', () => updateFilters('institute'));
-
                 // Initially empty; will be populated dynamically
+                filtersContainer.appendChild(divInput);
             }
 
             // Filter by Author
             if (label.toLowerCase().includes('author')) {
+                divInput.style.marginTop = '3px';
                 input.addEventListener('change', function (e) {
                     if (e.target.value !== 'All') {
                         table.column(9).search(e.target.value).draw();
@@ -298,10 +306,12 @@
                     option.appendChild(document.createTextNode(authorStatus));
                     input.appendChild(option);
                 });
+                authorCFContainer.appendChild(divInput);
             }
 
             // Filter by CF
             if (label.toLowerCase().includes('cf')) {
+                divInput.style.marginTop = '5px';
                 input.addEventListener('change', function (e) {
                     if (e.target.value !== 'All') {
                         table.column(10).search(e.target.value).draw();
@@ -315,16 +325,22 @@
                     option.appendChild(document.createTextNode(cfStatus));
                     input.appendChild(option);
                 });
+                authorCFContainer.appendChild(divInput);
             }
+
             // Set up the label and input for each filter
             let inputLabel = document.createElement('label');
             inputLabel.appendChild(document.createTextNode(label));
             inputLabel.setAttribute('for', label);
             divInput.appendChild(inputLabel);
             divInput.appendChild(input);
-            generalDiv.appendChild(divInput);
         }
-        mainDiv.appendChild(generalDiv);
+
+        // Append the Author and CF filters above the others
+        mainDiv.appendChild(authorCFContainer);
+
+        // Append the other filters container
+        mainDiv.appendChild(filtersContainer);
 
         // Initialize dropdowns with valid options
         updateFilters();
@@ -348,7 +364,6 @@
                 let event = new Event('change'); // Trigger change event
                 input.dispatchEvent(event); // This will call the updateFilters function
             });
-
             // Clear any custom searches on the table
             table.search('').draw();
         });
