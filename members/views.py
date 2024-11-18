@@ -147,10 +147,10 @@ class MemberList(LoginRequiredMixin, View):
         countries = Country.objects.prefetch_related('groups__institutes').order_by('name')
         filters_data = {
             country.name: {
-                "groups": list(country.groups.values_list('name', flat=True)),
-                "institutes": list(
-                    Institute.objects.filter(group__country=country).values_list('name', flat=True)
-                )
+                "groups": {
+                    group.name: list(group.institutes.values_list('name', flat=True))
+                    for group in country.groups.all()
+                }
             }
             for country in countries
         }
