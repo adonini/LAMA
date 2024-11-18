@@ -76,7 +76,7 @@
     let groups = {{ groups|safe }};
     let countries = {{ countries|safe }};
     let filters = {{ filters|safe }};
-    //console.log(groups);
+    //console.log(filters);
     $(function() {
         $('#add_new').click(function() {
             // Create the header for the modal
@@ -167,19 +167,32 @@
         let countryDropdown, groupDropdown, instituteDropdown; // Variables to store dropdowns
 
         // Helper function to update options dynamically
-        function updateDropdown(dropdown, options) {
-            dropdown.innerHTML = '';
-            let defaultOption = document.createElement('option');
-            defaultOption.value = 'All';
-            defaultOption.textContent = 'All';
-            dropdown.appendChild(defaultOption);
-
-            options.forEach(option => {
+        function updateDropdown(dropdown, options, selectedValue) {
+            dropdown.innerHTML = ''; // Clear existing options
+            // If there's only one option, select it automatically
+            if (options.length === 1) {
                 let opt = document.createElement('option');
-                opt.value = option;
-                opt.textContent = option;
+                opt.value = options[0];
+                opt.textContent = options[0];
+                opt.selected = true;
                 dropdown.appendChild(opt);
-            });
+            } else {
+                let defaultOption = document.createElement('option');
+                defaultOption.value = 'All';
+                defaultOption.textContent = 'All';
+                dropdown.appendChild(defaultOption);
+                // Add options
+                options.forEach(option => {
+                    let opt = document.createElement('option');
+                    opt.value = option;
+                    opt.textContent = option;
+                    // Maintain the selected value if it's available in the options
+                    if (option === selectedValue) {
+                        opt.selected = true;
+                    }
+                    dropdown.appendChild(opt);
+                });
+            }
         }
 
         // Update other dropdowns based on current selections
@@ -187,33 +200,40 @@
             let selectedCountry = countryDropdown.value;
             let selectedGroup = groupDropdown.value;
             let selectedInstitute = instituteDropdown.value;
-
-            let validCountries = [];
-            let validGroups = [];
-            let validInstitutes = [];
-
+            let validCountries = new Set();
+            let validGroups = new Set();
+            let validInstitutes = new Set();
             // Calculate valid options based on the current selections
             for (let country in filters) {
                 let countryData = filters[country];
-                let matchesCountry = selectedCountry === 'All' || selectedCountry === country;
-                let matchesGroup = selectedGroup === 'All' || countryData.groups.includes(selectedGroup);
-                let matchesInstitute = selectedInstitute === 'All' || countryData.institutes.includes(selectedInstitute);
-
-                if (matchesCountry && matchesGroup && matchesInstitute) {
-                    validCountries.push(country);
-                    validGroups.push(...countryData.groups);
-                    validInstitutes.push(...countryData.institutes);
+                let countryGroups = countryData.groups;
+                // Loop through groups and their associated institutes
+                for (let group in countryGroups) {
+                    let groupInstitutes = countryGroups[group];
+                    let matchesCountry = selectedCountry === 'All' || selectedCountry === country;
+                    let matchesGroup = selectedGroup === 'All' || selectedGroup === group;
+                    let matchesInstitute = selectedInstitute === 'All' || groupInstitutes.includes(selectedInstitute);
+                    // If the combination matches, add to the valid lists
+                    if (
+                        (matchesCountry && matchesGroup && matchesInstitute) ||
+                        (triggeredBy === 'group' && selectedGroup === group) ||
+                        (triggeredBy === 'institute' && groupInstitutes.includes(selectedInstitute))
+                    ) {
+                        validCountries.add(country);
+                        validGroups.add(group);
+                        groupInstitutes.forEach(institute => validInstitutes.add(institute));
+                    }
                 }
             }
-
-            // Remove duplicates from validGroups and validInstitutes
-            validGroups = [...new Set(validGroups)];
-            validInstitutes = [...new Set(validInstitutes)];
+            // Convert Sets to Arrays for dropdown updates
+            validCountries = Array.from(validCountries);
+            validGroups = Array.from(validGroups);
+            validInstitutes = Array.from(validInstitutes);
 
             // Update dropdowns based on valid options
-            if (triggeredBy !== 'country') updateDropdown(countryDropdown, validCountries);
-            if (triggeredBy !== 'group') updateDropdown(groupDropdown, validGroups);
-            if (triggeredBy !== 'institute') updateDropdown(instituteDropdown, validInstitutes);
+            if (triggeredBy !== 'country') updateDropdown(countryDropdown, validCountries, selectedCountry);
+            if (triggeredBy !== 'group') updateDropdown(groupDropdown, validGroups, selectedGroup);
+            if (triggeredBy !== 'institute') updateDropdown(instituteDropdown, validInstitutes, selectedInstitute);
 
             // Apply filters to the table
             table.column(6).search(selectedCountry !== 'All' ? selectedCountry : '').draw();
@@ -322,11 +342,14 @@
         clearFilterButton.appendChild(document.createTextNode('Clear filters'));
         clearFilterButton.addEventListener('click', function() {
             let inputs = document.querySelectorAll('.filterInput > select');
+            // Reset all dropdowns to "All"
             inputs.forEach(input => {
-                input.selectedIndex = 0;
-                let event = new Event('change');
-                input.dispatchEvent(event);
+                input.value = 'All'; // Set the value back to "All"
+                let event = new Event('change'); // Trigger change event
+                input.dispatchEvent(event); // This will call the updateFilters function
             });
+
+            // Clear any custom searches on the table
             table.search('').draw();
         });
         top1End.appendChild(clearFilterButton);
