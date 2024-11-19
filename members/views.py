@@ -293,6 +293,7 @@ class ManageMember(LoginRequiredMixin, View):
                 context['member'] = member
                 context['duties'] = MemberDuty.objects.filter(member=member)
                 context['institute_list'] = Institute.objects.all()
+                context['is_edit'] = True  # Flag to indicate editing
                 return render(request, 'manage_member.html', context)
             except Member.DoesNotExist:
                 messages.error(request, "Member not found.")
@@ -300,7 +301,7 @@ class ManageMember(LoginRequiredMixin, View):
         else:
             context['member'] = {}
             context['roles'] = Member.ROLE_CHOICES
-
+            context['is_edit'] = False  # Flag to indicate adding a new member
         context['institute_list'] = Institute.objects.all()
         # Return the context to the template for rendering
         return render(request, 'manage_member.html', context)

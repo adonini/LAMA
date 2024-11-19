@@ -75,23 +75,35 @@
         </div>
     </form>
 </div>
-
+<script id="is-edit-flag" type="application/json">
+    {{ is_edit|yesno:'true,false' }}
+</script>
 <script>
     $(document).ready(function() {
         const isAuthorCheckbox = document.getElementById('is_author');
         const authorshipFields = document.getElementById('authorship-fields');
         const addSecondaryEmailCheckbox = document.getElementById('add_secondary_email');
         const secondaryEmailField = document.getElementById('secondary-email-field');
+        const isEdit = JSON.parse(document.getElementById('is-edit-flag').textContent);
 
-        // Toggle authorship fields based on 'Is Author' checkbox
-        isAuthorCheckbox.addEventListener('change', function (e) {
-            console.log(e.target.checked)
-            if (e.target.checked) {
-                authorshipFields.classList.remove('d-none');
-            } else {
-                authorshipFields.classList.add('d-none');
+        // Function to toggle the visibility of authorship fields
+        const toggleAuthorshipFields = () => {
+            if (isEdit) {
+                if (isAuthorCheckbox && authorshipFields) {
+                    if (isAuthorCheckbox.checked) {
+                        authorshipFields.classList.remove('d-none');
+                    } else {
+                        authorshipFields.classList.add('d-none');
+                    }
+                }
             }
-        });
+        };
+        // Initialize visibility on page load
+        toggleAuthorshipFields();
+        // Add event listener to toggle authorship fields visibility when checkbox changes
+        if (isAuthorCheckbox) {
+            isAuthorCheckbox.addEventListener('change', toggleAuthorshipFields);
+        }
 
         // Toggle secondary email field based on 'Add Secondary Email' checkbox
         addSecondaryEmailCheckbox.addEventListener('change', function (e) {
