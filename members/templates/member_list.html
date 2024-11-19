@@ -77,7 +77,7 @@
     let groups = {{ groups|safe }};
     let countries = {{ countries|safe }};
     let filters = {{ filters|safe }};
-    //console.log(filters);
+    //console.log(institutes);
     $(function() {
         $('#add_new').click(function() {
             // Create the header for the modal
@@ -123,7 +123,24 @@
             });
             // Append submit button to the modal footer
             modalFooter.appendChild(submitButton);
-        });
+
+            // Use a timeout to ensure modal content is rendered
+            setTimeout(function() {
+                // Select the institute dropdown in the modal
+                let instituteSelect = document.getElementById('institute');
+                if (instituteSelect) {
+                    // Populate the institute dropdown
+                    institutes.forEach(institute => {
+                        let option = document.createElement('option');
+                        option.value = institute.id;
+                        option.innerText = institute.name;
+                        instituteSelect.appendChild(option);
+                    });
+                } else {
+                    console.error('Institute select element not found.');
+                }
+            }, 100); // 100ms delay to ensure modal content is loaded
+            });
 
         //remove the default 'Search' text for all DataTable search boxes
         $.extend(true, $.fn.dataTable.defaults, {
