@@ -106,6 +106,17 @@ body{
     margin-bottom: 0;
 }
 
+.btn-close{
+    background-color: #FF6F61;
+    color: black;
+    opacity: 1;
+}
+
+.btn-close:hover {
+    background-color: darkred;
+    color: black;
+}
+
 /* */
 /* New Member button */
 /* */
@@ -163,6 +174,7 @@ table>th{
 .dt-search{
     margin-bottom: 0.5rem;
     min-width: 15rem;
+    margin-top: 10px;
 }
 .dt-search>input{
     border-radius: 7.5px !important;
@@ -247,10 +259,6 @@ div.dt-paging> button.dt-paging-button:not(.disabled){
     margin-left: 0;
 }
 
-.dt-search {
-    /* margin-left: 35px; */
-    margin-top: 10px;
-}
 /* */
 /* Cards home*/
 /* */

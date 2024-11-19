@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from datetime import timedelta
 from django.core.exceptions import ValidationError
+from dateutil.relativedelta import relativedelta
 
 
 class Country(models.Model):
@@ -65,9 +66,9 @@ class Member(models.Model):
         # Automatically set authorship dates if the member is an author
         if self.is_author:
             if not self.authorship_start:
-                self.authorship_start = self.start_date + timedelta(days=180)  # 6 months after start date
+                self.authorship_start = self.start_date + relativedelta(months=6)  # 6 months after start date
             if self.end_date and not self.authorship_end:
-                self.authorship_end = self.end_date + timedelta(days=180)  # 6 months after end date
+                self.authorship_end = self.end_date + relativedelta(months=6)  # 6 months after end date
         super().save(*args, **kwargs)
 
     def __str__(self):
