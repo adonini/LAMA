@@ -40,7 +40,9 @@ class Member(models.Model):
         ('student', 'Student'),
         ('technician', 'Technician'),
         ('researcher', 'Researcher'),
-        ('affiliated', 'Affiliated'),
+        ('associate', 'Associate'),
+        ('engineer', 'Engineer'),
+        ('administrator', 'Administrator'),
     ]
 
     name = models.CharField(max_length=50)
