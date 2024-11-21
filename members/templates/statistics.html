@@ -53,19 +53,43 @@
                 </table>
             </div>
         </div>
-
         <!-- Histogram Column (50% width) -->
         <div class="col-md-6">
             <!-- First row for the main chart -->
-            <div class="card shadow text-center mb-4" style="height: 450px;">
+            <div class="card shadow text-center mb-4" style="height: auto;">
                 <div class="card-body p-2"> <!-- Remove padding for tight fit -->
                     <h5 class="card-title font-weight-bold p-1">Members and Authors Over the Years</h5>
+
+                    <!-- Country, Group, and Institute Selectors -->
+                    <div class="dropdown-container" style="display: flex; gap: 1rem;">
+                        <select id="countrySelector" class="form-select form-select-sm">
+                            <option value="">Select a Country</option>
+                            {% for country in country_list %}
+                                <option value="{{ country }}">{{ country }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <select id="groupSelector" class="form-select form-select-sm" disabled>
+                            <option value="">Select a Group</option>
+                            {% for group in group_list %}
+                                <option value="{{ group }}">{{ group }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <select id="instituteSelector" class="form-select form-select-sm" disabled>
+                            <option value="">Select an Institute</option>
+                            {% for institute in institute_list %}
+                                <option value="{{ institute }}">{{ institute }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
                     <canvas id="membersAuthorsHistogram"></canvas>
                 </div>
             </div>
 
             <!-- Second row for the monthly averages chart -->
-            <div class="card shadow text-center mb-4" style="height: 550px;">
+            <div class="card shadow text-center mb-4" style="height: auto;">
                 <div class="card-body p-2"> <!-- Remove padding for tight fit -->
                     <h5 class="card-title font-weight-bold p-1">Members and Authors Average per Month</h5>
 
