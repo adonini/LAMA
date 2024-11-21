@@ -1,39 +1,53 @@
 {% load humanize %}
 {% load custom_filter %}
-<div class="memberContent">
-    <ul class="list-group list-group-flush ul-left">
-        <li class="list-group-item"><strong>First Name</strong> <br> {{ member.name|default:"-" }}</li>
-        <li class="list-group-item"><strong>Second Name</strong> <br> {{ member.surname|default:"-" }}</li>
-        <li class="list-group-item"><strong>Email</strong> <br> {{ member.primary_email|default:"-" }}</li>
-        <li class="list-group-item"><strong>Start Date</strong> <br> {{ member.start_date|date:"Y-m-d"|default:"-" }}</li>
-        <li class="list-group-item"><strong>End Date</strong> <br> {% if member.end_date %} {{ member.end_date|date:"Y-m-d"|default:"-" }} {% else %} N/A {% endif %}</li>
-    </ul>
-    <ul class="list-group list-group-flush ul-right">
-        <li class="list-group-item"><strong>Role</strong> <br> {{ member.get_role_display|default:"-" }}</li>
-        <li class="list-group-item"><strong>Duty</strong> <br> {{ member.duty.name|default:"-" }}</li>
-        <li class="list-group-item"><strong>Institute</strong> <br> {{ member.institute.name|default:"-" }}</li>
-        <li class="list-group-item"><strong>Group</strong> <br> {{ member.institute.group.name|default:"-" }}</li>
-        <li class="list-group-item"><strong>Country</strong> <br> {{ member.institute.group.country.name|default:"-" }}</li>
-    </ul>
+
+<div class="">
+    <h5 class="text-dark">General</h5>
+    <div class="memberContent">
+        <ul class="list-group list-group-flush ul-left">
+            <li class="list-group-item"><strong class="text-dark fw-bold">First Name</strong> <br> {{ member.name|default:"-" }}</li>
+            <li class="list-group-item"><strong class="text-dark fw-bold">Second Name</strong> <br> {{ member.surname|default:"-" }}</li>
+            <li class="list-group-item"><strong class="text-dark fw-bold">Email</strong> <br> {{ member.primary_email|default:"-" }}</li>
+            <li class="list-group-item"><strong class="text-dark fw-bold">Membership Start</strong> <br> {{ member.start_date|date:"Y-m-d"|default:"-" }}</li>
+            <li class="list-group-item"><strong class="text-dark fw-bold">Membership End</strong> <br> {% if member.end_date %} {{ member.end_date|date:"Y-m-d"|default:"-" }} {% else %} - {% endif %}</li>
+        </ul>
+        <ul class="list-group list-group-flush ul-right">
+            <li class="list-group-item"><strong class="text-dark fw-bold">Role</strong> <br> {{ member.get_role_display|default:"-" }}</li>
+            <li class="list-group-item"><strong class="text-dark fw-bold">Duty</strong> <br> {{ member.duty.name|default:"-" }}</li>
+            <li class="list-group-item"><strong class="text-dark fw-bold">Institute</strong> <br> {{ member.institute.name|default:"-" }}</li>
+            <li class="list-group-item"><strong class="text-dark fw-bold">Group</strong> <br> {{ member.institute.group.name|default:"-" }}</li>
+            <li class="list-group-item"><strong class="text-dark fw-bold">Country</strong> <br> {{ member.institute.group.country.name|default:"-" }}</li>
+        </ul>
+    </div>
+
+    <div class="mt-2">
+        <h5 class="text-dark">Authorship</h5>
+            {% if member.authorship_start%}
+            <div class="row">
+                <div class="col-md-6">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <strong class="text-dark fw-bold">Authorship Start</strong> <br>
+                            <span class="text-muted">{{ member.authorship_start|date:"Y-m-d"|default:"-" }}</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <strong class="text-dark fw-bold">Authorship End</strong> <br>
+                            <span class="text-muted">{{ member.authorship_end|date:"Y-m-d"|default:"-" }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        {% elif not member.authorship_start%}
+            <p class="text-dark">No authorship</p>
+        {% endif %}
+    </div>
 </div>
 
-{% if member.authorship_start and member.authorship_end %}
-    <h4>Authorship Period</h4>
-    <div class="cards">
-        <div class="card">
-            <div class="cardContent">
-                <strong>Authorship Start</strong> <br> {{ member.authorship_start|date:"Y-m-d"|default:"-" }}
-            </div>
-        </div>
-        <div class="card">
-            <div class="cardContent">
-                <strong>Authorship End</strong> <br> {{ member.authorship_end|date:"Y-m-d"|default:"-" }}
-            </div>
-        </div>
-    </div>
-{% endif %}
-
-<!-- Duty History Section -->
+<!-- Duty History Section
 <h4>Duty History</h4>
 <div class="dutyHistory">
     {% if member.duty_history.all %}
@@ -49,4 +63,4 @@
     {% else %}
         <p>No duty history available for this member.</p>
     {% endif %}
-</div>
+</div> -->
