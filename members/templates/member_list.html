@@ -417,34 +417,11 @@
             // Open the modal
             uni_modal(headerDiv, finalUrl, 'modal-md')
 
-            // Configure the modal footer
-            let ref = "{% url 'member_list' %}"
-            let modalFooter = document.querySelector('.modal-footer')
-            modalFooter.innerHTML = ''
-            if(modalFooter.classList.contains('hidden')){
-                modalFooter.classList.remove('hidden')
+            // Completely remove the footer from the modal
+            let modalFooter = document.querySelector('.modal-footer');
+            if (modalFooter) {
+                modalFooter.remove();  // This will completely remove the footer
             }
-            let editButton = document.createElement('button')
-            editButton.classList.add('btn', 'selected', 'edit')
-            let editIcon = document.createElement('i')
-            editIcon.classList.add('fa-solid', 'fa-edit', 'me-2')
-            editButton.appendChild(editIcon)
-            let editPar = document.createElement('p')
-            editPar.appendChild(document.createTextNode('Edit'))
-            editButton.appendChild(editPar)
-            editButton.addEventListener('click', ()=>{
-                editItem(e, id, modalFooter, headerDiv, finalUrl, false, editButton)
-            })
-            {% if user|has_group:"admin" or user|has_group:"technician" %}
-                if(modalFooter.classList.contains('hidden')){
-                    modalFooter.classList.remove('hidden')
-                }
-                modalFooter.appendChild(editButton)
-            {% else %}
-                if(!modalFooter.classList.contains('hidden')){
-                    modalFooter.classList.add('hidden')
-                }
-            {% endif %}
         })
         $(document).on('click', '.edit-data', function (e) {
             const id = e.target.dataset.id;
