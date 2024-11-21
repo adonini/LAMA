@@ -14,7 +14,7 @@ class LoginForm(AuthenticationForm):
 
 
 class AddMemberForm(forms.ModelForm):
-    institute = forms.ModelChoiceField(queryset=Institute.objects.all(), initial=0, required=False)
+    institute = forms.ModelChoiceField(queryset=Institute.objects.all(), initial=0, required=True)
     group = forms.ModelChoiceField(queryset=Group.objects.all(), initial=0, required=False)
     country = forms.ModelChoiceField(queryset=Country.objects.all(), initial=0, required=False)
     role = forms.ChoiceField(choices=Member.ROLE_CHOICES, required=True)
