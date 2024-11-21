@@ -42,6 +42,21 @@ def login_view(request):
     return render(request, 'login/login.html', {'form': form})
 
 
+def calculate_averages(queryset, date_field, year, current_year, current_month):
+    """
+    Helper function to calculate yearly averages for members/authors.
+    Divides by the appropriate number of months for the current year.
+    """
+    months = range(1, (current_month + 1) if year == current_year else 13)
+    total = sum(
+        queryset.filter(**{f"{date_field}__lte": datetime(year, month, 15)})
+        .filter(Q(end_date__isnull=True) | Q(end_date__gt=datetime(year, month, 15)))
+        .count()
+        for month in months
+    )
+    divisor = current_month if year == current_year else 12
+    return total / divisor if divisor > 0 else 0
+
 class Index(TemplateView):
     template_name = 'login/index.html'
 
@@ -313,6 +328,8 @@ class Statistics(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         today = timezone.now().date()
+        current_year = today.year
+        current_month = today.month
 
         # Year range for the histogram
         start_year = 2018
@@ -346,21 +363,9 @@ class Statistics(TemplateView):
                 year_data[year]['members'].append(monthly_member_count)
                 year_data[year]['authors'].append(monthly_author_count)
 
-        # Calculate yearly averages for members and authors
-        year_averages = []
-        member_averages = []
-        author_averages = []
-        for year, data in year_data.items():
-            avg_members = sum(data['members']) / 12
-            avg_authors = sum(data['authors']) / 12
-            year_averages.append({
-                'year': year,
-                'avg_members': avg_members,
-                'avg_authors': avg_authors
-            })
-            member_averages.append(avg_members)
-            author_averages.append(avg_authors)
-            print(f"Year: {year}, Avg Members: {avg_members}, Avg Authors: {avg_authors}")
+        # Calculate yearly averages
+        member_averages = [sum(data['members']) / 12 for data in year_data.values()]
+        author_averages = [sum(data['authors']) / 12 for data in year_data.values()]
 
         # Lists for years, members and authors (monthly data)
         years_list = list(years)
@@ -376,8 +381,7 @@ class Statistics(TemplateView):
         total_authors = Member.objects.filter(authorship_start__lte=today).filter(
             Q(authorship_end__isnull=True) | Q(authorship_end__gt=today)
         ).count()
-        print(f"Total Members: {total_members}")
-        print(f"Total Authors: {total_authors}")
+
         # Members and authors by country with percentage calculations
         countries_data = []
         for country in Country.objects.order_by('name'):
@@ -385,7 +389,6 @@ class Statistics(TemplateView):
             country_members = Member.objects.filter(
                 institute__group__country=country,
                 start_date__lte=today,
-                # end_date__gt=today
             ).filter(Q(end_date__isnull=True) | Q(end_date__gt=today)).count()
 
             # Current authors in each country
@@ -408,19 +411,87 @@ class Statistics(TemplateView):
 
         # Get lists for filtering options
         country_list = Country.objects.values_list('name', flat=True).order_by('name')
-        # Retrieve all countries and their groups
-        countries_groups = {
-            country.name: list(Group.objects.filter(country=country).values_list('name', flat=True))
-            for country in Country.objects.all()
+
+        # Filtered data structure for the chart
+        chart_data = {
+            'countries': {
+                country.name: {
+                    'members': [
+                        calculate_averages(Member.objects.filter(institute__group__country=country),
+                                           "start_date",
+                                           year,
+                                           current_year,
+                                           current_month)
+                        for year in years
+                    ],
+                    'authors': [
+                        calculate_averages(Member.objects.filter(institute__group__country=country),
+                                           "authorship_start",
+                                           year,
+                                           current_year,
+                                           current_month)
+                        for year in years
+                    ],
+                    'groups': {
+                        group.name: {
+                            'members': [
+                                calculate_averages(
+                                    Member.objects.filter(institute__group=group),
+                                    "start_date",
+                                    year,
+                                    current_year,
+                                    current_month
+                                )
+                                for year in years
+                            ],
+                            'authors': [
+                                calculate_averages(
+                                    Member.objects.filter(institute__group=group),
+                                    "authorship_start",
+                                    year,
+                                    current_year,
+                                    current_month
+                                )
+                                for year in years
+                            ],
+                            'institutes': {
+                                institute.name: {
+                                    'members': [
+                                        calculate_averages(
+                                            Member.objects.filter(institute=institute),
+                                            "start_date",
+                                            year,
+                                            current_year,
+                                            current_month
+                                        )
+                                        for year in years
+                                    ],
+                                    'authors': [
+                                        calculate_averages(
+                                            Member.objects.filter(institute=institute),
+                                            "authorship_start",
+                                            year,
+                                            current_year,
+                                            current_month
+                                        )
+                                        for year in years
+                                    ],
+                                }
+                                for institute in Institute.objects.filter(group=group)
+                            }
+                        }
+                        for group in Group.objects.filter(country=country)
+                    }
+                }
+                for country in Country.objects.all()
+            }
         }
 
-        # Retrieve all groups and their institutes
-        groups_institutes = {
-            group.name: list(Institute.objects.filter(group=group).values_list('name', flat=True))
-            for group in Group.objects.all()
-        }
+        ################
 
         context.update({
+            'chart_data': chart_data,  # year average chart
+            'chart_data_month': chart_data_month,
             'total_members': total_members,
             'total_authors': total_authors,
             'countries_data': countries_data,
@@ -431,8 +502,6 @@ class Statistics(TemplateView):
             'members_count_list': members_count_list,  # Monthly counts for members
             'authors_count_list': authors_count_list,  # Monthly counts for authors
             'country_list': country_list,
-            'countries_groups': countries_groups,
-            'groups_institutes': groups_institutes,
             'current_date': datetime.now().strftime('%B %d, %Y')
         })
         return context

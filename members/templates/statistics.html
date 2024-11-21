@@ -58,12 +58,12 @@
             <!-- First row for the main chart -->
             <div class="card shadow text-center mb-4" style="height: auto;">
                 <div class="card-body p-2"> <!-- Remove padding for tight fit -->
-                    <h5 class="card-title font-weight-bold p-1">Members and Authors Over the Years</h5>
+                    <h5 class="card-title font-weight-bold p-1">Avarage Members and Authors Over the Years</h5>
 
                     <!-- Country, Group, and Institute Selectors -->
                     <div class="dropdown-container" style="display: flex; gap: 1rem;">
                         <select id="countrySelector" class="form-select form-select-sm">
-                            <option value="">Select a Country</option>
+                            <option value="all">All Countries</option>
                             {% for country in country_list %}
                                 <option value="{{ country }}">{{ country }}</option>
                             {% endfor %}
@@ -111,30 +111,17 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        var years = {{ years_list|safe }};
-        var members = {{ member_averages|safe }};  // yearly average
-        var authors = {{ author_averages|safe }};  // yearly average
-        var monthlyMembersData = {{ members_count_list|safe }};
-        var monthlyAuthorsData = {{ authors_count_list|safe }};
+        var members = {{ member_averages|safe }}.map(Math.round); // Yearly average members
+        var authors = {{ author_averages|safe }}.map(Math.round); // Yearly average authors
         var currentYear = new Date().getFullYear();
-
-        // Round the member and author averages to no decimal places
-        members = members.map(function(item) {
-            return Math.round(item);
-        });
-        authors = authors.map(function(item) {
-            return Math.round(item);
-        });
-
-        //console.log("Years:", years);
-        //console.log("Member Averages:", members);
-        //console.log("Author Averages:", authors);
-        //console.log("Monthly Members Count List:", monthlyMembersData);
-        //console.log("Monthly Authors Count List:", monthlyAuthorsData);
+        const chartData = {{ chart_data|safe }};
+        const countrySelector = document.getElementById('countrySelector');
+        const groupSelector = document.getElementById('groupSelector');
+        const instituteSelector = document.getElementById('instituteSelector');
 
         // First chart (Average members and authors over the years)
         const ctx1 = document.getElementById('membersAuthorsHistogram').getContext('2d');
-        new Chart(ctx1, {
+        const yearlyChart = new Chart(ctx1, {
             type: 'bar',
             data: {
                 labels: years,
@@ -185,6 +172,114 @@
                     }
                 }
             }
+        });
+
+        // Function to update the chart
+        function updateChart(selectedCountry, selectedGroup, selectedInstitute) {
+            let updatedYears = years;
+            let updatedMembers = [];
+            let updatedAuthors = [];
+
+            if (selectedCountry === "all" || !selectedCountry) {
+                // Reset to general data
+                updatedMembers = members; // General yearly members data
+                updatedAuthors = authors; // General yearly authors data
+            } else {
+                const countryData = chartData.countries[selectedCountry] || {};
+
+                // Use country-level data if no group or institute is selected
+                updatedMembers = countryData.members || [];
+                updatedAuthors = countryData.authors || [];
+
+                if (selectedGroup) {
+                    const groupData = countryData.groups[selectedGroup] || {};
+                    updatedMembers = groupData.members || [];
+                    updatedAuthors = groupData.authors || [];
+
+                    if (selectedInstitute) {
+                        const instituteData = groupData.institutes[selectedInstitute] || {};
+                        updatedMembers = instituteData.members || [];
+                        updatedAuthors = instituteData.authors || [];
+                    }
+                }
+            }
+
+            yearlyChart.data.labels = updatedYears;
+            yearlyChart.data.datasets[0].data = updatedMembers;
+            yearlyChart.data.datasets[1].data = updatedAuthors;
+            yearlyChart.update();
+        }
+
+        // Add event listener to reset filters if "All" is selected
+        countrySelector.addEventListener("change", function () {
+            const selectedCountry = countrySelector.value;
+
+            if (selectedCountry === "all") {
+                groupSelector.disabled = true;
+                instituteSelector.disabled = true;
+                groupSelector.innerHTML = '<option value="">Select a Group</option>';
+                instituteSelector.innerHTML = '<option value="">Select an Institute</option>';
+            }
+
+            const selectedGroup = "";
+            const selectedInstitute = "";
+            updateChart(selectedCountry, selectedGroup, selectedInstitute);
+        });
+
+        // Populate group dropdown based on country
+        countrySelector.addEventListener("change", function () {
+            const selectedCountry = countrySelector.value;
+            const countryData = chartData.countries[selectedCountry] || {};
+
+            // Update group dropdown
+            groupSelector.disabled = !selectedCountry;
+            groupSelector.innerHTML = '<option value="">Select a Group</option>';
+            if (selectedCountry) {
+                Object.keys(countryData.groups || {}).forEach((group) => {
+                    const option = document.createElement("option");
+                    option.value = group;
+                    option.textContent = group;
+                    groupSelector.appendChild(option);
+                });
+            }
+
+            // Reset institute dropdown
+            instituteSelector.disabled = true;
+            instituteSelector.innerHTML = '<option value="">Select an Institute</option>';
+
+            // Update chart
+            updateChart(selectedCountry, "", "");
+        });
+
+        // Populate institute dropdown based on group
+        groupSelector.addEventListener("change", function () {
+            const selectedCountry = countrySelector.value;
+            const selectedGroup = groupSelector.value;
+            const groupData = chartData.countries[selectedCountry]?.groups[selectedGroup] || {};
+
+            // Update institute dropdown
+            instituteSelector.disabled = !selectedGroup;
+            instituteSelector.innerHTML = '<option value="">Select an Institute</option>';
+            if (selectedGroup) {
+                Object.keys(groupData.institutes || {}).forEach((institute) => {
+                    const option = document.createElement("option");
+                    option.value = institute;
+                    option.textContent = institute;
+                    instituteSelector.appendChild(option);
+                });
+            }
+
+            // Update chart
+            updateChart(selectedCountry, selectedGroup, "");
+        });
+
+        // Update chart based on institute
+        instituteSelector.addEventListener("change", function () {
+            const selectedCountry = countrySelector.value;
+            const selectedGroup = groupSelector.value;
+            const selectedInstitute = instituteSelector.value;
+
+            updateChart(selectedCountry, selectedGroup, selectedInstitute);
         });
 
         // Second chart (montlhy members and authors counts over each year)
