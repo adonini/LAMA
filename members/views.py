@@ -501,80 +501,7 @@ class Statistics(TemplateView):
         # Get lists for filtering options
         country_list = Country.objects.values_list('name', flat=True).order_by('name')
 
-        # Filtered data structure for the chart
-        chart_data = {
-            'countries': {
-                country.name: {
-                    'members': [
-                        calculate_averages(Member.objects.filter(institute__group__country=country),
-                                           "start_date",
-                                           year,
-                                           current_year,
-                                           current_month)
-                        for year in years
-                    ],
-                    'authors': [
-                        calculate_averages(Member.objects.filter(institute__group__country=country),
-                                           "authorship_start",
-                                           year,
-                                           current_year,
-                                           current_month)
-                        for year in years
-                    ],
-                    'groups': {
-                        group.name: {
-                            'members': [
-                                calculate_averages(
-                                    Member.objects.filter(institute__group=group),
-                                    "start_date",
-                                    year,
-                                    current_year,
-                                    current_month
-                                )
-                                for year in years
-                            ],
-                            'authors': [
-                                calculate_averages(
-                                    Member.objects.filter(institute__group=group),
-                                    "authorship_start",
-                                    year,
-                                    current_year,
-                                    current_month
-                                )
-                                for year in years
-                            ],
-                            'institutes': {
-                                institute.name: {
-                                    'members': [
-                                        calculate_averages(
-                                            Member.objects.filter(institute=institute),
-                                            "start_date",
-                                            year,
-                                            current_year,
-                                            current_month
-                                        )
-                                        for year in years
-                                    ],
-                                    'authors': [
-                                        calculate_averages(
-                                            Member.objects.filter(institute=institute),
-                                            "authorship_start",
-                                            year,
-                                            current_year,
-                                            current_month
-                                        )
-                                        for year in years
-                                    ],
-                                }
-                                for institute in Institute.objects.filter(group=group)
-                            }
-                        }
-                        for group in Group.objects.filter(country=country)
-                    }
-                }
-                for country in Country.objects.all()
-            }
-        }
+        
 
         ################
         # Monthly plot
@@ -642,8 +569,7 @@ class Statistics(TemplateView):
                         }
 
         context.update({
-            'chart_data': chart_data,  # year average chart
-            'chart_data_month': chart_data_month,
+            # 'chart_data_month': chart_data_month,
             'total_members': total_members,
             'total_authors': total_authors,
             'countries_data': countries_data,
@@ -705,3 +631,35 @@ def get_filtered_chart_data(request):
         filtered_data['authors'].append(avg_authors)
 
     return JsonResponse(filtered_data)
+
+
+def get_groups(request):
+    country_name = request.GET.get('country', None)
+    if not country_name:
+        return JsonResponse({"error": "Country parameter is missing."}, status=400)
+
+    try:
+        # Fix the query to use 'country__name' instead of 'country'
+        groups = Group.objects.filter(country__name=country_name).distinct()
+
+        group_list = [group.name for group in groups]
+        return JsonResponse(group_list, safe=False)
+    except Exception as e:
+        # Log any exceptions
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error fetching groups for country '{country_name}': {str(e)}")
+        return JsonResponse({"error": "An error occurred while fetching groups."}, status=500)
+
+
+def get_institutes(request):
+    group_name = request.GET.get('group', None)
+
+    if group_name:
+        # Fetch institutes associated with the selected group
+        institutes = Institute.objects.filter(group__name=group_name)
+
+        institute_list = [institute.name for institute in institutes]
+        return JsonResponse(institute_list, safe=False)
+    else:
+        return JsonResponse([], safe=False)

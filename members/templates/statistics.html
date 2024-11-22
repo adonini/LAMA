@@ -182,25 +182,10 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas"></script>
 <script>
-    document.getElementById('download-image-btn').addEventListener('click', function () {
-        const table = document.querySelector('.table-responsive'); // Adjust the selector if needed
-
-        // Use html2canvas to capture the table
-        html2canvas(table).then(canvas => {
-            // Create an anchor element to trigger the download
-            const link = document.createElement('a');
-            link.download = 'table_image.png'; // Name of the downloaded file
-            link.href = canvas.toDataURL('image/png'); // Convert canvas to image URL
-            link.click(); // Programmatically trigger the download
-        });
-    });
     document.addEventListener("DOMContentLoaded", function() {
         var currentYear = new Date().getFullYear();
         var years = {{ years_list | safe}};
-        // variables for average plot
-        var members = {{ member_averages|safe }}.map(Math.round); // Yearly average members
-        var authors = {{ author_averages|safe }}.map(Math.round); // Yearly average authors
-        const chartData = {{ chart_data|safe }};
+
         const countrySelector = document.getElementById('countrySelector');
         const groupSelector = document.getElementById('groupSelector');
         const instituteSelector = document.getElementById('instituteSelector');
@@ -211,8 +196,7 @@
         const yearSelector_month = document.getElementById('monthlyYearSelector'); // Get the year selector
         const countrySelector_month = document.getElementById('monthlyCountrySelector');
         const groupSelector_month = document.getElementById('monthlyGroupSelector');
-        const instituteSelector_month = document.getElementById('monthlyInstituteSelector');
-console.log(chart_data_month)
+        const instituteSelector_month = document.getElementById('monthlyInstituteSelector'); {% endcomment %}
         ///////////////
         // First chart (Average members and authors over the years)
         ///////////////
@@ -225,7 +209,7 @@ console.log(chart_data_month)
                 datasets: [
                     {
                         label: 'Average Members Count',
-                        data: members,
+                        data: [],
                         backgroundColor: 'rgba(75, 192, 192, 0.6)',
                         barPercentage: 1,
                         categoryPercentage: 0.8,
@@ -234,7 +218,7 @@ console.log(chart_data_month)
                     },
                     {
                         label: 'Average Authors Count',
-                        data: authors,
+                        data: [],
                         backgroundColor: 'rgba(153, 102, 255, 0.6)',
                         barPercentage: 1,
                         categoryPercentage: 0.8,
@@ -271,115 +255,153 @@ console.log(chart_data_month)
             }
         });
 
-        // Function to update the chart
-        function updateChart(selectedCountry, selectedGroup, selectedInstitute) {
-            let updatedYears = years;
-            let updatedMembers = [];
-            let updatedAuthors = [];
-
-            if (selectedCountry === "all" || !selectedCountry) {
-                // Reset to general data
-                updatedMembers = members; // General yearly members data
-                updatedAuthors = authors; // General yearly authors data
-            } else {
-                const countryData = chartData.countries[selectedCountry] || {};
-
-                // Use country-level data if no group or institute is selected
-                updatedMembers = countryData.members || [];
-                updatedAuthors = countryData.authors || [];
-
-                if (selectedGroup) {
-                    const groupData = countryData.groups[selectedGroup] || {};
-                    updatedMembers = groupData.members || [];
-                    updatedAuthors = groupData.authors || [];
-
-                    if (selectedInstitute) {
-                        const instituteData = groupData.institutes[selectedInstitute] || {};
-                        updatedMembers = instituteData.members || [];
-                        updatedAuthors = instituteData.authors || [];
-                    }
-                }
-            }
-
-            yearlyChart.data.labels = updatedYears;
-            yearlyChart.data.datasets[0].data = updatedMembers;
-            yearlyChart.data.datasets[1].data = updatedAuthors;
+        // Function to update chart with new data
+        function updateChart(data) {
+            yearlyChart.data.labels = data.years;
+            yearlyChart.data.datasets[0].data = data.members;
+            yearlyChart.data.datasets[1].data = data.authors;
             yearlyChart.update();
         }
 
-        // Add event listener to reset filters if "All" is selected
-        countrySelector.addEventListener("change", function () {
-            const selectedCountry = countrySelector.value;
+        // Function to reset group and institute options
+        function resetGroupAndInstituteSelectors() {
+            // Reset and disable the group and institute dropdowns
+            $('#groupSelector').html('<option value="">Select Group</option>').prop('disabled', true);
+            $('#instituteSelector').html('<option value="">Select Institute</option>').prop('disabled', true);
+        }
 
-            if (selectedCountry === "all") {
-                groupSelector.disabled = true;
-                instituteSelector.disabled = true;
-                groupSelector.innerHTML = '<option value="">Select a Group</option>';
-                instituteSelector.innerHTML = '<option value="">Select an Institute</option>';
-            }
+        // Function to update group options based on selected country
+        function updateGroupOptions() {
+            const selectedCountry = $('#countrySelector').val();  // Get selected country
+            console.log("Selected country:", selectedCountry);  // Debugging line
+            
+            // Reset and disable the group selector if 'all' is selected
+            if (selectedCountry === 'all') {
+                resetGroupAndInstituteSelectors();
+            } else {
+                // Clear and disable the group selector initially
+                $('#groupSelector').html('<option value="">Select Group</option>');
+                $('#groupSelector').prop('disabled', true);
 
-            const selectedGroup = "";
-            const selectedInstitute = "";
-            updateChart(selectedCountry, selectedGroup, selectedInstitute);
-        });
+                // Fetch and populate groups based on the selected country
+                $.ajax({
+                    url: '/api/get-groups/',
+                    data: { country: selectedCountry },
+                    success: function(groups) {
+                        console.log("Groups fetched:", groups);  // Debugging line
+                        if (groups.length > 0) {
+                            groups.forEach(group => {
+                                const option = $('<option></option>').val(group).text(group);
+                                $('#groupSelector').append(option);
+                            });
+                            $('#groupSelector').prop('disabled', false);  // Enable group dropdown
 
-        // Populate group dropdown based on country
-        countrySelector.addEventListener("change", function () {
-            const selectedCountry = countrySelector.value;
-            const countryData = chartData.countries[selectedCountry] || {};
-
-            // Update group dropdown
-            groupSelector.disabled = !selectedCountry;
-            groupSelector.innerHTML = '<option value="">Select a Group</option>';
-            if (selectedCountry) {
-                Object.keys(countryData.groups || {}).forEach((group) => {
-                    const option = document.createElement("option");
-                    option.value = group;
-                    option.textContent = group;
-                    groupSelector.appendChild(option);
+                            // If there is only one group, select it automatically
+                            if (groups.length === 1) {
+                                $('#groupSelector').val(groups[0]);
+                                updateInstituteOptions();  // Automatically update institute options based on this selection
+                            }
+                        } else {
+                            $('#groupSelector').prop('disabled', true);
+                            alert("No groups found for the selected country.");
+                        }
+                    },
+                    error: function() {
+                        $('#groupSelector').prop('disabled', true);
+                        console.log("Error loading groups with data:", { country: selectedCountry });
+                        alert("Failed to load groups. Please try again.");
+                    }
                 });
             }
+        }
 
-            // Reset institute dropdown
-            instituteSelector.disabled = true;
-            instituteSelector.innerHTML = '<option value="">Select an Institute</option>';
+        // Function to update institute options based on selected group
+        function updateInstituteOptions() {
+            const selectedGroup = $('#groupSelector').val();  // Get the selected group
+            // Clear and disable the institute selector initially
+            $('#instituteSelector').html('<option value="">Select Institute</option>');
+            $('#instituteSelector').prop('disabled', true);  // Disable until institutes are loaded
 
-            // Update chart
-            updateChart(selectedCountry, "", "");
-        });
-
-        // Populate institute dropdown based on group
-        groupSelector.addEventListener("change", function () {
-            const selectedCountry = countrySelector.value;
-            const selectedGroup = groupSelector.value;
-            const groupData = chartData.countries[selectedCountry]?.groups[selectedGroup] || {};
-
-            // Update institute dropdown
-            instituteSelector.disabled = !selectedGroup;
-            instituteSelector.innerHTML = '<option value="">Select an Institute</option>';
             if (selectedGroup) {
-                Object.keys(groupData.institutes || {}).forEach((institute) => {
-                    const option = document.createElement("option");
-                    option.value = institute;
-                    option.textContent = institute;
-                    instituteSelector.appendChild(option);
+                $.ajax({
+                    url: '/api/get-institutes/',
+                    data: { group: selectedGroup },
+                    success: function(institutes) {
+                        // Check if institutes are returned successfully
+                        if (institutes.length > 0) {
+                            institutes.forEach(institute => {
+                                const option = $('<option></option>').val(institute).text(institute);
+                                $('#instituteSelector').append(option);
+                            });
+                            $('#instituteSelector').prop('disabled', false);  // Enable institute dropdown
+
+                            // If there is only one institute, select it automatically
+                            if (institutes.length === 1) {
+                                $('#instituteSelector').val(institutes[0]);
+                            }
+                        } else {
+                            $('#instituteSelector').prop('disabled', true);  // Keep disabled if no institutes are found
+                            alert("No institutes found for the selected group.");
+                        }
+                    },
+                    error: function() {
+                        $('#instituteSelector').prop('disabled', true);  // Keep disabled if request fails
+                        alert("Failed to load institutes. Please try again.");
+                    }
                 });
+            } else {
+                $('#instituteSelector').prop('disabled', true);  // Disable institute selector if no group is selected
+            }
+        }
+
+        // Function to fetch and update data based on selected filters
+        function updateFilteredData() {
+            const country = $('#countrySelector').val() || 'all'; // Default 'all' for country
+            const group = $('#groupSelector').val() || null; // Default null for group
+            const institute = $('#instituteSelector').val() || null; // Default null for institute
+
+            $.ajax({
+                url: '/api/get_filtered_chart_data/',  // API endpoint for filtered data
+                data: { country: country, group: group, institute: institute },
+                success: function(data) {
+                    updateChart(data);  // Update chart with new data
+                },
+                error: function() {
+                    alert("Failed to fetch filtered data. Please try again.");
+                }
+            });
+        }
+
+        // Event listeners for dropdowns
+        $('#countrySelector').change(function() {
+            const selectedCountry = $('#countrySelector').val();
+            
+            // Reset and disable group and institute selectors when the country is changed
+            resetGroupAndInstituteSelectors();
+
+            if (selectedCountry !== 'all') {
+                updateGroupOptions();  // Update group options based on selected country
             }
 
-            // Update chart
-            updateChart(selectedCountry, selectedGroup, "");
+            updateFilteredData();  // Update data based on the selected filters
         });
 
-        // Update chart based on institute
-        instituteSelector.addEventListener("change", function () {
-            const selectedCountry = countrySelector.value;
-            const selectedGroup = groupSelector.value;
-            const selectedInstitute = instituteSelector.value;
-
-            updateChart(selectedCountry, selectedGroup, selectedInstitute);
+        $('#groupSelector').change(function() {
+            updateInstituteOptions();  // Update institute options based on selected group
+            updateFilteredData();  // Update data based on selected filters
         });
 
-        ///////////////
+        $('#instituteSelector').change(function() {
+            updateFilteredData();  // Update data based on selected institute
+        });
+
+        // Trigger update when the page loads with default filters (show all data)
+        $(document).ready(function() {
+            updateFilteredData();  // Fetch and update chart with default data (for all countries)
+            updateGroupOptions();  // Update group options
+            updateInstituteOptions();  // Update institute options
+        });
+
         // Second chart (montlhy members and authors counts over each year)
         ///////////////
 
