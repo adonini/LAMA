@@ -6,7 +6,7 @@
     <!-- Row for Stats Overview and Histogram -->
     <div class="row">
         <!-- Stats Table Column (50% width) -->
-        <div class="col-md-6">
+        <div class="col-md-7">
             <!-- Total Members and Authors Overview -->
             <div class="row mb-4">
                 <div class="col-md-6">
@@ -28,33 +28,81 @@
             </div>
 
             <!-- Members and Authors by Country Table -->
-            <div class="table-responsive">
-                <table class="table table-striped text-center">
-                    <thead>
-                        <tr>
-                            <th>Country</th>
-                            <th>Members</th>
-                            <th>Authors</th>
-                            <th>% of Total Members</th>
-                            <th>% of Total Authors</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for data in countries_data %}
-                        <tr>
-                            <td>{{ data.country }}</td>
-                            <td>{{ data.members_count }}</td>
-                            <td>{{ data.authors_count }}</td>
-                            <td>{{ data.member_percentage|floatformat:2 }}%</td>
-                            <td>{{ data.author_percentage|floatformat:2 }}%</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <!-- Tabs for Switching Between Countries and Groups -->
+            <div class="nav nav-tabs" id="myTab" role="tablist">
+                <a class="nav-link active" id="countries-tab" data-bs-toggle="tab" href="#countries" role="tab" aria-controls="countries" aria-selected="true">Countries</a>
+                <a class="nav-link" id="groups-tab" data-bs-toggle="tab" href="#groups" role="tab" aria-controls="groups" aria-selected="false">Groups</a>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="tab-content" id="myTabContent">
+                <!-- Countries Tab -->
+                <div class="tab-pane fade show active" id="countries" role="tabpanel" aria-labelledby="countries-tab">
+                    <div class="table-responsive">
+                        <table class="table-stat table-striped text-center">
+                            <thead>
+                                <tr>
+                                    <th>Country</th>
+                                    <th>Members</th>
+                                    <th>Authors</th>
+                                    <th>% Members</th>
+                                    <th>% Authors</th>
+                                    <th>Avg Members last 12 Months</th>
+                                    <th>Avg Authors last 12 Months</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for data in countries_data %}
+                                <tr>
+                                    <td>{{ data.country }}</td>
+                                    <td>{{ data.members_count }}</td>
+                                    <td>{{ data.authors_count }}</td>
+                                    <td>{{ data.member_percentage|floatformat:2 }}%</td>
+                                    <td>{{ data.author_percentage|floatformat:2 }}%</td>
+                                    <td>{{ data.avg_members_12|floatformat:2 }}</td>
+                                    <td>{{ data.avg_authors_12|floatformat:2 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Groups Tab -->
+                <div class="tab-pane fade" id="groups" role="tabpanel" aria-labelledby="groups-tab">
+                    <div class="table-responsive">
+                        <table class="table-stat table-striped text-center">
+                            <thead>
+                                <tr>
+                                    <th>Group</th>
+                                    <th>Members</th>
+                                    <th>Authors</th>
+                                    <th>% Members</th>
+                                    <th>% Authors</th>
+                                    <th>Avg Members last 12 Months</th>
+                                    <th>Avg Authors last 12 Months</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for data in groups_data %}
+                                <tr>
+                                    <td>{{ data.group }}</td>
+                                    <td>{{ data.members_count }}</td>
+                                    <td>{{ data.authors_count }}</td>
+                                    <td>{{ data.member_percentage|floatformat:2 }}%</td>
+                                    <td>{{ data.author_percentage|floatformat:2 }}%</td>
+                                    <td>{{ data.avg_members_12|floatformat:2 }}</td>
+                                    <td>{{ data.avg_authors_12|floatformat:2 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
         <!-- Histogram Column (50% width) -->
-        <div class="col-md-6">
+        <div class="col-md-5">
             <!-- First row for the main chart -->
             <div class="card shadow text-center mb-4" style="height: auto;">
                 <div class="card-body p-2"> <!-- Remove padding for tight fit -->
@@ -91,15 +139,39 @@
             <!-- Second row for the monthly averages chart -->
             <div class="card shadow text-center mb-4" style="height: auto;">
                 <div class="card-body p-2"> <!-- Remove padding for tight fit -->
-                    <h5 class="card-title font-weight-bold p-1">Members and Authors Average per Month</h5>
+                    <h5 class="card-title font-weight-bold p-1">Members and Authors per Month</h5>
 
                     <!-- Year Selector -->
-                    <select id="yearSelector" class="form-select mb-3">
+                    <select id="monthlyYearSelector" class="form-select form-select-sm mb-3">
                         <option value="" disabled>Select a Year</option>
                         {% for year in years_list %}
                             <option value="{{ year }}">{{ year }}</option>
                         {% endfor %}
                     </select>
+
+                    <!-- Country, Group, and Institute Selectors -->
+                    <div class="dropdown-container" style="display: flex; gap: 1rem;">
+                        <select id="monthlyCountrySelector" class="form-select form-select-sm">
+                            <option value="all">All Countries</option>
+                            {% for country in country_list %}
+                                <option value="{{ country }}">{{ country }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <select id="monthlyGroupSelector" class="form-select form-select-sm" disabled>
+                            <option value="">Select a Group</option>
+                            {% for group in group_list %}
+                                <option value="{{ group }}">{{ group }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <select id="monthlyInstituteSelector" class="form-select form-select-sm" disabled>
+                            <option value="">Select an Institute</option>
+                            {% for institute in institute_list %}
+                                <option value="{{ institute }}">{{ institute }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
                     <!-- Chart Container -->
                     <canvas id="monthlyMembersAuthorsHistogram"></canvas>
@@ -108,18 +180,43 @@
         </div>
     </div>
 </div>
-
+<script src="https://cdn.jsdelivr.net/npm/html2canvas"></script>
 <script>
+    document.getElementById('download-image-btn').addEventListener('click', function () {
+        const table = document.querySelector('.table-responsive'); // Adjust the selector if needed
+
+        // Use html2canvas to capture the table
+        html2canvas(table).then(canvas => {
+            // Create an anchor element to trigger the download
+            const link = document.createElement('a');
+            link.download = 'table_image.png'; // Name of the downloaded file
+            link.href = canvas.toDataURL('image/png'); // Convert canvas to image URL
+            link.click(); // Programmatically trigger the download
+        });
+    });
     document.addEventListener("DOMContentLoaded", function() {
+        var currentYear = new Date().getFullYear();
+        var years = {{ years_list | safe}};
+        // variables for average plot
         var members = {{ member_averages|safe }}.map(Math.round); // Yearly average members
         var authors = {{ author_averages|safe }}.map(Math.round); // Yearly average authors
-        var currentYear = new Date().getFullYear();
         const chartData = {{ chart_data|safe }};
         const countrySelector = document.getElementById('countrySelector');
         const groupSelector = document.getElementById('groupSelector');
         const instituteSelector = document.getElementById('instituteSelector');
-
+        // variables for monthly plot
+        const chart_data_month = {{ chart_data_month | safe}};
+        var monthlyMembersData = {{ default_monthly_members | safe}};
+        var monthlyAuthorsData = {{ default_monthly_authors | safe}};
+        const yearSelector_month = document.getElementById('monthlyYearSelector'); // Get the year selector
+        const countrySelector_month = document.getElementById('monthlyCountrySelector');
+        const groupSelector_month = document.getElementById('monthlyGroupSelector');
+        const instituteSelector_month = document.getElementById('monthlyInstituteSelector');
+console.log(chart_data_month)
+        ///////////////
         // First chart (Average members and authors over the years)
+        ///////////////
+
         const ctx1 = document.getElementById('membersAuthorsHistogram').getContext('2d');
         const yearlyChart = new Chart(ctx1, {
             type: 'bar',
@@ -130,8 +227,8 @@
                         label: 'Average Members Count',
                         data: members,
                         backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                        barPercentage: 0.4,
-                        categoryPercentage: 1.0,
+                        barPercentage: 1,
+                        categoryPercentage: 0.8,
                         borderColor: 'rgba(75, 192, 192, 1)',
                         borderWidth: 1
                     },
@@ -139,8 +236,8 @@
                         label: 'Average Authors Count',
                         data: authors,
                         backgroundColor: 'rgba(153, 102, 255, 0.6)',
-                        barPercentage: 0.4,
-                        categoryPercentage: 1.0,
+                        barPercentage: 1,
+                        categoryPercentage: 0.8,
                         borderColor: 'rgba(153, 102, 255, 1)',
                         borderWidth: 1
                     }
@@ -282,87 +379,192 @@
             updateChart(selectedCountry, selectedGroup, selectedInstitute);
         });
 
+        ///////////////
         // Second chart (montlhy members and authors counts over each year)
-        // Set default year in the dropdown
-        var yearSelector = document.getElementById('yearSelector');
-        if (years.includes(currentYear)) {
-            yearSelector.value = currentYear;
-            loadMonthlyChart(currentYear); // Call the function to load the chart for the default year
+        ///////////////
+
+        // Set default data using the current year and "all" filters
+        const defaultYearData = chart_data_month[currentYear] || {};
+        const defaultMonthlyMembers = defaultYearData.countries?.all?.members || [];
+        const defaultMonthlyAuthors = defaultYearData.countries?.all?.authors || [];
+
+        const ctx2 = document.getElementById('monthlyMembersAuthorsHistogram').getContext('2d');
+        const monthlyChart = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [
+                    {
+                        label: 'Monthly Members Count',
+                        data: monthlyMembersData,
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        barPercentage: 1,
+                        categoryPercentage: 0.8,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Monthly Authors Count',
+                        data: monthlyAuthorsData,
+                        backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                        barPercentage: 1,
+                        categoryPercentage: 0.8,
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Month'
+                        },
+                        stacked: false
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Count'
+                        },
+                        stacked: false
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                }
+            }
+        });
+
+        // Function to update monthly chart based on filters
+        function updateMonthlyChart(selectedYear, selectedCountry, selectedGroup, selectedInstitute) {
+            const yearData = chart_data_month[selectedYear] || {};
+            let monthlyMembers = [];
+            let monthlyAuthors = [];
+        
+            // Apply filters step by step
+            if (selectedCountry === "all" || !selectedCountry) {
+                monthlyMembers = monthlyMembersData;
+                monthlyAuthors = monthlyAuthorsData;
+            } else {
+                const countryData = yearData.countries[selectedCountry] || {};
+
+                if (selectedGroup) {
+                    const groupData = countryData.groups[selectedGroup] || {};
+                    monthlyMembers = groupData.members || [];
+                    monthlyAuthors = groupData.authors || [];
+        
+                    if (selectedInstitute) {
+                        const instituteData = groupData.institutes[selectedInstitute] || {};
+                        monthlyMembers = instituteData.members || [];
+                        monthlyAuthors = instituteData.authors || [];
+                    }
+                } else {
+                    monthlyMembers = countryData.members || [];
+                    monthlyAuthors = countryData.authors || [];
+                }
+            }
+        
+            // Update the chart
+            monthlyChart.data.datasets[0].data = monthlyMembers;
+            monthlyChart.data.datasets[1].data = monthlyAuthors;
+            monthlyChart.update();
         }
 
-        // Function to load the monthly chart
-        function loadMonthlyChart(selectedYear) {
-            const yearIndex = years.indexOf(selectedYear);
-            if (yearIndex !== -1) {
-                const monthlyMembers = monthlyMembersData[yearIndex];
-                const monthlyAuthors = monthlyAuthorsData[yearIndex];
+        // Populate dropdowns based on selections
+        function updateDropdowns(selectedYear, selectedCountry, selectedGroup) {
+            const yearData = chart_data_month[selectedYear] || {};
+            const countryData = yearData.countries[selectedCountry] || {};
 
-                // If the chart already exists, destroy it before creating a new one
-                if (window.monthlyChart) {
-                    window.monthlyChart.destroy();
-                }
+            // Update group dropdown
+            groupSelector_month.disabled = !selectedCountry;
+            groupSelector_month.innerHTML = '<option value="">Select a Group</option>';
+            if (selectedCountry) {
+                Object.keys(countryData.groups || {}).forEach((group) => {
+                    const option = document.createElement("option");
+                    option.value = group;
+                    option.textContent = group;
+                    groupSelector_month.appendChild(option);
+                });
+            }
 
-                const ctx2 = document.getElementById('monthlyMembersAuthorsHistogram').getContext('2d');
-                window.monthlyChart = new Chart(ctx2, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                        datasets: [
-                            {
-                                label: 'Monthly Members Count',
-                                data: monthlyMembers,
-                                backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                                barPercentage: 0.4,
-                                categoryPercentage: 1.0,
-                                borderColor: 'rgba(75, 192, 192, 1)',
-                                borderWidth: 1
-                            },
-                            {
-                                label: 'Monthly Authors Count',
-                                data: monthlyAuthors,
-                                backgroundColor: 'rgba(153, 102, 255, 0.6)',
-                                barPercentage: 0.4,
-                                categoryPercentage: 1.0,
-                                borderColor: 'rgba(153, 102, 255, 1)',
-                                borderWidth: 1
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: 'Month'
-                                },
-                                stacked: false
-                            },
-                            y: {
-                                beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'Count'
-                                },
-                                stacked: false
-                            }
-                        },
-                        plugins: {
-                            tooltip: {
-                                mode: 'index',
-                                intersect: false
-                            }
-                        }
-                    }
+            // Update institute dropdown
+            const groupData = countryData.groups[selectedGroup] || {};
+            instituteSelector_month.disabled = !selectedGroup;
+            instituteSelector_month.innerHTML = '<option value="">Select an Institute</option>';
+            if (selectedGroup) {
+                Object.keys(groupData.institutes || {}).forEach((institute) => {
+                    const option = document.createElement("option");
+                    option.value = institute;
+                    option.textContent = institute;
+                    instituteSelector_month.appendChild(option);
                 });
             }
         }
 
-        // Event listener for the dropdown selection
-        yearSelector.addEventListener('change', function(e) {
-            const selectedYear = parseInt(e.target.value);
-            loadMonthlyChart(selectedYear);
+        // Event listener for year selection
+        yearSelector_month.addEventListener("change", function () {
+            const selectedYear = yearSelector_month.value;
+            const selectedCountry = countrySelector_month.value || "all";
+            const selectedGroup = groupSelector_month.value;
+            const selectedInstitute = instituteSelector_month.value;
+
+            // Reset filters
+            countrySelector_month.value = "all";
+            groupSelector_month.innerHTML = '<option value="">Select a Group</option>';
+            instituteSelector_month.innerHTML = '<option value="">Select an Institute</option>';
+            groupSelector_month.disabled = true;
+            instituteSelector_month.disabled = true;
+
+            // Update chart and dropdowns
+            updateMonthlyChart(selectedYear, selectedCountry, selectedGroup, selectedInstitute);
         });
+
+        // Event listener for country selection
+        countrySelector_month.addEventListener("change", function () {
+            const selectedYear = yearSelector_month.value;
+            const selectedCountry = countrySelector_month.value;
+            const selectedGroup = "";
+            const selectedInstitute = "";
+
+            updateDropdowns(selectedYear, selectedCountry, selectedGroup);
+            updateMonthlyChart(selectedYear, selectedCountry, selectedGroup, selectedInstitute);
+        });
+
+        // Event listener for group selection
+        groupSelector_month.addEventListener("change", function () {
+            const selectedYear = yearSelector_month.value;
+            const selectedCountry = countrySelector_month.value;
+            const selectedGroup = groupSelector_month.value;
+            const selectedInstitute = "";
+
+            updateDropdowns(selectedYear, selectedCountry, selectedGroup);
+            updateMonthlyChart(selectedYear, selectedCountry, selectedGroup, selectedInstitute);
+        });
+
+        // Event listener for institute selection
+        instituteSelector_month.addEventListener("change", function () {
+            const selectedYear = yearSelector_month.value;
+            const selectedCountry = countrySelector_month.value;
+            const selectedGroup = groupSelector_month.value;
+            const selectedInstitute = instituteSelector_month.value;
+
+            updateMonthlyChart(selectedYear, selectedCountry, selectedGroup, selectedInstitute);
+        });
+
+        // Set default dropdown values and initialize chart
+        yearSelector_month.value = currentYear;
+        countrySelector_month.value = "all";
+        groupSelector_month.disabled = true;
+        instituteSelector_month.disabled = true;
+
+        updateMonthlyChart(currentYear, "all");
     });
 </script>
 {% endblock content %}

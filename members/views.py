@@ -13,10 +13,12 @@ from django.http import HttpResponse
 import json
 import logging
 from django.utils import timezone
-from datetime import datetime
-from django.db.models import Q
+from datetime import datetime, timedelta
+from django.db.models import Q, Avg, Count
+from django.db.models.functions import TruncMonth
 from dateutil.relativedelta import relativedelta
 from django.utils.timezone import now
+from django.http import JsonResponse
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +58,21 @@ def calculate_averages(queryset, date_field, year, current_year, current_month):
     )
     divisor = current_month if year == current_year else 12
     return total / divisor if divisor > 0 else 0
+
+
+def get_active_member_count(queryset, date_field, year, month):
+    check_date = datetime(year, month, 15).date()
+    return queryset.filter(**{f"{date_field}__lte": check_date}).filter(
+        Q(end_date__isnull=True) | Q(end_date__gt=check_date)
+    ).count()
+
+
+def get_active_author_count(queryset, year, month):
+    check_date = datetime(year, month, 15).date()
+    return queryset.filter(authorship_start__lte=check_date).filter(
+        Q(authorship_end__isnull=True) | Q(authorship_end__gt=check_date)
+    ).count()
+
 
 class Index(TemplateView):
     template_name = 'login/index.html'
@@ -342,21 +359,11 @@ class Statistics(TemplateView):
         # Monthly member and author counts
         for year in years:
             for month in range(1, 13):
-                check_date = datetime(year, month, 15).date()
-
                 # Members active on the 15th of the month
-                monthly_member_count = Member.objects.filter(
-                    start_date__lte=check_date,
-                ).filter(
-                    Q(end_date__isnull=True) | Q(end_date__gt=check_date)
-                ).count()
+                monthly_member_count = get_active_member_count(Member.objects.all(), "start_date", year, month)
 
                 # Authors active on the 15th of the month
-                monthly_author_count = Member.objects.filter(
-                    authorship_start__lte=check_date,
-                ).filter(
-                    Q(authorship_end__isnull=True) | Q(authorship_end__gt=check_date)
-                ).count()
+                monthly_author_count = get_active_author_count(Member.objects.all(), year, month)
 
                 print(f"Year: {year}, Month: {month}, Members: {monthly_member_count}, Authors: {monthly_author_count}")
                 # Append monthly counts
@@ -367,13 +374,8 @@ class Statistics(TemplateView):
         member_averages = [sum(data['members']) / 12 for data in year_data.values()]
         author_averages = [sum(data['authors']) / 12 for data in year_data.values()]
 
-        # Lists for years, members and authors (monthly data)
-        years_list = list(years)
-        members_count_list = [data['members'] for data in year_data.values()]  # Monthly counts for members
-        authors_count_list = [data['authors'] for data in year_data.values()]  # Monthly counts for authors
-
         #####################################################
-        # Calculations for total active members and authors
+        # Calculations for total active members and authors for tables
         #####################################################
         # Filter members whose membership is currently active
         total_members = (Member.objects.filter(end_date__gt=today) | Member.objects.filter(end_date__isnull=True)).count()
@@ -381,6 +383,11 @@ class Statistics(TemplateView):
         total_authors = Member.objects.filter(authorship_start__lte=today).filter(
             Q(authorship_end__isnull=True) | Q(authorship_end__gt=today)
         ).count()
+
+        # Last 12 months starting from today
+        last_12_months = [
+            (today - relativedelta(months=i), today - relativedelta(months=i - 1)) for i in range(12, 0, -1)
+        ]
 
         # Members and authors by country with percentage calculations
         countries_data = []
@@ -401,14 +408,96 @@ class Statistics(TemplateView):
             member_percentage = (country_members / total_members * 100) if total_members > 0 else 0
             author_percentage = (country_authors / total_authors * 100) if total_authors > 0 else 0
 
+            # Monthly data and averages for the last 12 months
+            monthly_data = {'members': [], 'authors': []}
+
+            for start_date, end_date in last_12_months:
+                # Members count for the country
+                monthly_members = Member.objects.filter(
+                    institute__group__country=country,
+                    start_date__lte=end_date,
+                ).filter(Q(end_date__isnull=True) | Q(end_date__gte=start_date)).count()
+
+                # Authors count for the country
+                monthly_authors = Member.objects.filter(
+                    institute__group__country=country,
+                    authorship_start__lte=end_date,
+                ).filter(Q(authorship_end__isnull=True) | Q(authorship_end__gte=start_date)).count()
+
+                # Append monthly data
+                monthly_data['members'].append(monthly_members)
+                monthly_data['authors'].append(monthly_authors)
+
+            # Calculate averages
+            avg_members_12 = sum(monthly_data['members']) / len(monthly_data['members']) if monthly_data['members'] else 0
+            avg_authors_12 = sum(monthly_data['authors']) / len(monthly_data['authors']) if monthly_data['authors'] else 0
+
             countries_data.append({
                 'country': country.name,
                 'members_count': country_members,
                 'authors_count': country_authors,
                 'member_percentage': member_percentage,
                 'author_percentage': author_percentage,
+                'avg_members_12': avg_members_12,
+                'avg_authors_12': avg_authors_12,
             })
 
+        # Members and authors by group with percentage calculations
+        groups_data = []
+        for group in Group.objects.order_by('name'):
+            # Current members in each group
+            group_members = Member.objects.filter(
+                institute__group=group,
+                start_date__lte=today,
+            ).filter(Q(end_date__isnull=True) | Q(end_date__gt=today)).count()
+
+            # Current authors in each group
+            group_authors = Member.objects.filter(
+                institute__group=group,
+                authorship_start__lte=today
+            ).filter(Q(authorship_end__isnull=True) | Q(authorship_end__gt=today)).count()
+
+            # Calculate percentages
+            member_percentage = (group_members / total_members * 100) if total_members > 0 else 0
+            author_percentage = (group_authors / total_authors * 100) if total_authors > 0 else 0
+
+            # Monthly data and averages for the last 12 months
+            monthly_data = {'members': [], 'authors': []}
+
+            for start_date, end_date in last_12_months:
+                # Members count for the group
+                monthly_members = Member.objects.filter(
+                    institute__group=group,
+                    start_date__lte=end_date,
+                ).filter(Q(end_date__isnull=True) | Q(end_date__gte=start_date)).count()
+
+                # Authors count for the group
+                monthly_authors = Member.objects.filter(
+                    institute__group=group,
+                    authorship_start__lte=end_date,
+                ).filter(Q(authorship_end__isnull=True) | Q(authorship_end__gte=start_date)).count()
+
+                # Append monthly data
+                monthly_data['members'].append(monthly_members)
+                monthly_data['authors'].append(monthly_authors)
+
+            # Calculate averages
+            avg_members_12 = sum(monthly_data['members']) / len(monthly_data['members']) if monthly_data['members'] else 0
+            avg_authors_12 = sum(monthly_data['authors']) / len(monthly_data['authors']) if monthly_data['authors'] else 0
+
+            groups_data.append({
+                'group': group.name,
+                'members_count': group_members,
+                'authors_count': group_authors,
+                'member_percentage': member_percentage,
+                'author_percentage': author_percentage,
+                'avg_members_12': avg_members_12,
+                'avg_authors_12': avg_authors_12,
+            })
+
+        #########
+        # Plots
+        #########
         # Get lists for filtering options
         country_list = Country.objects.values_list('name', flat=True).order_by('name')
 
@@ -488,6 +577,69 @@ class Statistics(TemplateView):
         }
 
         ################
+        # Monthly plot
+        #################
+        # Generate general data for the latest year
+        default_monthly_members = [
+            get_active_member_count(Member.objects.all(), "start_date", current_year, month)
+            for month in range(1, 13)
+        ]
+        default_monthly_authors = [
+            get_active_author_count(Member.objects.all(), current_year, month)
+            for month in range(1, 13)
+        ]
+
+        # Updated structure to hold monthly counts for each year, country, group, and institute
+        chart_data_month = {
+            'years': {}
+        }
+
+        # Generate data for each year
+        for year in years:
+            chart_data_month['years'][year] = {
+                'countries': {}
+            }
+
+            # For each country
+            for country in Country.objects.all():
+                chart_data_month['years'][year]['countries'][country.name] = {
+                    'members': [
+                        get_active_member_count(Member.objects.filter(institute__group__country=country), "start_date", year, month)
+                        for month in range(1, 13)
+                    ],
+                    'authors': [
+                        get_active_author_count(Member.objects.filter(institute__group__country=country), year, month)
+                        for month in range(1, 13)
+                    ],
+                    'groups': {}
+                }
+
+                # For each group within a country
+                for group in Group.objects.filter(country=country):
+                    chart_data_month['years'][year]['countries'][country.name]['groups'][group.name] = {
+                        'members': [
+                            get_active_member_count(Member.objects.filter(institute__group=group), "start_date", year, month)
+                            for month in range(1, 13)
+                        ],
+                        'authors': [
+                            get_active_author_count(Member.objects.filter(institute__group=group), year, month)
+                            for month in range(1, 13)
+                        ],
+                        'institutes': {}
+                    }
+
+                    # For each institute within a group
+                    for institute in Institute.objects.filter(group=group):
+                        chart_data_month['years'][year]['countries'][country.name]['groups'][group.name]['institutes'][institute.name] = {
+                            'members': [
+                                get_active_member_count(Member.objects.filter(institute=institute), "start_date", year, month)
+                                for month in range(1, 13)
+                            ],
+                            'authors': [
+                                get_active_author_count(Member.objects.filter(institute=institute), year, month)
+                                for month in range(1, 13)
+                            ],
+                        }
 
         context.update({
             'chart_data': chart_data,  # year average chart
@@ -495,13 +647,61 @@ class Statistics(TemplateView):
             'total_members': total_members,
             'total_authors': total_authors,
             'countries_data': countries_data,
+            'groups_data': groups_data,
             'member_averages': member_averages,
             'author_averages': author_averages,
-            'year_averages': year_averages,
-            'years_list': years_list,
-            'members_count_list': members_count_list,  # Monthly counts for members
-            'authors_count_list': authors_count_list,  # Monthly counts for authors
+            'years_list': list(years),
+            'default_monthly_members': default_monthly_members,
+            'default_monthly_authors': default_monthly_authors,
             'country_list': country_list,
-            'current_date': datetime.now().strftime('%B %d, %Y')
+            'current_date': datetime.now().strftime('%B %d, %Y'),
         })
         return context
+
+
+def get_filtered_chart_data(request):
+    """
+    Returns average members and authors for the selected filters.
+    """
+    # Extract filter parameters from GET request
+    country_name = request.GET.get('country', None)
+    group_name = request.GET.get('group', None)
+    institute_name = request.GET.get('institute', None)
+
+    # Initialize base queryset
+    queryset = Member.objects.all()
+
+    # Apply filters dynamically
+    if country_name and country_name != 'all':
+        queryset = queryset.filter(institute__group__country__name=country_name)
+
+    if group_name:
+        queryset = queryset.filter(institute__group__name=group_name)
+
+    if institute_name:
+        queryset = queryset.filter(institute__name=institute_name)
+
+    # Determine years range for averages
+    today = datetime.now().date()
+    current_year = today.year
+    years = range(2018, current_year + 1)
+
+    # Compute averages for members and authors per year
+    filtered_data = {
+        'years': list(years),
+        'members': [],
+        'authors': [],
+    }
+
+    for year in years:
+        # Average members
+        avg_members = calculate_averages(queryset, "start_date", year, current_year, today.month)
+
+        # Average authors
+        avg_authors = calculate_averages(queryset.filter(authorship_start__isnull=False), 
+                                         "authorship_start", year, current_year, today.month)
+
+        filtered_data['members'].append(avg_members)
+        filtered_data['authors'].append(avg_authors)
+
+    return JsonResponse(filtered_data)
