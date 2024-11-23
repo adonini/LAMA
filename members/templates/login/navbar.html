@@ -40,8 +40,18 @@
                 <a class="btn logout rounded-pill px-3 py-1" href="{% url 'logout' %}">Logout</a>
             </div>
         {% else %}
-            <div class="col-12 d-flex justify-content-center">
-                <h1 class="text-white text-center mb-0">LST Members and Authors Manager</h1>
+            <div class="d-flex flex-column flex-lg-row align-items-center w-100">
+                <!-- Navbar Brand -->
+                <a class="navbar-brand text-white ms-2 d-flex align-items-center" href="{% url 'index' %}">
+                    <img src="{% static 'images/lama.png' %}" alt="LAMA Logo" class="me-2" style="height: 40px;">
+                    LAMA
+                </a>
+        
+                <!-- Centered Title -->
+                <h1 class="text-white text-center mb-0 flex-grow-1">LST Members and Authors Manager</h1>
+        
+                <!-- Current Date -->
+                <span class="text-white me-3">{{ current_date }}</span>
             </div>
         {% endif %}
     </div>
