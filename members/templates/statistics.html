@@ -612,9 +612,12 @@
                     const yearSelector = $('#monthlyYearSelector');
                     yearSelector.empty(); // Clear any existing options
                     if (data && data.years) {
+                        const currentYear = new Date().getFullYear();
+                        let defaultYearSet = false;
                         data.years.forEach(year => {
-                            const isSelected = year === new Date().getFullYear();
+                            const isSelected = year === currentYear;
                             yearSelector.append(new Option(year, year, isSelected, isSelected));
+                            if (isSelected) defaultYearSet = true;
                         });
                         updateMonthlyChart(); // Update chart after setting default year
                     } else {
@@ -653,8 +656,8 @@
 
         // Initialize with Default Data
         $(document).ready(function () {
-            populateYearDropdown(); // Load years dynamically
             resetMonthlySelectors(); // Reset all dropdowns on page load
+            populateYearDropdown(); // Load years dynamically
             updateMonthlyChart(); // Load default data for all filters
         });
     });
