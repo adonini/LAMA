@@ -311,7 +311,6 @@ div.dt-paging> button.dt-paging-button:not(.disabled){
 }
 
 /* Responsive design for smaller screens */
-/* Responsive Design for screens smaller than 900px */
 @media (max-width: 900px) {
     /* Set the first four cards to be on two rows */
     .container-1 .row {
@@ -396,4 +395,100 @@ button>p{
 
 .large {
     font-size: 1.5rem;
+}
+
+/* */
+/* Tables statistic*/
+/* */
+.table-stat {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 10px 0;
+    border-radius: 8px;
+    overflow: hidden; /* To ensure rounded corners for the table */
+}
+
+/* Alternate row colors */
+.table-stat tbody tr:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+
+.table-stat tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Header styles */
+.table-stat thead {
+    background-color: rgba(53,58,63,0.8);
+    color: white;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.table-stat th, .table-stat td {
+    padding: 11px;
+    text-align: center;
+}
+
+/* Table borders and styling */
+.table-stat th, .table-stat td {
+    border-bottom: 1px solid #e0e0e0;  /* Light border for cells */
+}
+
+.table-stat td {
+    color: #343a40; /* Darker text color for contrast */
+    font-weight: 500;
+}
+
+/* Active row hover effect */
+.table-stat tbody tr.active-row {
+    background-color: #007bff; /* Highlight active row with the primary color */
+    color: white;
+}
+
+/* Improved tab navigation styling */
+.nav-tabs {
+    border-bottom: 2px solid var(--bs-primary); /*  border under the tabs */
+}
+
+.nav-link {
+    font-weight: bold;
+    color: var(--bs-dark);
+    border-radius: 0.25rem 0.25rem 0 0;
+    padding: 10px 20px;
+}
+
+.nav-link:hover, .nav-link:focus {
+    background-color: #f8f9fa;
+    color: lightgray;  /*  on hover */
+}
+
+.nav-link.active {
+    color: white;  /* White text for active tab */
+    background-color: var(--bs-dark);  /* Primary color background */
+    border: 2px solid var(--bs-primary); /* Darker border for active tab */
+}
+
+/* Table styling adjustments */
+@media (max-width: 1313px) {
+    /* Ensure table rows occupy full width on smaller screens */
+    .col-lg-7, .col-md-7, .col-lg-5, .col-md-5 {
+        width: 100% !important;
+    }
+
+    /* Add top margin between the table and the first chart */
+    .table-stat {
+        margin-bottom: 20px;
+    }
+
+    /* Ensures the dropdown containers in the chart section are stacked on small screens */
+    .dropdown-container {
+        display: block;
+        margin-bottom: 1rem;
+    }
+
+    /* For better readability on small screens, increase the padding */
+    .card-body {
+        padding: 1rem;
+    }
 }
