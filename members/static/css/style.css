@@ -492,3 +492,17 @@ button>p{
         padding: 1rem;
     }
 }
+
+.truly-center-grid {
+    display: grid !important;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+}
+.truly-center--grid .truly-center__child:last-child {
+    text-align: right;
+}
+
+.navbar-toggler-icon {
+    width: 30px;
+    height: 30px;
+}

@@ -1,18 +1,20 @@
 {% load static %}
 
 <nav class="navbar navbar-expand-lg bg-dark p-2" data-bs-theme="dark">
-    <div class="container-fluid d-flex align-items-center">
+    <div class="container-fluid truly-center-grid">
         {% if user.is_authenticated %}
             <!-- Left-side: Logo and Title -->
-            <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center flex-wrap">
                 <a class="navbar-brand text-white ms-2 title d-flex align-items-center" href="{% url 'index' %}">
                     <img src="{% static 'images/lama.png' %}" alt="LAMA Logo" class="me-2" style="height: 40px;">
                     LAMA
                 </a>
                 <span class="text-white me-3">{{ current_date }}</span>
             </div>
-            <div id="navbarNav">
-                <ul class="navbar-nav">
+
+            <!-- Center Navigation -->
+            <div class="truly-center-child">
+                <ul class="navbar-nav align-items-center">
                     <li class="nav-item me-4">
                         <a class="btn border-white rounded-pill text-white {% if request.path == '/' %}selected{% endif %}" href="{% url 'index' %}">
                             <i class="fa-solid fa-house me-1"></i> Home
@@ -31,25 +33,31 @@
                 </ul>
             </div>
 
-            <!-- Right-side Buttons (collapse on small screens) -->
-            <div class="d-flex align-items-center">
-                {% if user.is_superuser %}
-                    <a class="btn adminButton rounded-pill me-3 px-3 py-1" href="{% url 'admin:index' %}">Admin Panel</a>
-                {% endif %}
-                <a class="nav-link text-white me-2"><i class="fa-solid fa-user me-1"></i> {{ user.username }}</a>
-                <a class="btn logout rounded-pill px-3 py-1" href="{% url 'logout' %}">Logout</a>
+            <!-- Right-side Buttons (Collapsible on small screens) -->
+            <div class="d-flex align-items-center justify-content-end">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#rightNav" aria-controls="rightNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse justify-content-lg-end" id="rightNav">
+                    <div class="d-flex flex-column flex-lg-row align-items-center">
+                        {% if user.is_superuser %}
+                            <a class="btn adminButton rounded-pill mb-2 me-3 px-3 py-1" href="{% url 'admin:index' %}">Admin Panel</a>
+                        {% endif %}
+                        <a class="text-white mb-2 me-2"><i class="fa-solid fa-user me-2"></i> {{ user.username }}</a>
+                        <a class="btn logout rounded-pill px-3 py-1" href="{% url 'logout' %}">Logout</a>
+                    </div>
+                </div>
             </div>
         {% else %}
+            <!-- Unauthenticated View -->
             <div class="d-flex flex-column flex-lg-row align-items-center w-100">
                 <!-- Navbar Brand -->
                 <a class="navbar-brand text-white ms-2 d-flex align-items-center" href="{% url 'index' %}">
                     <img src="{% static 'images/lama.png' %}" alt="LAMA Logo" class="me-2" style="height: 40px;">
                     LAMA
                 </a>
-        
                 <!-- Centered Title -->
                 <h1 class="text-white text-center mb-0 flex-grow-1">LST Members and Authors Manager</h1>
-        
                 <!-- Current Date -->
                 <span class="text-white me-3">{{ current_date }}</span>
             </div>
