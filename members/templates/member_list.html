@@ -233,10 +233,12 @@
             let validCountries = new Set();
             let validGroups = new Set();
             let validInstitutes = new Set();
+
             // Calculate valid options based on the current selections
             for (let country in filters) {
                 let countryData = filters[country];
                 let countryGroups = countryData.groups;
+
                 // Loop through groups and their associated institutes
                 for (let group in countryGroups) {
                     let groupInstitutes = countryGroups[group];
@@ -255,6 +257,7 @@
                     }
                 }
             }
+
             // Convert Sets to Arrays for dropdown updates
             validCountries = Array.from(validCountries);
             validGroups = Array.from(validGroups);
@@ -317,9 +320,9 @@
                 divInput.style.marginTop = '3px';
                 input.addEventListener('change', function (e) {
                     if (e.target.value !== 'All') {
-                        table.column(9).search(e.target.value).draw();
+                        table.column(10).search(e.target.value).draw();
                     } else {
-                        table.column(9).search('').draw();
+                        table.column(10).search('').draw();
                     }
                 });
                 ['Yes', 'No'].forEach(authorStatus => {
@@ -336,9 +339,9 @@
                 divInput.style.marginTop = '5px';
                 input.addEventListener('change', function (e) {
                     if (e.target.value !== 'All') {
-                        table.column(10).search(e.target.value).draw();
+                        table.column(9).search(e.target.value).draw();
                     } else {
-                        table.column(10).search('').draw();
+                        table.column(9).search('').draw();
                     }
                 });
                 ['Yes', 'No'].forEach(cfStatus => {
@@ -367,13 +370,6 @@
         // Initialize dropdowns with valid options
         updateFilters();
 
-        // Custom Search placeholders and Clear Filter button
-        $('[type=search]').each(function () {
-            $(this).attr("placeholder", "Search...");
-            $(this).attr("autocomplete", "off");
-            $(this).before('<span class="fa fa-search"></span>');
-        });
-
         let top1End = document.querySelector('.top1End');
         let clearFilterButton = document.createElement('div');
         clearFilterButton.classList.add('btn', 'btn-clear', 'rounded-xl');
@@ -390,6 +386,13 @@
             table.search('').draw();
         });
         top1End.appendChild(clearFilterButton);
+
+        // Custom Search placeholders and Clear Filter button
+        $('[type=search]').each(function () {
+            $(this).attr("placeholder", "Search...");
+            $(this).attr("autocomplete", "off");
+            $(this).before('<span class="fa fa-search"></span>');
+        });
 
         $(document).on('click', '.item-data', function(e) {
             let id = e.target.dataset.id
