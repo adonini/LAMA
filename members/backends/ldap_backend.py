@@ -17,7 +17,7 @@ class CustomLDAPBackend(LDAPBackend):
 
     def assign_local_groups(self, user, ldap_groups):
         """Assign the local groups based on LDAP group memberships."""
-        if 'lst-ims-admin' in ldap_groups:
+        if 'lst-membership-admin' in ldap_groups:
             admin_group = Group.objects.get(name='admin')
             user.groups.add(admin_group)
             user.is_staff = True
