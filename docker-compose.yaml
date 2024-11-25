@@ -2,7 +2,7 @@ services:
   db:
     image: postgres:16.3
     restart: always
-    container_name: postgresql
+    container_name: postgresql_lama
     volumes:
       - "${DB_PATH}:/var/lib/postgresql/data"
     environment:
@@ -14,7 +14,7 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4
-    container_name: pgadmin
+    container_name: pgadmin_lama
     restart: always
     environment:
       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
@@ -25,13 +25,12 @@ services:
       - db
 
   web:
-    image: django_work:${PROJECT_VERSION}
-    container_name: django_hours_${PROJECT_VERSION}
+    image: django_lama:${PROJECT_VERSION}
+    container_name: django_lama_${PROJECT_VERSION}
     command: ./run.sh
     restart: always
     volumes:
-      - ".:/code"
-      - static:/code/staticfiles
+      - static_lama:/code/staticfiles
     environment:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -45,12 +44,12 @@ services:
   nginx:
     image: nginx
     ports:
-      - "8083:80"
+      - "8085:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - static:/usr/share/nginx/html/static
+      - static_lama:/usr/share/nginx/html/static
     depends_on:
       - web
 
 volumes:
-  static:
+  static_lama:
