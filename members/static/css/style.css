@@ -106,13 +106,13 @@ body{
     margin-bottom: 0;
 }
 
-.btn-close{
+.btn-close1{
     background-color: #FF6F61;
     color: black;
     opacity: 1;
 }
 
-.btn-close:hover {
+.btn-close1:hover {
     background-color: darkred;
     color: black;
 }
