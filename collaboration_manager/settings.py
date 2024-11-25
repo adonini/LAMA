@@ -18,7 +18,7 @@ from django_auth_ldap.config import LDAPSearch, GroupOfNamesType
 
 
 # Load environment variables from .env file
-load_dotenv('/../.env')
+load_dotenv('/code/.env')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

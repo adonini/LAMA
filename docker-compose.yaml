@@ -10,7 +10,7 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     ports:
-      - "5433:5432"
+      - "5436:5432"
 
   pgadmin:
     image: dpage/pgadmin4
@@ -20,7 +20,7 @@ services:
       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
     ports:
-      - "5431:80"
+      - "5437:80"
     depends_on:
       - db
 
@@ -30,7 +30,7 @@ services:
     command: ./run.sh
     restart: always
     volumes:
-      - static_lama:/code/staticfiles
+      - static:/code/staticfiles
     environment:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -44,12 +44,12 @@ services:
   nginx:
     image: nginx
     ports:
-      - "8085:80"
+      - "8086:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - static_lama:/usr/share/nginx/html/static
+      - static:/usr/share/nginx/html/static
     depends_on:
       - web
 
 volumes:
-  static_lama:
+  static:
