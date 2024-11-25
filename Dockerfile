@@ -43,12 +43,11 @@ RUN mkdir -p /code/staticfiles
 
 # copy project
 COPY . /code/
-#RUN python manage.py collectstatic --noinput
 
 # Change ownership of the work directory where the code is to the new user
 RUN chown -R appmgr:appmgr /code
 
-# Switch to the new user
+# # Switch to the new user
 USER appmgr
 WORKDIR /code
 

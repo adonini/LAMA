@@ -7,7 +7,7 @@ if [ $# -ne 1 ]; then
 fi
 
 # Set the base path for Django project
-DJANGO_BASE_PATH="/run/media/antonio/DD_Antonio/github/LAMA"
+DJANGO_BASE_PATH="/.../"
 
 # Define path scripts
 BUILD_SCRIPT="${DJANGO_BASE_PATH}/build_image.sh"
@@ -27,9 +27,9 @@ case "$1" in
         echo "##############################    Django Docker Actions    ##############################"
         echo
         echo "   build    -- Builds the Docker image for the Django project"
-        echo "   start          -- Launches the Django Docker containers"
-        echo "   stop           -- Stops the Django Docker containers"
-        echo "   status         -- Reports the status of the Django Docker containers"
+        echo "   start    -- Launches the Django Docker containers"
+        echo "   stop     -- Stops the Django Docker containers"
+        echo "   status   -- Reports the status of the Django Docker containers"
         echo
         echo "#########################################################################################"
         exit 0

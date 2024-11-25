@@ -12,23 +12,29 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+import ldap
+from django_auth_ldap.config import LDAPSearch, GroupOfNamesType
+
+
+# Load environment variables from .env file
+load_dotenv('/code/.env')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-i$o!8fdn1yo$3^f4w!rwu%5%ov)+005&9yr%y(d8rnn5n-vpyl'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-i$o!8fdn1yo$3^f4w!rwu%5%ov)+005&9yr%y(d8rnn5n-vpyl')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DJANGO_DEBUG', 'False')
 
-ALLOWED_HOSTS = ['localhost']
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',')
 
-CSRF_TRUSTED_ORIGINS = ['http://localhost:8083']
+#CSRF_TRUSTED_ORIGINS = ['http://localhost:8083']
 
 # Application definition
 
@@ -109,6 +115,37 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# LDAP Configuration
+AUTH_LDAP_SERVER_URI = os.getenv('LDAP_SERVER_URI')
+AUTH_LDAP_BIND_DN = os.getenv('LDAP_BIND_DN')
+AUTH_LDAP_BIND_PASSWORD = os.getenv('LDAP_BIND_PASSWORD')
+AUTH_LDAP_USER_SEARCH = LDAPSearch(
+    os.getenv('LDAP_USER_SEARCH_BASE'),
+    ldap.SCOPE_SUBTREE,
+    '(& (msDS-AzureADMailNickname=%(user)s) (memberOf=cn=lst-operator,ou=AADDC Users,dc=cta-observatory,dc=org))'
+)
+AUTH_LDAP_GROUP_SEARCH = LDAPSearch(
+    os.getenv('LDAP_USER_SEARCH_BASE'),
+    ldap.SCOPE_SUBTREE,
+)
+
+AUTH_LDAP_GROUP_TYPE = GroupOfNamesType()
+
+# Populate the Django user from the LDAP directory
+AUTH_LDAP_USER_ATTR_MAP = {
+    "username": "msDS-AzureADMailNickname",
+    "first_name": "givenName",
+    "last_name": "sn",
+    "email": "mail",
+}
+
+AUTH_LDAP_ALWAYS_UPDATE_USER = True
+
+# Authentication Backends
+AUTHENTICATION_BACKENDS = [
+    'django_auth_ldap.backend.CustomLDAPBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
@@ -127,6 +164,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [
+    BASE_DIR / 'members' / 'static',
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -138,6 +178,9 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login'
+
+# replace default admin url
+ADMIN_URL = os.getenv('DJANGO_ADMIN_URL')
 
 LOGGING = {
     'version': 1,
@@ -168,7 +211,7 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
-        'inventory': {  
+        'members': {
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True,
@@ -185,3 +228,12 @@ LOGGING = {
         },
     },
 }
+
+# Production security settings
+ENVIRONMENT = os.getenv('DJANGO_ENVIRONMENT', 'development')
+
+if ENVIRONMENT == 'production':
+    CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+    # Secure cookies
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
