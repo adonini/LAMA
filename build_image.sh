@@ -14,7 +14,10 @@ DJANGO_BASE_PATH="${1}"
 
 # Load environment variables from the .env file
 if [ -f "${DJANGO_BASE_PATH}/.env" ]; then
-    export $(grep -v '^#' ${DJANGO_BASE_PATH}/.env | xargs)
+    #export $(grep -v '^#' ${DJANGO_BASE_PATH}/.env | xargs)
+    set -a
+    source "${DJANGO_BASE_PATH}/.env"
+    set +a
 else
     echo "Could not find .env file in the specified base path. Exiting!"
     exit 1
@@ -32,4 +35,4 @@ export HOST_GID=$(id -g)
 # Build the Docker image
 echo "Building Django Docker image with version ${PROJECT_VERSION}"
 echo "Running command: docker build --build-arg HOST_UID=$HOST_UID --build-arg HOST_GID=$HOST_GID -f ${DJANGO_BASE_PATH}/Dockerfile . --tag django_lama:${PROJECT_VERSION}"
-docker build --build-arg UID=$HOST_UID --build-arg GID=$HOST_GID --tag django_lama:${PROJECT_VERSION} -f ${DJANGO_BASE_PATH}/Dockerfile .
+docker build --no-cache --build-arg UID=$HOST_UID --build-arg GID=$HOST_GID --tag django_lama:${PROJECT_VERSION} -f ${DJANGO_BASE_PATH}/Dockerfile .
