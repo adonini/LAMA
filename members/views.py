@@ -1,24 +1,21 @@
+import json
+import logging
+from datetime import date, datetime
+from .forms import LoginForm, AddMemberForm
+from .models import Member, Institute, Group, Duty, Country, MemberDuty
+from dateutil.relativedelta import relativedelta
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from .forms import LoginForm
 from django.views.generic import TemplateView
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import Member, Institute, Group, Duty, Country, MemberDuty
-from .forms import AddMemberForm
-from datetime import date
 from django.contrib.auth.models import User
-from django.http import HttpResponse
-import json
-import logging
+from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
-from datetime import datetime, timedelta
-from django.db.models import Q, Avg, Count
-from django.db.models.functions import TruncMonth
-from dateutil.relativedelta import relativedelta
+from django.db.models import Q
 from django.utils.timezone import now
-from django.http import JsonResponse
+
 
 logger = logging.getLogger(__name__)
 
@@ -345,37 +342,37 @@ class Statistics(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         today = timezone.now().date()
-        current_year = today.year
-        current_month = today.month
+        # Get countries for filtering options
+        country_list = Country.objects.values_list('name', flat=True).order_by('name')
 
-        # Year range for the histogram
+        # Year range for the histogram and filters
         start_year = 2018
         end_year = today.year
         years = range(start_year, end_year + 1)
 
         # Structure to hold monthly member and author counts
-        year_data = {year: {'members': [], 'authors': []} for year in years}
+        # year_data = {year: {'members': [], 'authors': []} for year in years}
 
-        # Monthly member and author counts
-        for year in years:
-            for month in range(1, 13):
-                # Members active on the 15th of the month
-                monthly_member_count = get_active_member_count(Member.objects.all(), "start_date", year, month)
+        # # Monthly member and author counts
+        # for year in years:
+        #     for month in range(1, 13):
+        #         # Members active on the 15th of the month
+        #         monthly_member_count = get_active_member_count(Member.objects.all(), "start_date", year, month)
 
-                # Authors active on the 15th of the month
-                monthly_author_count = get_active_author_count(Member.objects.all(), year, month)
+        #         # Authors active on the 15th of the month
+        #         monthly_author_count = get_active_author_count(Member.objects.all(), year, month)
 
-                print(f"Year: {year}, Month: {month}, Members: {monthly_member_count}, Authors: {monthly_author_count}")
-                # Append monthly counts
-                year_data[year]['members'].append(monthly_member_count)
-                year_data[year]['authors'].append(monthly_author_count)
+        #         print(f"Year: {year}, Month: {month}, Members: {monthly_member_count}, Authors: {monthly_author_count}")
+        #         # Append monthly counts
+        #         year_data[year]['members'].append(monthly_member_count)
+        #         year_data[year]['authors'].append(monthly_author_count)
 
-        # Calculate yearly averages
-        member_averages = [sum(data['members']) / 12 for data in year_data.values()]
-        author_averages = [sum(data['authors']) / 12 for data in year_data.values()]
+        # # Calculate yearly averages
+        # member_averages = [sum(data['members']) / 12 for data in year_data.values()]
+        # author_averages = [sum(data['authors']) / 12 for data in year_data.values()]
 
         #####################################################
-        # Calculations for total active members and authors for tables
+        # Calculations total active members and authors for tables
         #####################################################
         # Filter members whose membership is currently active
         total_members = (Member.objects.filter(end_date__gt=today) | Member.objects.filter(end_date__isnull=True)).count()
@@ -495,92 +492,16 @@ class Statistics(TemplateView):
                 'avg_authors_12': avg_authors_12,
             })
 
-        #########
-        # Plots
-        #########
-        # Get lists for filtering options
-        country_list = Country.objects.values_list('name', flat=True).order_by('name')
-
-        
-
-        ################
-        # Monthly plot
-        #################
-        # Generate general data for the latest year
-        default_monthly_members = [
-            get_active_member_count(Member.objects.all(), "start_date", current_year, month)
-            for month in range(1, 13)
-        ]
-        default_monthly_authors = [
-            get_active_author_count(Member.objects.all(), current_year, month)
-            for month in range(1, 13)
-        ]
-
-        # Updated structure to hold monthly counts for each year, country, group, and institute
-        chart_data_month = {
-            'years': {}
-        }
-
-        # Generate data for each year
-        for year in years:
-            chart_data_month['years'][year] = {
-                'countries': {}
-            }
-
-            # For each country
-            for country in Country.objects.all():
-                chart_data_month['years'][year]['countries'][country.name] = {
-                    'members': [
-                        get_active_member_count(Member.objects.filter(institute__group__country=country), "start_date", year, month)
-                        for month in range(1, 13)
-                    ],
-                    'authors': [
-                        get_active_author_count(Member.objects.filter(institute__group__country=country), year, month)
-                        for month in range(1, 13)
-                    ],
-                    'groups': {}
-                }
-
-                # For each group within a country
-                for group in Group.objects.filter(country=country):
-                    chart_data_month['years'][year]['countries'][country.name]['groups'][group.name] = {
-                        'members': [
-                            get_active_member_count(Member.objects.filter(institute__group=group), "start_date", year, month)
-                            for month in range(1, 13)
-                        ],
-                        'authors': [
-                            get_active_author_count(Member.objects.filter(institute__group=group), year, month)
-                            for month in range(1, 13)
-                        ],
-                        'institutes': {}
-                    }
-
-                    # For each institute within a group
-                    for institute in Institute.objects.filter(group=group):
-                        chart_data_month['years'][year]['countries'][country.name]['groups'][group.name]['institutes'][institute.name] = {
-                            'members': [
-                                get_active_member_count(Member.objects.filter(institute=institute), "start_date", year, month)
-                                for month in range(1, 13)
-                            ],
-                            'authors': [
-                                get_active_author_count(Member.objects.filter(institute=institute), year, month)
-                                for month in range(1, 13)
-                            ],
-                        }
-
         context.update({
-            # 'chart_data_month': chart_data_month,
-            'total_members': total_members,
-            'total_authors': total_authors,
-            'countries_data': countries_data,
-            'groups_data': groups_data,
-            'member_averages': member_averages,
-            'author_averages': author_averages,
+            'total_members': total_members,  # for card
+            'total_authors': total_authors,  # for card
+            'countries_data': countries_data,  # country table
+            'groups_data': groups_data,  # group table
+            #'member_averages': member_averages,
+            #'author_averages': author_averages,
             'years_list': list(years),
-            'default_monthly_members': default_monthly_members,
-            'default_monthly_authors': default_monthly_authors,
             'country_list': country_list,
-            'current_date': datetime.now().strftime('%B %d, %Y'),
+            'current_date': datetime.now().strftime('%B %d, %Y'),  # navbar date
         })
         return context
 
@@ -624,7 +545,7 @@ def get_filtered_chart_data(request):
         avg_members = calculate_averages(queryset, "start_date", year, current_year, today.month)
 
         # Average authors
-        avg_authors = calculate_averages(queryset.filter(authorship_start__isnull=False), 
+        avg_authors = calculate_averages(queryset.filter(authorship_start__isnull=False),
                                          "authorship_start", year, current_year, today.month)
 
         filtered_data['members'].append(avg_members)
@@ -639,14 +560,12 @@ def get_groups(request):
         return JsonResponse({"error": "Country parameter is missing."}, status=400)
 
     try:
-        # Fix the query to use 'country__name' instead of 'country'
         groups = Group.objects.filter(country__name=country_name).distinct()
-
         group_list = [group.name for group in groups]
         return JsonResponse(group_list, safe=False)
+    except Group.DoesNotExist:
+        return JsonResponse({"error": "No groups found for the specified country."}, status=404)
     except Exception as e:
-        # Log any exceptions
-        import logging
         logger = logging.getLogger(__name__)
         logger.error(f"Error fetching groups for country '{country_name}': {str(e)}")
         return JsonResponse({"error": "An error occurred while fetching groups."}, status=500)
@@ -654,12 +573,71 @@ def get_groups(request):
 
 def get_institutes(request):
     group_name = request.GET.get('group', None)
+    if not group_name:
+        return JsonResponse({"error": "Group parameter is missing."}, status=400)
 
-    if group_name:
-        # Fetch institutes associated with the selected group
-        institutes = Institute.objects.filter(group__name=group_name)
-
+    try:
+        institutes = Institute.objects.filter(group__name=group_name).distinct()
         institute_list = [institute.name for institute in institutes]
         return JsonResponse(institute_list, safe=False)
-    else:
-        return JsonResponse([], safe=False)
+    except Institute.DoesNotExist:
+        return JsonResponse({"error": "No institutes found for the specified group."}, status=404)
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error fetching institutes for group '{group_name}': {str(e)}")
+        return JsonResponse({"error": "An error occurred while fetching institutes."}, status=500)
+
+
+def get_filtered_monthly_data(request):
+    """
+    Returns monthly members and authors data for the selected filters (country, group, institute, and year).
+    """
+    # Extract filter parameters from GET request
+    year = request.GET.get('year')
+    country = request.GET.get('country', None)
+    group = request.GET.get('group', None)
+    institute = request.GET.get('institute', None)
+
+    # Initialize base queryset
+    queryset = Member.objects.all()
+
+    # Apply filters dynamically
+    if country and country != 'all':
+        queryset = queryset.filter(institute__group__country__name=country)
+    if group:
+        queryset = queryset.filter(institute__group__name=group)
+    if institute:
+        queryset = queryset.filter(institute__name=institute)
+
+    # Calculate monthly data
+    members = [
+        get_active_member_count(queryset, "start_date", int(year), month)
+        for month in range(1, 13)
+    ]
+    authors = [
+        get_active_author_count(queryset, int(year), month)
+        for month in range(1, 13)
+    ]
+    logger = logging.getLogger(__name__)
+    logger.debug(f"Received filter parameters: Year={year}, Country={country}, Group={group}, Institute={institute}")
+    logger.debug(f"members: {members}, authors: {authors}")
+    return JsonResponse({"members": members, "authors": authors})
+
+
+def get_years(request):
+    """
+    Returns the list of years available for selection in the dropdown.
+    """
+    today = datetime.now().date()
+    current_year = today.year
+    years = range(2018, current_year + 1)
+    return JsonResponse({'years': list(years)})
+
+
+def get_countries(request):
+    """
+    Returns the list of countries for the selected filters.
+    """
+    countries = Country.objects.all()
+    countries_data = [{'id': country.id, 'name': country.name} for country in countries]
+    return JsonResponse({'countries': countries_data})
