@@ -31,6 +31,6 @@ if not User.objects.filter(username=username).exists():
 EOF
 
 # Start Django dev server
-#exec python3 manage.py runserver 0.0.0.0:8000
+exec python3 manage.py runserver 0.0.0.0:8000
 # Start the Gunicorn server
-exec gunicorn collaboration_manager.wsgi:application --bind 0.0.0.0:8000 --workers 3
+#exec gunicorn collaboration_manager.wsgi:application --bind 0.0.0.0:8000 --workers 3

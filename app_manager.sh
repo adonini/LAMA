@@ -7,7 +7,7 @@ if [ $# -ne 1 ]; then
 fi
 
 # Set the base path for Django project
-DJANGO_BASE_PATH="/run/media/antonio/DD_Antonio/github/LAMA"
+DJANGO_BASE_PATH="/Users/alicedonini/Lavoro/LST/Members_manager/collaboration_manager"
 
 # Define path scripts
 BUILD_SCRIPT="${DJANGO_BASE_PATH}/build_image.sh"
