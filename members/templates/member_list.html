@@ -129,8 +129,8 @@
             // Append submit button to the modal footer
             modalFooter.appendChild(saveButton);
 
-            // Use a timeout to ensure modal content is rendered
-            setTimeout(function() {
+            // Event listener to ensure the modal is shown before accessing the dropdown
+            $('#uni_modal').on('shown.bs.modal', function () {
                 // Select the institute dropdown in the modal
                 let instituteSelect = document.getElementById('institute');
                 if (instituteSelect) {
@@ -144,8 +144,8 @@
                 } else {
                     console.error('Institute select element not found.');
                 }
-            }, 100); // 100ms delay to ensure modal content is loaded
             });
+        });
 
         //remove the default 'Search' text for all DataTable search boxes
         $.extend(true, $.fn.dataTable.defaults, {
