@@ -15,7 +15,7 @@
     </div>
     <div class="body">
         <div class="table-wrapper">
-            <table class="table table-sm table-responsive table-hover" style="width:100%" id="member-list">
+            <table class="table table-sm table-hover" id="member-list">
                 <thead class="">
                     <tr class="">
                         <th class="text-center dark-text">#</th>
@@ -154,7 +154,7 @@
             }
         });
         let table = $('#member-list').DataTable({
-	    responsive: true,
+            responsive: true,
             scrollX: true, // Only the table itself will scroll horizontally
             dom: '<"top1"<"top1Start"f><"top1End"B>>t<"bottom"<"bottomStart"i><"bottomCenter"l><"bottomEnd"p>>',
             buttons: [{extend: 'copy', exportOptions: {columns: ':not(:last-child)'} // Exclude the last column (Actions/Details)
