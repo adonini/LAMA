@@ -511,3 +511,64 @@ button>p{
     width: 30px;
     height: 30px;
 }
+
+/* styling for the toggle switch */
+.custom-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px; /* Reduced size for better alignment */
+    height: 20px;
+    vertical-align: middle; /* Aligns switch inline with text */
+}
+
+.custom-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.custom-control-label {
+    cursor: pointer;
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-color: #ccc;
+    border-radius: 20px;
+    transition: background-color 0.3s;
+}
+
+.custom-control-label::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: white;
+    transition: transform 0.3s;
+}
+
+.custom-switch input:checked + .custom-control-label {
+    background-color: #4CAF50;
+}
+
+.custom-switch input:checked + .custom-control-label::before {
+    transform: translateX(20px); /* Adjust based on the width of the switch */
+}
+
+/* Adjust the spacing for the text */
+.switch-text {
+    font-size: 14px;
+    color: #333;
+    margin-left: 10px; /* Space between the switch and the text */
+}
+
+/* Fix vertical alignment issues */
+.custom-switch,
+.switch-text,
+.tools button {
+    line-height: normal;
+    vertical-align: middle;
+}

@@ -11,6 +11,14 @@
                 <button type="button" class="btn-new-member" id='add_new'><i class="fa fa-plus"></i> New Member</button>
             </div>
             {% endif %}
+            <!-- Switch for Show Active Members/Show All Members -->
+            <div class="d-flex align-items-center ms-3">
+                <div class="custom-switch d-flex align-items-center">
+                    <input type="checkbox" id="toggleShowAll" class="custom-control-input" {% if show_all %}checked{% endif %}>
+                    <label class="custom-control-label mb-0" for="toggleShowAll"></label>
+                </div>
+                <span class="ml-2 switch-text">Include Former Members</span>
+            </div>
         </div>
     </div>
     <div class="body">
@@ -79,6 +87,16 @@
     let filters = {{ filters|safe }};
     //console.log(institutes);
     $(function() {
+        document.getElementById('toggleShowAll').addEventListener('change', function() {
+            // Get the current state of the checkbox (checked or not)
+            const showAll = this.checked;
+            // Update the URL with the show_all query parameter
+            const url = new URL(window.location.href);
+            url.searchParams.set('show_all', showAll ? 'true' : 'false'); // 'true' if checked, 'false' if unchecked
+            // Reload the page with the new URL
+            window.location.href = url.toString();
+        });
+
         $('#add_new').click(function() {
             // Create the header for the modal
             const headerDiv = document.createElement('div');

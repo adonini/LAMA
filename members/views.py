@@ -179,8 +179,18 @@ class Index(TemplateView):
 
 class MemberList(LoginRequiredMixin, View):
     def get(self, request):
-        # Fetch all members with related data
-        members = Member.objects.all().select_related('institute', 'institute__group__country')
+        today = timezone.now().date()
+
+        # Get query parameter to decide what to display
+        show_all = request.GET.get('show_all', 'false').lower() == 'true'
+        # Fetch members based on the `show_all` flag
+        if show_all:
+            members = Member.objects.all().select_related('institute', 'institute__group__country')
+        else:
+            members = Member.objects.filter(
+                Q(end_date__isnull=True) | Q(end_date__gte=today)
+            ).select_related('institute', 'institute__group__country')
+
         member_list = []
         today = date.today()
         six_months_future = (now() + relativedelta(months=6)).date()  # Convert to date
@@ -245,7 +255,8 @@ class MemberList(LoginRequiredMixin, View):
             'countries': list(Country.objects.order_by('name').values('id', 'name')),
             'userGroups': list(request.user.groups.values_list('name', flat=True)),
             'filters': filters_data,
-            'current_date': datetime.now().strftime('%B %d, %Y')
+            'current_date': datetime.now().strftime('%B %d, %Y'),
+            'show_all': show_all,
         }
 
         # Render the template with context data
