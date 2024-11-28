@@ -122,7 +122,7 @@ AUTH_LDAP_BIND_PASSWORD = os.getenv('LDAP_BIND_PASSWORD')
 AUTH_LDAP_USER_SEARCH = LDAPSearch(
     os.getenv('LDAP_USER_SEARCH_BASE'),
     ldap.SCOPE_SUBTREE,
-    '(& (msDS-AzureADMailNickname=%(user)s) (memberOf=cn=lst-operator,ou=AADDC Users,dc=cta-observatory,dc=org))'
+    '(& (msDS-AzureADMailNickname=%(user)s) (memberOf=cn=lst-members,ou=AADDC Users,dc=cta-observatory,dc=org))'
 )
 AUTH_LDAP_GROUP_SEARCH = LDAPSearch(
     os.getenv('LDAP_USER_SEARCH_BASE'),
