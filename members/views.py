@@ -179,8 +179,18 @@ class Index(TemplateView):
 
 class MemberList(LoginRequiredMixin, View):
     def get(self, request):
-        # Fetch all members with related data
-        members = Member.objects.all().select_related('institute', 'institute__group__country')
+        today = timezone.now().date()
+
+        # Get query parameter to decide what to display
+        show_all = request.GET.get('show_all', 'false').lower() == 'true'
+        # Fetch members based on the `show_all` flag
+        if show_all:
+            members = Member.objects.all().select_related('institute', 'institute__group__country')
+        else:
+            members = Member.objects.filter(
+                Q(end_date__isnull=True) | Q(end_date__gte=today)
+            ).select_related('institute', 'institute__group__country')
+
         member_list = []
         today = date.today()
         six_months_future = (now() + relativedelta(months=6)).date()  # Convert to date
@@ -245,7 +255,8 @@ class MemberList(LoginRequiredMixin, View):
             'countries': list(Country.objects.order_by('name').values('id', 'name')),
             'userGroups': list(request.user.groups.values_list('name', flat=True)),
             'filters': filters_data,
-            'current_date': datetime.now().strftime('%B %d, %Y')
+            'current_date': datetime.now().strftime('%B %d, %Y'),
+            'show_all': show_all,
         }
 
         # Render the template with context data
@@ -600,6 +611,14 @@ def get_filtered_monthly_data(request):
     group = request.GET.get('group', None)
     institute = request.GET.get('institute', None)
 
+    # Convert the year from string to integer
+    year = int(year)
+    # Get the current year and month
+    current_year = datetime.now().year
+    current_month = datetime.now().month
+    # Determine the last month to calculate data for
+    last_month = current_month if year == current_year else 12
+
     # Initialize base queryset
     queryset = Member.objects.all()
 
@@ -613,13 +632,18 @@ def get_filtered_monthly_data(request):
 
     # Calculate monthly data
     members = [
-        get_active_member_count(queryset, "start_date", int(year), month)
-        for month in range(1, 13)
+        get_active_member_count(queryset, "start_date", year, month)
+        for month in range(1, last_month + 1)
     ]
     authors = [
-        get_active_author_count(queryset, int(year), month)
-        for month in range(1, 13)
+        get_active_author_count(queryset, year, month)
+        for month in range(1, last_month + 1)
     ]
+
+    # Fill remaining months with zero for consistency
+    members.extend([0] * (12 - last_month))
+    authors.extend([0] * (12 - last_month))
+
     logger = logging.getLogger(__name__)
     logger.debug(f"Received filter parameters: Year={year}, Country={country}, Group={group}, Institute={institute}")
     logger.debug(f"members: {members}, authors: {authors}")
