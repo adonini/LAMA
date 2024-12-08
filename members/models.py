@@ -3,6 +3,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.core.exceptions import ValidationError
 from dateutil.relativedelta import relativedelta
+from django.utils.timezone import now
 
 
 class Country(models.Model):
@@ -35,6 +36,25 @@ class Duty(models.Model):
         return self.name
 
 
+class MembershipPeriod(models.Model):
+    member = models.ForeignKey('Member', on_delete=models.CASCADE, related_name='membership_periods')
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)  # Null means still active
+    institute = models.ForeignKey('Institute', on_delete=models.SET_NULL, null=True, blank=True)
+
+    def is_active(self):
+        return not self.end_date or self.end_date >= now().date()
+
+
+class AuthorshipPeriod(models.Model):
+    member = models.ForeignKey('Member', on_delete=models.CASCADE, related_name='authorship_periods')
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)  # Null means still active
+
+    def is_active(self):
+        return not self.end_date or self.end_date >= now().date()
+
+
 class Member(models.Model):
     ROLE_CHOICES = [
         ('student', 'Student'),
@@ -48,16 +68,17 @@ class Member(models.Model):
     name = models.CharField(max_length=50)
     surname = models.CharField(max_length=50)
     primary_email = models.EmailField(unique=True)  # Mandatory
-    start_date = models.DateField()
-    end_date = models.DateField(null=True, blank=True)
-    is_author = models.BooleanField(default=False)
-    authorship_start = models.DateField(null=True, blank=True)
-    authorship_end = models.DateField(null=True, blank=True)
     institute = models.ForeignKey(Institute, on_delete=models.SET_NULL, null=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
 
     def clean(self):
         super().clean()
+
+    def is_active_member(self):
+        return self.membership_periods.filter(end_date__isnull=True).exists()
+
+    def is_active_author(self):
+        return self.authorship_periods.filter(end_date__isnull=True).exists()
 
     def save(self, *args, **kwargs):
         # Automatically set authorship dates if the member is an author
