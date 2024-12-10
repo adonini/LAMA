@@ -2,7 +2,7 @@ import json
 import logging
 from datetime import date, datetime
 from .forms import LoginForm, AddMemberForm
-from .models import Member, Institute, Group, Duty, Country, MemberDuty
+from .models import Member, Institute, Group, Duty, Country, MemberDuty, MembershipPeriod, AuthorshipPeriod
 from dateutil.relativedelta import relativedelta
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -10,11 +10,9 @@ from django.contrib.auth import authenticate, login, logout
 from django.views.generic import TemplateView
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.models import User
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from django.db.models import Q
-from django.utils.timezone import now
 
 
 logger = logging.getLogger(__name__)
@@ -127,32 +125,47 @@ class Index(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        # Calculate the total counts
         today = timezone.now().date()
+
         # Count of active members, defined as those with no end date or an end date in the future
-        total_members = (Member.objects.filter(end_date__gt=today) | Member.objects.filter(end_date__isnull=True)).count()
+        total_members = MembershipPeriod.objects.filter(
+            Q(end_date__isnull=True) | Q(end_date__gt=today)
+        ).values('member').distinct().count()
+
         # Count of members who have an authorship start date on or before today and either no authorship end date or an authorship end date in the future
-        total_authors = Member.objects.filter(authorship_start__lte=today).filter(
-            Q(authorship_end__isnull=True) | Q(authorship_end__gt=today)
-        ).count()
-        # Calculate a date six months ago from today, approximating a month as 30 days
+        total_authors = AuthorshipPeriod.objects.filter(
+            start_date__lte=today
+        ).filter(Q(end_date__isnull=True) | Q(end_date__gt=today)).values('member').distinct().count()
+
+        # Members becoming authors within the last 6 months
         six_months_ago = timezone.now() - relativedelta(months=6)
-        six_months_future = timezone.now() + relativedelta(months=6)
-        # Count of members who joined within the last six months and have an authorship start date
-        members_becoming_authors = Member.objects.filter(start_date__gte=six_months_ago, authorship_start__isnull=False).count()
-        # Count of non-members (with an end date in the past) who still have an active authorship period (authorship end date is in the future).
-        non_members_with_authorship = Member.objects.filter(end_date__lt=timezone.now(), authorship_end__gt=today).count()
-        # Count of all people leaving auth in the next 6 months
-        people_leaving_authorship = Member.objects.filter(authorship_end__gt=today, authorship_end__lt=six_months_future).count()
-        # Count members contributing to CF
-        cf = Member.objects.filter(authorship_start__lte=six_months_future).filter(
-            Q(authorship_end__isnull=True) | Q(authorship_end__gt=six_months_future)
-        ).count()
+        members_becoming_authors = AuthorshipPeriod.objects.filter(
+            member__membership_periods__start_date__gte=six_months_ago
+        ).values('member').distinct().count()
+
+        # Non-members with active authorship
+        non_members_with_authorship = AuthorshipPeriod.objects.filter(
+            start_date__lte=today,
+            end_date__gt=today,
+            member__membership_periods__end_date__lt=today
+        ).values('member').distinct().count()
+
+        # People leaving authorship in the next 6 months
+        six_months_future = today + relativedelta(months=6)
+        people_leaving_authorship = AuthorshipPeriod.objects.filter(
+            end_date__gt=today, end_date__lte=six_months_future
+        ).values('member').distinct().count()
+
+        # Contributing to CF
+        cf = AuthorshipPeriod.objects.filter(
+            start_date__lte=six_months_future
+        ).filter(Q(end_date__isnull=True) | Q(end_date__gt=six_months_future)).values('member').distinct().count()
+
+        # Count institutes and groups per country
         total_institutes = Institute.objects.count()
         total_groups = Group.objects.count()
         total_countries = Country.objects.count()
-        # Count institutes and groups per country
+
         institutes_per_country = {}
         groups_per_country = {}
         for country in Country.objects.all():
