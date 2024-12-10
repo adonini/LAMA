@@ -16,14 +16,6 @@
                     <input type="email" class="form-control rounded-0" id="primary_email" name="primary_email" value="{{ member.primary_email }}" required>
                 </div>
                 <div class="form-group mb-3">
-                    <label for="add_secondary_email" class="control-label">Add Secondary Email</label>
-                    <input type="checkbox" class="form-check-input" id="add_secondary_email" {% if member.secondary_email %} checked {% endif %}>
-                </div>
-                <div id="secondary-email-field" class="form-group mb-3 {% if not member.secondary_email %} d-none {% endif %}">
-                    <label for="secondary_email" class="control-label">Secondary Email</label>
-                    <input type="email" class="form-control rounded-0" id="secondary_email" name="secondary_email" value="{{ member.secondary_email }}">
-                </div>
-                <div class="form-group mb-3">
                     <label for="start_date" class="control-label">Membership Start</label>
                     <input type="date" class="form-control rounded-0" id="start_date" name="start_date" value="{{ member.start_date|date:"Y-m-d" }}" required>
                 </div>
@@ -48,6 +40,15 @@
                         <option value="affiliated" {% if member.role == "affiliated" %} selected {% endif %}>Affiliated</option>
                     </select>
                 </div>
+		<div class="form-group mb-3">
+                    <label for="institute" class="control-label">Institute</label>
+                    <select class="form-control rounded-0" name="institute" id="institute" value="{{member.institute.pk}}">
+                        <option value="" {% if not member.institute %} selected {% endif %}>-----</option>
+                        {% for institute in institute_list %}
+                            <option value="{{ institute.pk }}" {% if member.institute.pk == institute.pk %} selected {% endif %}>{{ institute.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
                 <div class="form-group mb-3">
                     <label for="is_author" class="control-label">Is Author</label>
                     <input type="checkbox" class="form-check-input" id="is_author" name="is_author" {% if member.is_author %} checked {% endif %}>
@@ -62,15 +63,6 @@
                         <input type="date" class="form-control rounded-0" id="authorship_end" name="authorship_end" value="{{ member.authorship_end|date:"Y-m-d" }}">
                     </div>
                 </div>
-                <div class="form-group mb-3">
-                    <label for="institute" class="control-label">Institute</label>
-                    <select class="form-control rounded-0" name="institute" id="institute" value="{{member.institute.pk}}">
-                        <option value="" {% if not member.institute %} selected {% endif %}>-----</option>
-                        {% for institute in institute_list %}
-                            <option value="{{ institute.pk }}" {% if member.institute.pk == institute.pk %} selected {% endif %}>{{ institute.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
             </div>
         </div>
     </form>
@@ -82,8 +74,6 @@
     $(document).ready(function() {
         const isAuthorCheckbox = document.getElementById('is_author');
         const authorshipFields = document.getElementById('authorship-fields');
-        const addSecondaryEmailCheckbox = document.getElementById('add_secondary_email');
-        const secondaryEmailField = document.getElementById('secondary-email-field');
         const isEdit = JSON.parse(document.getElementById('is-edit-flag').textContent);
 
         // Function to toggle the visibility of authorship fields
@@ -104,16 +94,6 @@
         if (isAuthorCheckbox) {
             isAuthorCheckbox.addEventListener('change', toggleAuthorshipFields);
         }
-
-        // Toggle secondary email field based on 'Add Secondary Email' checkbox
-        addSecondaryEmailCheckbox.addEventListener('change', function (e) {
-            console.log(e.target.checked)
-            if (e.target.checked) {
-                secondaryEmailField.classList.remove('d-none');
-            } else {
-                secondaryEmailField.classList.add('d-none');
-            }
-        });
 
         $('#member-form').submit(function(e) {
             // preventing from page reload and default actions

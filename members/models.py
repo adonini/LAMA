@@ -48,7 +48,6 @@ class Member(models.Model):
     name = models.CharField(max_length=50)
     surname = models.CharField(max_length=50)
     primary_email = models.EmailField(unique=True)  # Mandatory
-    secondary_email = models.EmailField(null=True, blank=True)  # Optional
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
     is_author = models.BooleanField(default=False)
@@ -56,13 +55,9 @@ class Member(models.Model):
     authorship_end = models.DateField(null=True, blank=True)
     institute = models.ForeignKey(Institute, on_delete=models.SET_NULL, null=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
-    #duty = models.ForeignKey(Duty, on_delete=models.SET_NULL, null=True)
 
     def clean(self):
         super().clean()
-        if self.secondary_email:
-            if Member.objects.exclude(pk=self.pk).filter(secondary_email=self.secondary_email).exists():
-                raise ValidationError({'Secondary Email': 'This email is already in use.'})
 
     def save(self, *args, **kwargs):
         # Automatically set authorship dates if the member is an author

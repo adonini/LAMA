@@ -21,14 +21,13 @@ class AddMemberForm(forms.ModelForm):
     name = forms.CharField(required=True)
     surname = forms.CharField(required=True)
     primary_email = forms.EmailField(required=True)
-    secondary_email = forms.EmailField(required=False)
     start_date = forms.DateField(required=True)
     end_date = forms.DateField(required=False)
     duty = forms.ModelChoiceField(queryset=Duty.objects.all(), initial=0, required=False)
 
     class Meta:
         model = Member
-        fields = ['name', 'surname', 'primary_email', 'secondary_email', 'start_date', 'end_date', 'role', 'institute', 'group', 'country', 'duty']
+        fields = ['name', 'surname', 'primary_email', 'start_date', 'end_date', 'role', 'institute', 'group', 'country', 'duty']
 
     def clean_role(self):
         role_input = self.cleaned_data['role']
