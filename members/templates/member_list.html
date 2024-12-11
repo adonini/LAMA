@@ -29,7 +29,6 @@
                         <th class="text-center dark-text">#</th>
                         <th class="text-center dark-text">First Name</th>
                         <th class="text-center dark-text">Last Name</th>
-                        <th class="text-center dark-text">Email</th>
                         <th class="text-center dark-text">Institute</th>
                         <th class="text-center dark-text">Group</th>
                         <th class="text-center dark-text">Country</th>
@@ -48,7 +47,6 @@
                         <td class="align-center text-center light-text">{{ forloop.counter }}</td>
                         <td class="align-center text-center light-text">{{ member.name|default:"-"  }}</td>
                         <td class="align-center text-center light-text">{{ member.surname|default:"-"  }}</td>
-                        <td class="align-center text-center light-text">{{ member.primary_email|default:"-"  }}</td>
                         <td class="align-center text-center light-text">{{ member.institute_name|default:"-"  }}</td>
                         <td class="align-center text-center light-text">{{ member.group_name|default:"-"  }}</td>
                         <td class="align-center text-center light-text">{{ member.country_name|default:"-"  }}</td>
@@ -185,7 +183,7 @@
                 }
             ],
             columnDefs: [
-                { orderable: false, targets: [0, 3, 9, 10, 12] }, // Disable ordering for specific columns
+                { orderable: false, targets: [0, 3, 4, 5, 8, 9, 12] }, // Disable ordering for specific columns
                 {targets: 0, searchable: false,
                     render: function(data, type, row, meta) {
                         return meta.row + meta.settings._iDisplayStart + 1; // Row numbering
@@ -340,9 +338,9 @@
                 divInput.style.marginTop = '3px';
                 input.addEventListener('change', function (e) {
                     if (e.target.value !== 'All') {
-                        table.column(10).search(e.target.value).draw();
+                        table.column(9).search(e.target.value).draw();
                     } else {
-                        table.column(10).search('').draw();
+                        table.column(9).search('').draw();
                     }
                 });
                 ['Yes', 'No'].forEach(authorStatus => {
@@ -359,9 +357,9 @@
                 divInput.style.marginTop = '5px';
                 input.addEventListener('change', function (e) {
                     if (e.target.value !== 'All') {
-                        table.column(9).search(e.target.value).draw();
+                        table.column(8).search(e.target.value).draw();
                     } else {
-                        table.column(9).search('').draw();
+                        table.column(8).search('').draw();
                     }
                 });
                 ['Yes', 'No'].forEach(cfStatus => {
