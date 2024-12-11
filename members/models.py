@@ -4,6 +4,7 @@ from datetime import timedelta
 from django.core.exceptions import ValidationError
 from dateutil.relativedelta import relativedelta
 from django.utils.timezone import now
+from django.db.models import Q
 
 
 class Country(models.Model):
@@ -83,26 +84,63 @@ class Member(models.Model):
     def clean(self):
         super().clean()
 
-    def current_membership(self):
-        """Get the current membership period."""
-        return self.membership_periods.filter(end_date__isnull=True).first()
+    def current_membership(self, include_inactive=False):
+        """
+        Get the current active membership period or the most recent membership if include_inactive=True.
+        """
+        today = timezone.now().date()
+        if include_inactive:
+            # Return the most recent membership, active or inactive
+            return self.membership_periods.order_by('-start_date').first()
+        else:
+            # Return only the active membership
+            return self.membership_periods.filter(
+                Q(end_date__isnull=True) | Q(end_date__gte=today)
+            ).order_by('-start_date').first()
 
-    def current_authorship(self):
-        """Get the current authorship period."""
-        return self.authorship_periods.filter(end_date__isnull=True).first()
+    def current_authorship(self, include_inactive=False):
+        """
+        Get the current active authorship period or the most recent authorship if include_inactive=True.
+        """
+        today = timezone.now().date()
+        if include_inactive:
+            # Return the most recent authorship, active or inactive
+            return self.authorship_periods.order_by('-start_date').first()
+        else:
+            # Return only the active authorship
+            return self.authorship_periods.filter(
+                Q(start_date__lte=today) & (Q(end_date__isnull=True) | Q(end_date__gte=today))
+            ).order_by('-start_date').first()
 
     def is_active_member(self):
-        """Check if the member has an active membership."""
-        return self.membership_periods.filter(end_date__isnull=True).exists()
+        """
+        Check if the member has an active membership.
+        A membership is active if its end_date is null or greater than today.
+        """
+        today = timezone.now().date()
+        return self.membership_periods.filter(
+            Q(end_date__isnull=True) | Q(end_date__gte=today)
+        ).exists()
 
     def is_active_author(self):
-        """Check if the member has an active authorship."""
-        return self.authorship_periods.filter(end_date__isnull=True).exists()
+        """
+        Check if the member has an active authorship.
+        An authorship is active if its end_date is null or greater than today.
+        """
+        today = timezone.now().date()
+        return self.authorship_periods.filter(
+            Q(start_date__lte=today) & (Q(end_date__isnull=True) | Q(end_date__gte=today))
+        ).exists()
 
-    def current_institute(self):
-        """Get the current institute from the active membership period."""
-        current_membership = self.current_membership()
-        return current_membership.institute if current_membership else None
+    def current_institute(self, include_inactive=False):
+        """
+        Get the current institute from the active membership period.
+        If no active membership exists, fallback to the most recent membership period if include_inactive=True.
+        """
+        current_membership = self.current_membership(include_inactive=include_inactive)
+        if current_membership:
+            return current_membership.institute
+        return None
 
     def active_duties(self):
         """Get all active duties for this member."""
