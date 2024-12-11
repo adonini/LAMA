@@ -193,38 +193,34 @@ class Index(TemplateView):
 class MemberList(LoginRequiredMixin, View):
     def get(self, request):
         today = timezone.now().date()
+        six_months_future = today + relativedelta(months=6)
 
-        # Get query parameter to decide what to display
+        # Determine whether to show all members
         show_all = request.GET.get('show_all', 'false').lower() == 'true'
-        # Fetch members based on the `show_all` flag
-        if show_all:
-            members = Member.objects.all().select_related('institute', 'institute__group__country')
-        else:
-            members = Member.objects.filter(
-                Q(end_date__isnull=True) | Q(end_date__gte=today)
-            ).select_related('institute', 'institute__group__country')
+
+        # Prefetch related data
+        members = Member.objects.prefetch_related(
+            'membership_periods__institute__group__country',
+            'authorship_periods'
+        ).distinct()
+
+        # Filter out inactive members when show_all is False
+        if not show_all:
+            members = members.filter(
+                Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gte=today)
+            )
 
         member_list = []
-        today = date.today()
-        six_months_future = (now() + relativedelta(months=6)).date()  # Convert to date
 
         for member in members:
-            # Calculate is_author status
-            # Initialize as False
-            is_author = False
+            # Determine current institute and membership
+            current_institute = member.current_institute(include_inactive=show_all)
+            active_membership = member.current_membership(include_inactive=show_all)
+            authorship_period = member.current_authorship(include_inactive=show_all)
 
-            # Authorship start must exist to define is_author
-            if member.authorship_start:
-                if (member.authorship_start < today and (member.authorship_end is None or member.authorship_end > today)):
-                    is_author = True
-
-            # Update and save the is_author field only if it has changed
-            if member.is_author != is_author:
-                member.is_author = is_author
-                member.save()
-
-            # Check if the member is contributing to CF
-            is_cf = (member.authorship_start and member.authorship_start <= six_months_future and (member.authorship_end is None or member.authorship_end > six_months_future))
+            # Determine authorship and contribution status
+            is_author = (authorship_period and authorship_period.start_date <= today and (authorship_period.end_date is None or authorship_period.end_date >= today))
+            is_cf = (is_author and authorship_period.start_date <= six_months_future and (authorship_period.end_date is None or authorship_period.end_date > six_months_future))
 
             # Prepare the dictionary for JSON serialization
             member_list.append({
@@ -232,19 +228,17 @@ class MemberList(LoginRequiredMixin, View):
                 'name': member.name,
                 'surname': member.surname,
                 'primary_email': member.primary_email,
-                'start_date': str(member.start_date),
-                'end_date': str(member.end_date) if member.end_date else None,
+                'start_date': str(active_membership.start_date) if active_membership else None,
+                'end_date': str(active_membership.end_date) if active_membership and active_membership.end_date else None,
                 'role': member.role,
-                'is_author': member.is_author,
+                'is_author': is_author,
                 'is_cf': is_cf,
-                'authorship_start': member.authorship_start.strftime('%Y-%m-%d') if member.authorship_start else None,
-                'authorship_end': member.authorship_end.strftime('%Y-%m-%d') if member.authorship_end else None,
-                'group_name': member.institute.group.name if member.institute and member.institute.group else 'No Group',
-                'country_name': member.institute.group.country.name if member.institute and member.institute.group and member.institute.group.country else 'No Country',
-                'institute_name': member.institute.name if member.institute else 'No Institute',
+                'authorship_start': authorship_period.start_date.strftime('%Y-%m-%d') if authorship_period else None,
+                'authorship_end': authorship_period.end_date.strftime('%Y-%m-%d') if authorship_period and authorship_period.end_date else None,
+                'group_name': current_institute.group.name if current_institute else 'No Group',
+                'country_name': current_institute.group.country.name if current_institute else 'No Country',
+                'institute_name': current_institute.name if current_institute else 'No Institute',
             })
-
-        member_json = json.dumps(member_list)
 
         # Data for the filters
         countries = Country.objects.prefetch_related('groups__institutes').order_by('name')
@@ -261,7 +255,7 @@ class MemberList(LoginRequiredMixin, View):
         context = {
             'page_title': 'Member List',
             'members': member_list,
-            'member_data': member_json,
+            'member_data': json.dumps(member_list),
             'duties': list(Duty.objects.order_by('name').values('id', 'name')),
             'institutes': list(Institute.objects.order_by('name').values('id', 'name')),
             'groups': list(Group.objects.order_by('name').values('id', 'name')),
@@ -271,8 +265,6 @@ class MemberList(LoginRequiredMixin, View):
             'current_date': datetime.now().strftime('%B %d, %Y'),
             'show_all': show_all,
         }
-
-        # Render the template with context data
         return render(request, 'member_list.html', context)
 
 
