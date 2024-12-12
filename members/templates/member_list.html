@@ -474,6 +474,7 @@
             const title = document.createElement('h5');
             title.classList.add('modal-title', 'dark-text', 'm-0');
             title.innerHTML = 'Edit Member';
+
             titleDiv.appendChild(editIcon);
             titleDiv.appendChild(title);
 
@@ -488,26 +489,30 @@
 
             // Open the modal with content
             setTimeout(() => {
-                uni_modal(headerDiv, finalUrl, 'modal-md');
+                // Dynamically load modal content
+                uni_modal(headerDiv, finalUrl, small ? 'modal-sm' : 'modal-md');
+
+                // Ensure modal footer exists
+                const modalFooter = document.querySelector('#uni_modal .modal-footer');
+                if (modalFooter) {
+                    modalFooter.innerHTML = ''; // Clear existing content
+
+                    // Create save button
+                    const saveButton = document.createElement('button');
+                    saveButton.classList.add('btn', 'selected', 'edit');
+                    saveButton.innerHTML = '<i class="fa-solid fa-check me-2"></i> Save';
+
+                    // Add event listener to the save button
+                    saveButton.addEventListener('click', () => {
+                        $('#uni_modal form').submit();
+                    });
+
+                    // Append save button to the modal footer
+                    modalFooter.appendChild(saveButton);
+                } else {
+                    console.error('Modal footer not found!');
+                }
             }, 300);
-
-            // Clear and set up modal footer
-            modalFooter.innerHTML = '';
-            const saveButton = document.createElement('button');
-            saveButton.classList.add('btn', 'selected', 'edit');
-
-            const saveIcon = document.createElement('i');
-            saveIcon.classList.add('fa-solid', 'fa-check', 'me-2');
-
-            const saveText = document.createTextNode('Save');
-            saveButton.appendChild(saveIcon);
-            saveButton.appendChild(saveText);
-
-            saveButton.addEventListener('click', () => {
-                $('#uni_modal form').submit();
-            });
-
-            modalFooter.appendChild(saveButton);
         };
     });
 </script>
