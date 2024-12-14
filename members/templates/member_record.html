@@ -3,46 +3,74 @@
 
 <div class="">
     <h5 class="text-dark">General</h5>
-    <div class="memberContent">
+    <div class="affiliation-section">
         <ul class="list-group list-group-flush ul-left">
             <li class="list-group-item"><strong class="text-dark fw-bold">First Name</strong> <br> {{ member.name|default:"-" }}</li>
-            <li class="list-group-item"><strong class="text-dark fw-bold">Second Name</strong> <br> {{ member.surname|default:"-" }}</li>
             <li class="list-group-item"><strong class="text-dark fw-bold">Email</strong> <br> {{ member.primary_email|default:"-" }}</li>
-            <li class="list-group-item"><strong class="text-dark fw-bold">Membership Start</strong> <br> {{ member.start_date|date:"Y-m-d"|default:"-" }}</li>
-            <li class="list-group-item"><strong class="text-dark fw-bold">Membership End</strong> <br> {% if member.end_date %} {{ member.end_date|date:"Y-m-d"|default:"-" }} {% else %} - {% endif %}</li>
         </ul>
         <ul class="list-group list-group-flush ul-right">
+            <li class="list-group-item"><strong class="text-dark fw-bold">Second Name</strong> <br> {{ member.surname|default:"-" }}</li>
             <li class="list-group-item"><strong class="text-dark fw-bold">Role</strong> <br> {{ member.get_role_display|default:"-" }}</li>
-            <li class="list-group-item"><strong class="text-dark fw-bold">Duty</strong> <br> {{ member.duty.name|default:"-" }}</li>
-            <li class="list-group-item"><strong class="text-dark fw-bold">Institute</strong> <br> {{ member.institute.name|default:"-" }}</li>
-            <li class="list-group-item"><strong class="text-dark fw-bold">Group</strong> <br> {{ member.institute.group.name|default:"-" }}</li>
-            <li class="list-group-item"><strong class="text-dark fw-bold">Country</strong> <br> {{ member.institute.group.country.name|default:"-" }}</li>
         </ul>
     </div>
-
-    <div class="mt-2">
+    <div class="mt-3">
+        <h5 class="text-dark">Current Affiliation</h5>
+        <div class="affiliation-section">
+            {% if member.current_institute %}
+                <ul class="list-group list-group-flush affiliation-list">
+                    <li class="list-group-item"><strong class="text-dark fw-bold">Institute</strong> <br> {{ member.current_institute.name|default:"-" }}</li>
+                    <li class="list-group-item"><strong class="text-dark fw-bold">Group</strong> <br> {{ member.current_institute.group.name|default:"-" }}</li>
+                    <li class="list-group-item"><strong class="text-dark fw-bold">Country</strong> <br> {{ member.current_institute.group.country.name|default:"-" }}</li>
+                </ul>
+            {% else %}
+                <p class="text-dark">No current affiliation</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="mt-3">
+        <h5 class="text-dark">Membership</h5>
+        {% if membership_periods %}
+            <table class="table table-bordered table-hover styled-table">
+                <thead>
+                    <tr>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Institute</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for period in membership_periods %}
+                        <tr>
+                            <td>{{ period.start_date|date:"Y-m-d" }}</td>
+                            <td>{{ period.end_date|date:"Y-m-d"|default:"Active" }}</td>
+                            <td>{{ period.institute.name|default:"-" }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="text-dark">No membership periods available</p>
+        {% endif %}
+    </div>
+    <div class="mt-3">
         <h5 class="text-dark">Authorship</h5>
-            {% if member.authorship_start%}
-            <div class="row">
-                <div class="col-md-6">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">
-                            <strong class="text-dark fw-bold">Authorship Start</strong> <br>
-                            <span class="text-muted">{{ member.authorship_start|date:"Y-m-d"|default:"-" }}</span>
-                        </li>
-                    </ul>
-                </div>
-                <div class="col-md-6">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">
-                            <strong class="text-dark fw-bold">Authorship End</strong> <br>
-                            <span class="text-muted">{{ member.authorship_end|date:"Y-m-d"|default:"-" }}</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        {% elif not member.authorship_start%}
-            <p class="text-dark">No authorship</p>
+        {% if current_authorship %}
+            <table class="table table-bordered table-hover styled-table">
+                <thead>
+                    <tr>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ current_authorship.start_date|date:"Y-m-d" }}</td>
+                        <td>{{ current_authorship.end_date|date:"Y-m-d"|default:"Active" }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        {% else %}
+            <p class="text-dark">No active authorship period</p>
         {% endif %}
     </div>
 </div>
