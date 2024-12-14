@@ -453,7 +453,7 @@
             const id = e.target.dataset.id;
             const baseUrl = "{% url 'manage-member-pk' 0 %}";
             const finalUrl = baseUrl.replace('0', id);
-            const modalFooter = document.querySelector('.modal-footer');
+            const modalFooter = document.querySelector('#uni_modal .modal-footer');
 
             // Call the edit function
             editItem(id, modalFooter, finalUrl);
@@ -493,9 +493,9 @@
                 uni_modal(headerDiv, finalUrl, small ? 'modal-sm' : 'modal-md');
 
                 // Ensure modal footer exists
-                const modalFooter = document.querySelector('#uni_modal .modal-footer');
-                if (modalFooter) {
-                    modalFooter.innerHTML = ''; // Clear existing content
+                const existingModalFooter = document.querySelector('#uni_modal .modal-footer');
+                if (existingModalFooter) {
+                    existingModalFooter.innerHTML = ''; // Clear existing content
 
                     // Create save button
                     const saveButton = document.createElement('button');
@@ -508,7 +508,7 @@
                     });
 
                     // Append save button to the modal footer
-                    modalFooter.appendChild(saveButton);
+                    existingModalFooter.appendChild(saveButton);
                 } else {
                     console.error('Modal footer not found!');
                 }
