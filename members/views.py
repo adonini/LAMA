@@ -338,40 +338,135 @@ class AddMember(LoginRequiredMixin, View):
         context['member'] = {}
         context['roles'] = Member.ROLE_CHOICES
         context['institutes'] = Institute.objects.all()
-        # Return the context to the template for rendering
         return render(request, 'manage_member.html', context)
+
+    def get_member(self, member_id):
+        """Retrieve an existing member or return None if ID is not provided or invalid."""
+        if member_id and member_id.isnumeric():
+            return Member.objects.filter(pk=member_id).first()
+        return None
+
+    def handle_institute_change(self, member, new_institute_id, is_author):
+        """Handle changes to institute, including stopping and restarting membership."""
+        old_institute = member.current_institute(include_inactive=True)
+        new_institute = Institute.objects.get(pk=new_institute_id) if new_institute_id else None
+
+        if old_institute != new_institute:
+            current_membership = member.current_membership(include_inactive=False)
+            if current_membership and current_membership.is_active():
+                current_membership.end_date = now().date()
+                current_membership.save()
+            # Handle authorship adjustment
+            if member.is_active_author():
+                if not is_author:  # If `is_author` is unchecked
+                    AuthorshipPeriod.objects.filter(member=member, end_date__isnull=True).update(
+                        end_date=now().date() + relativedelta(months=6)  # Stop after 6 months
+                    )
+            if new_institute:
+                new_membership = MembershipPeriod.objects.create(
+                    member=member,
+                    start_date=now().date(),
+                    institute=new_institute
+                )
+
+                # Handle new authorship if `is_author` is checked
+                if is_author and not member.is_active_author():
+                    AuthorshipPeriod.objects.create(
+                        member=member,
+                        start_date=new_membership.start_date + relativedelta(months=6)
+                    )
+            return True
+        return False  # No change
+
+    def handle_membership_change(self, member, is_stopping_membership, is_author):
+        """Handle stopping or restarting membership."""
+        if is_stopping_membership:
+            current_membership = member.current_membership(include_inactive=False)
+            if current_membership:
+                current_membership.end_date = now().date()
+                current_membership.save()
+
+                # Stop authorship 6 months later
+                if member.is_active_author():
+                    current_authorship = member.current_authorship(include_inactive=False)
+                    if current_authorship:
+                        current_authorship.end_date = now().date() + relativedelta(months=6)
+                        current_authorship.save()
+        else:  # Restart membership
+            if not member.current_membership(include_inactive=False):  # No active membership
+                new_membership = MembershipPeriod.objects.create(
+                    member=member,
+                    start_date=now().date(),
+                    institute=member.institute
+                )
+
+            # Handle authorship if `is_author` is checked
+            if is_author and not member.is_active_author():
+                AuthorshipPeriod.objects.create(
+                    member=member,
+                    start_date=new_membership.start_date + relativedelta(months=6)
+                )
+
+    def handle_authorship_change(self, member, is_author, authorship_start):
+        """Handle starting or stopping authorship."""
+        if is_author and not member.is_active_author():
+            AuthorshipPeriod.objects.create(
+                member=member,
+                start_date=authorship_start + relativedelta(months=6)
+            )
+        else:
+            if member.is_active_author():
+                # Stopping authorship
+                current_authorship = member.current_authorship(include_inactive=False)
+                if current_authorship:
+                    current_authorship.end_date = now().date() + relativedelta(months=6)
+                    current_authorship.save()
 
     def post(self, request, pk=None):
         resp = {'status': 'failed', 'msg': ''}
-        currentUser = User.objects.get(username=request.user)
         if request.method == 'POST':
-            if request.POST['id'].isnumeric():
-                member = Member.objects.get(pk=request.POST['id'])
-            else:
-                member = None
-            if member is None:
-                form = AddMemberForm(request.POST)
-            else:
-                form = AddMemberForm(request.POST, instance=member)
+            member = self.get_member(request.POST.get('id'))  # Fetch the existing member if ID is provided
+            form = AddMemberForm(request.POST, instance=member)
 
             if form.is_valid():
-                # Saving the member instance
-                newMember = form.save(commit=False)
-                if not form.cleaned_data['end_date']:
-                    newMember.end_date = None
+                logger.info(f"Form is valid. Data: {form.cleaned_data}")
+                new_member = form.save(commit=False)  # Don't save yet to handle custom logic
+                start_date = form.cleaned_data['start_date']
+                end_date = form.cleaned_data.get('end_date')
+                institute_id = request.POST.get('institute') 
+                logger.info(f"Received institute ID: {institute_id}")
+                is_author = 'is_author' in request.POST
+                authorship_start = request.POST.get('authorship_start')
+                authorship_end = request.POST.get('authorship_end')
 
-                if 'is_author' in request.POST:
-                    newMember.is_author = True
-                    newMember.authorship_start = request.POST.get('authorship_start') or None
-                    newMember.authorship_end = request.POST.get('authorship_end') or None
-                else:
-                    newMember.is_author = False
-                    newMember.authorship_start = None
-                    newMember.authorship_end = None
-                newMember.save()
-                messages.success(request, 'Member has been saved successfully!')
+                if member:  # Editing an existing member
+                    # Handle case 1: Changing institute
+                    institute_changed = self.handle_institute_change(member, institute_id, is_author)
+                    # Handle case 2: Stopping membership
+                    if not institute_changed:
+                        is_stopping_membership = end_date is not None and member.is_active_member()
+                        self.handle_membership_change(member, is_stopping_membership, is_author)
+                    # Handle case 3: Stopping or starting authorship
+                    self.handle_authorship_change(member, is_author, authorship_start)
+                else:  # Creating a new member
+                    new_member.save()  # Save the new member instance
+                    # Handle case 4: Starting new membership
+                    MembershipPeriod.objects.create(
+                        member=new_member,
+                        start_date=start_date,
+                        institute=Institute.objects.get(pk=institute_id)
+                    )
+                    # Handle case 5: Starting new authorship if applicable
+                    if is_author:
+                        AuthorshipPeriod.objects.create(
+                            member=new_member,
+                            start_date=start_date + relativedelta(months=6)
+                        )
+
                 resp['status'] = 'success'
+                messages.success(request, 'Member has been saved successfully!')
             else:
+                logger.error(f"Form is invalid. Errors: {form.errors}")
                 # If form has errors, display them
                 for fields in form:
                     for error in fields.errors:
