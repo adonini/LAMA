@@ -400,10 +400,27 @@ class ManageMember(LoginRequiredMixin, View):
 
         if pk:
             # Retrieve and display a specific member if pk is provided
-            logger.debug(pk)
+            #logger.debug(pk)
             try:
                 member = Member.objects.get(id=pk)
                 context['member'] = member
+                current_authorship = member.current_authorship()
+                current_membership = member.current_membership()
+                if current_membership:
+                    context['membership_start'] = current_membership.start_date
+                    context['membership_end'] = current_membership.end_date
+                else:
+                    context['membership_start'] = None
+                    context['membership_end'] = None
+                # Check if the member is an active author
+                context['is_author'] = member.is_active_author()
+                if current_authorship:
+                    context['authorship_start'] = current_authorship.start_date
+                    context['authorship_end'] = current_authorship.end_date
+                else:
+                    context['authorship_start'] = None
+                    context['authorship_end'] = None
+                context['member_institute'] = member.current_institute()
                 context['duties'] = MemberDuty.objects.filter(member=member)
                 context['institute_list'] = Institute.objects.all()
                 context['is_edit'] = True  # Flag to indicate editing
@@ -416,7 +433,6 @@ class ManageMember(LoginRequiredMixin, View):
             context['roles'] = Member.ROLE_CHOICES
             context['is_edit'] = False  # Flag to indicate adding a new member
         context['institute_list'] = Institute.objects.all()
-        # Return the context to the template for rendering
         return render(request, 'manage_member.html', context)
 
 
