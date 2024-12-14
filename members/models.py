@@ -154,62 +154,6 @@ class Member(models.Model):
         return f"{self.name} {self.surname}"
 
     def save(self, *args, **kwargs):
-        # Check if the instance is new or updated
-        is_new = not self.pk
-        old_instance = None if is_new else Member.objects.get(pk=self.pk)
-
-        # Handle institute changes
-        if not is_new and old_instance.institute != self.institute:
-            # End the current membership period if the institute changes
-            current_membership = old_instance.current_membership()
-            if current_membership:
-                current_membership.end_date = now().date()
-                current_membership.save()
-
-            # Start a new membership period with the new institute
-            MembershipPeriod.objects.create(
-                member=self,
-                start_date=now().date(),
-                institute=self.institute
-            )
-
-        # Handle membership periods in case of stopping or restarting
-        if not is_new:
-            is_stopping_membership = old_instance.is_active_member() and not self.is_active_member()
-            is_restarting_membership = not old_instance.is_active_member() and self.is_active_member()
-
-            # End membership if stopping
-            if is_stopping_membership:
-                current_membership = old_instance.current_membership()
-                if current_membership:
-                    current_membership.end_date = now().date()
-                    current_membership.save()
-            # Start a new membership if restarting
-            elif is_restarting_membership:
-                MembershipPeriod.objects.create(
-                    member=self,
-                    start_date=now().date(),
-                    institute=self.institute
-                )
-
-        # Handle authorship periods for stopping or restarting
-        if not is_new:
-            is_stopping_authorship = old_instance.is_active_author() and not self.is_active_author()
-            is_restarting_authorship = not old_instance.is_active_author() and self.is_active_author()
-
-            # End authorship if stopping
-            if is_stopping_authorship:
-                current_authorship = old_instance.current_authorship()
-                if current_authorship:
-                    current_authorship.end_date = now().date()
-                    current_authorship.save()
-            # Start a new authorship if restarting
-            elif is_restarting_authorship:
-                AuthorshipPeriod.objects.create(
-                    member=self,
-                    start_date=now().date()
-                )
-
         super().save(*args, **kwargs)
 
 
