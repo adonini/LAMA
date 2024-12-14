@@ -17,11 +17,11 @@
                 </div>
                 <div class="form-group mb-3">
                     <label for="start_date" class="control-label">Membership Start</label>
-                    <input type="date" class="form-control rounded-0" id="start_date" name="start_date" value="{{ member.start_date|date:"Y-m-d" }}" required>
+                    <input type="date" class="form-control rounded-0" id="start_date" name="start_date" value="{{ membership_start|date:"Y-m-d" }}" required>
                 </div>
                 <div class="form-group mb-3">
                     <label for="end_date" class="control-label">Membership End</label>
-                    <input type="date" class="form-control rounded-0" id="end_date" name="end_date" value="{{ member.end_date|date:"Y-m-d" }}">
+                    <input type="date" class="form-control rounded-0" id="end_date" name="end_date" value="{{ membership_end|date:"Y-m-d" }}">
                 </div>
             </div>
 
@@ -42,25 +42,30 @@
                 </div>
                 <div class="form-group mb-3">
                     <label for="institute" class="control-label">Institute</label>
-                    <select class="form-control rounded-0" name="institute" id="institute" value="{{member.institute.pk}}">
-                        <option value="" {% if not member.institute %} selected {% endif %}>-----</option>
+                    <select class="form-control rounded-0" name="institute" id="institute">
+                        <!-- Default option for no selection -->
+                        <option value="" {% if not member_institute %} selected {% endif %}>-----</option>
+                        <!-- Iterate through institutes and mark the selected one -->
                         {% for institute in institute_list %}
-                            <option value="{{ institute.pk }}" {% if member.institute.pk == institute.pk %} selected {% endif %}>{{ institute.name }}</option>
+                            <option value="{{ institute.pk }}"
+                                {% if member_institute and member_institute.pk == institute.pk %} selected {% endif %}>
+                                {{ institute.name }}
+                            </option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="form-group mb-3">
                     <label for="is_author" class="control-label">Is Author</label>
-                    <input type="checkbox" class="form-check-input" id="is_author" name="is_author" {% if member.is_author %} checked {% endif %}>
+                    <input type="checkbox" class="form-check-input" id="is_author" name="is_author" {% if is_author %} checked {% endif %}>
                 </div>
                 <div id="authorship-fields" class="{% if not member.is_author %} d-none {% endif %}">
                     <div class="form-group mb-3">
                         <label for="authorship_start" class="control-label">Authorship Start</label>
-                        <input type="date" class="form-control rounded-0" id="authorship_start" name="authorship_start" value="{{ member.authorship_start|date:"Y-m-d" }}">
+                        <input type="date" class="form-control rounded-0" id="authorship_start" name="authorship_start" value="{{ authorship_start|date:"Y-m-d" }}">
                     </div>
                     <div class="form-group mb-3">
                         <label for="authorship_end" class="control-label">Authorship End</label>
-                        <input type="date" class="form-control rounded-0" id="authorship_end" name="authorship_end" value="{{ member.authorship_end|date:"Y-m-d" }}">
+                        <input type="date" class="form-control rounded-0" id="authorship_end" name="authorship_end" value="{{ authorship_end|date:"Y-m-d" }}">
                     </div>
                 </div>
             </div>
@@ -101,6 +106,7 @@
             var _this = $(this)
             let form = new FormData($(this)[0])
             console.log("is Author:", form.get('is_author'));
+            console.log("institute:", form.get('institute'));
             $('.err-msg').remove();
             var el = $('<div>')
             el.addClass("alert alert-danger err-msg")
