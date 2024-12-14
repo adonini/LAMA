@@ -281,26 +281,43 @@ class MemberRecord(LoginRequiredMixin, View):
             except Member.DoesNotExist:
                 messages.error(request, "Member not found")
                 return redirect('member_list')
+
+            # Fetch the current active membership and authorship periods
+            current_membership = member.current_membership()
+            current_authorship = member.current_authorship()
+
             # Fetch related duties and roles for the member
+            # duties = MemberDuty.objects.filter(member=member).order_by('start_date')
+            # current_duties = [duty for duty in duties if duty.end_date is None]
+            # historical_duties = [duty for duty in duties if duty.end_date is not None]
             duties = MemberDuty.objects.filter(member=member)
             role = member.role if member.role else 'No role assigned'
+
             # Get the institutes and their related group information
-            institute = member.institute if member.institute else 'No institute assigned'
+            institute = member.current_institute() if member.current_institute() else 'No institute assigned'
             group = institute.group if institute else 'No group assigned'
             country = group.country if group else 'No country assigned'
-            # Get the member's historical duties if any
-            historical_duties = []
-            if MemberDuty.objects.filter(member=member):
-                historical_duties = MemberDuty.objects.filter(member=member).order_by('start_date')
 
-            context['member'] = member
-            context['duties'] = duties
-            context['role'] = role
-            context['institute'] = institute
-            context['group'] = group
-            context['country'] = country
-            context['historical_duties'] = historical_duties
-            context['institutes'] = Institute.objects.all()
+            # Get historical duties if any
+            historical_duties = MemberDuty.objects.filter(member=member).order_by('start_date') if MemberDuty.objects.filter(member=member) else []
+
+            # Pass all membership periods
+            membership_periods = member.membership_periods.order_by('-start_date')
+            print(membership_periods)
+
+            context.update({
+                'member': member,
+                'current_membership': current_membership,
+                'current_authorship': current_authorship,
+                'duties': duties,
+                'role': role,
+                'institute': institute,
+                'group': group,
+                'country': country,
+                'historical_duties': historical_duties,
+                'institutes': Institute.objects.all(),
+                'membership_periods': membership_periods,
+            })
             return render(request, 'member_record.html', context)
 
 
