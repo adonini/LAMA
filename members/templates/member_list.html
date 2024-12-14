@@ -122,33 +122,36 @@
             // Open the modal with the header content
             uni_modal(headerDiv, '{% url "add-member" %}', 'modal-md');
 
-            // Ensure the footer is cleared and prepared
-            const modalFooter = document.querySelector('.modal-footer');
-            modalFooter.innerHTML = ''; // Clear the footer
-
-            // Create and append the "Save" button to the footer
-            const saveButton = document.createElement('button');
-            saveButton.classList.add('btn', 'selected', 'edit');
-
-            const saveIcon = document.createElement('i');
-            saveIcon.classList.add('fa-solid', 'fa-check', 'me-2');
-
-            const saveText = document.createTextNode('Save');
-            saveButton.appendChild(saveIcon);
-            saveButton.appendChild(saveText);
-
-            // Handle form submission when Save is clicked
-            saveButton.addEventListener('click', function() {
-                $('#uni_modal form').submit();
-            });
-
-            // Append submit button to the modal footer
-            modalFooter.appendChild(saveButton);
-
             // Event listener to ensure the modal is shown before accessing the dropdown
             $('#uni_modal').on('shown.bs.modal', function () {
+                // Ensure the footer is cleared and prepared
+                const modalFooter = document.querySelector('.modal-footer');
+                if (modalFooter) {
+                    modalFooter.innerHTML = ''; // Clear the footer
+
+                    // Create and append the "Save" button to the footer
+                    const saveButton = document.createElement('button');
+                    saveButton.classList.add('btn', 'selected', 'edit');
+
+                    const saveIcon = document.createElement('i');
+                    saveIcon.classList.add('fa-solid', 'fa-check', 'me-2');
+
+                    const saveText = document.createTextNode('Save');
+                    saveButton.appendChild(saveIcon);
+                    saveButton.appendChild(saveText);
+
+                    // Handle form submission when Save is clicked
+                    saveButton.addEventListener('click', function () {
+                        $('#uni_modal form').submit();
+                    });
+
+                    // Append the Save button to the modal footer
+                    modalFooter.appendChild(saveButton);
+                } else {
+                    console.error('Modal footer not found.');
+                }
                 // Select the institute dropdown in the modal
-                let instituteSelect = document.getElementById('institute');
+                const instituteSelect = document.getElementById('institute');
                 if (instituteSelect) {
                     // Populate the institute dropdown
                     institutes.forEach(institute => {
