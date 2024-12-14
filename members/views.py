@@ -13,6 +13,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from django.db.models import Q
+from django.utils.timezone import now
 
 
 logger = logging.getLogger(__name__)
