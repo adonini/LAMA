@@ -63,10 +63,12 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>{{ current_authorship.start_date|date:"Y-m-d" }}</td>
-                        <td>{{ current_authorship.end_date|date:"Y-m-d"|default:"Active" }}</td>
-                    </tr>
+                    {% for period in authorship_periods %}
+                        <tr>
+                            <td>{{ period.start_date|date:"Y-m-d" }}</td>
+                            <td>{{ period.end_date|date:"Y-m-d"|default:"Active" }}</td>
+                        </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         {% else %}
