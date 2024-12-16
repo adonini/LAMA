@@ -95,7 +95,7 @@ class Member(models.Model):
         else:
             # Return only the active membership
             return self.membership_periods.filter(
-                Q(end_date__isnull=True) | Q(end_date__gte=today)
+                Q(start_date__lte=today) & (Q(end_date__isnull=True) | Q(end_date__gte=today))
             ).order_by('-start_date').first()
 
     def current_authorship(self, include_inactive=False):
@@ -103,6 +103,7 @@ class Member(models.Model):
         Get the current active authorship period or the most recent authorship if include_inactive=True.
         """
         today = timezone.now().date()
+
         if include_inactive:
             # Return the most recent authorship, active or inactive
             return self.authorship_periods.order_by('-start_date').first()
@@ -111,6 +112,20 @@ class Member(models.Model):
             return self.authorship_periods.filter(
                 Q(start_date__lte=today) & (Q(end_date__isnull=True) | Q(end_date__gte=today))
             ).order_by('-start_date').first()
+
+    def future_membership(self):
+        """
+        Get the upcoming membership period, if any.
+        """
+        today = timezone.now().date()
+        return self.membership_periods.filter(start_date__gt=today).order_by('start_date').first()
+
+    def future_authorship(self):
+        """
+        Get the upcoming authorship period, if any.
+        """
+        today = timezone.now().date()
+        return self.authorship_periods.filter(start_date__gt=today).order_by('start_date').first()
 
     def is_active_member(self):
         """

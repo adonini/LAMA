@@ -16,7 +16,7 @@ from django.db.models import Q
 from django.utils.timezone import now
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('lama')
 
 
 def logout_user(request):
@@ -216,9 +216,10 @@ class MemberList(LoginRequiredMixin, View):
         for member in members:
             # Determine current institute and membership
             current_institute = member.current_institute(include_inactive=show_all)
-            active_membership = member.current_membership(include_inactive=show_all)
-            authorship_period = member.current_authorship(include_inactive=show_all)
-
+            active_membership = member.current_membership(include_inactive=show_all) or member.future_membership()
+            authorship_period = member.current_authorship(include_inactive=show_all) or member.future_authorship()
+            # logger.debug(f"Authorship period for member {member.pk}, {member.name}: {authorship_period}")
+            # logger.debug(f"{authorship_period.start_date.strftime('%Y-%m-%d') if authorship_period else None}")
             # Determine authorship and contribution status
             is_author = (authorship_period and authorship_period.start_date <= today and (authorship_period.end_date is None or authorship_period.end_date >= today))
             is_cf = (is_author and authorship_period.start_date <= six_months_future and (authorship_period.end_date is None or authorship_period.end_date > six_months_future))
@@ -304,7 +305,7 @@ class MemberRecord(LoginRequiredMixin, View):
 
             # Pass all membership periods
             membership_periods = member.membership_periods.order_by('-start_date')
-            print(membership_periods)
+            authorship_periods = member.authorship_periods.order_by('-start_date')
 
             context.update({
                 'member': member,
@@ -318,6 +319,7 @@ class MemberRecord(LoginRequiredMixin, View):
                 'historical_duties': historical_duties,
                 'institutes': Institute.objects.all(),
                 'membership_periods': membership_periods,
+                'authorship_periods': authorship_periods,
             })
             return render(request, 'member_record.html', context)
 
@@ -434,9 +436,9 @@ class AddMember(LoginRequiredMixin, View):
                 new_member = form.save(commit=False)  # Don't save yet to handle custom logic
                 start_date = form.cleaned_data['start_date']
                 end_date = form.cleaned_data.get('end_date')
-                institute_id = request.POST.get('institute') 
+                institute_id = request.POST.get('institute')
                 logger.info(f"Received institute ID: {institute_id}")
-                is_author = 'is_author' in request.POST
+                is_author = request.POST.get('is_author') == 'on'
                 authorship_start = request.POST.get('authorship_start')
                 authorship_end = request.POST.get('authorship_end')
 
@@ -459,11 +461,15 @@ class AddMember(LoginRequiredMixin, View):
                     )
                     # Handle case 5: Starting new authorship if applicable
                     if is_author:
-                        AuthorshipPeriod.objects.create(
-                            member=new_member,
-                            start_date=start_date + relativedelta(months=6)
-                        )
-
+                        try:
+                            authorship_period = AuthorshipPeriod.objects.create(
+                                member=new_member,
+                                start_date=start_date + relativedelta(months=6)
+                            )
+                            authorship_period.save()
+                            #logger.debug(f"AuthorshipPeriod successfully created for Member ID={new_member.id}")
+                        except Exception as e:
+                            logger.error(f"Failed to create AuthorshipPeriod for Member ID={new_member.id}: {e}")
                 resp['status'] = 'success'
                 messages.success(request, 'Member has been saved successfully!')
             else:
