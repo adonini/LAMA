@@ -130,13 +130,13 @@ class Index(TemplateView):
 
         # Count of active members, defined as those with no end date or an end date in the future
         total_members = MembershipPeriod.objects.filter(
-            Q(end_date__isnull=True) | Q(end_date__gt=today)
+            Q(start_date__lte=today) & (Q(end_date__isnull=True) | Q(end_date__gte=today))
         ).values('member').distinct().count()
 
         # Count of members who have an authorship start date on or before today and either no authorship end date or an authorship end date in the future
         total_authors = AuthorshipPeriod.objects.filter(
-            start_date__lte=today
-        ).filter(Q(end_date__isnull=True) | Q(end_date__gt=today)).values('member').distinct().count()
+            Q(start_date__lte=today) & (Q(end_date__isnull=True) | Q(end_date__gte=today))
+        ).values('member').distinct().count()
 
         # Members becoming authors within the last 6 months
         six_months_ago = timezone.now() - relativedelta(months=6)
