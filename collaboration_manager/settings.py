@@ -143,6 +143,9 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login'
 
+log_dir = '/Users/alicedonini/Lavoro/LST/Members_manager/collaboration_manager/logs'
+os.makedirs(log_dir, exist_ok=True)
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -161,31 +164,36 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': '/Users/alicedonini/Lavoro/LST/Members_manager/collaboration_manager/logs/lama_logs.log',
+            'formatter': 'simple',
+        },
     },
     'root': {
-        'handlers': ['console'],
+        'handlers': ['console', 'file'],  # Log to both console and file
         'level': 'DEBUG',
     },
     'loggers': {
         'django': {
-            'handlers': ['console'],
+            'handlers': ['console', 'file'],
             'level': 'INFO',
-            'propagate': True,
+            'propagate': False,
         },
-        'inventory': {  
-            'handlers': ['console'],
+        'lama': {
+            'handlers': ['console', 'file'],
             'level': 'DEBUG',
-            'propagate': True,
+            'propagate': False,
         },
         "django_auth_ldap": {
             "level": 'DEBUG',
-            "handlers": ['console'],
-            'propagate': True,
+            'handlers': ['console', 'file'],
+            'propagate': False,
         },
         'ldap': {
             'level': 'DEBUG',  # Capture logs from python-ldap
-            'handlers': ['console'],
-            'propagate': True,
+            'handlers': ['console', 'file'],
+            'propagate': False,
         },
     },
 }
