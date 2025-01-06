@@ -247,8 +247,8 @@ class MemberList(LoginRequiredMixin, View):
                 'name': member.name,
                 'surname': member.surname,
                 'primary_email': member.primary_email,
-                'start_date': str(active_membership.start_date) if active_membership else None,
-                'end_date': str(active_membership.end_date) if active_membership and active_membership.end_date else None,
+                'start_date': str(membership.start_date) if membership else None,
+                'end_date': str(membership.end_date) if membership and membership.end_date else None,
                 'role': member.role,
                 'is_author': is_author,
                 'is_cf': is_cf,
@@ -366,80 +366,85 @@ class AddMember(LoginRequiredMixin, View):
             return Member.objects.filter(pk=member_id).first()
         return None
 
-    def handle_institute_change(self, member, new_institute_id, is_author):
+    def handle_institute_change(self, member, new_institute_id, is_author, membership_start_date):
         """Handle changes to institute, including stopping and restarting membership."""
         old_institute = member.current_institute(include_inactive=True)
         new_institute = Institute.objects.get(pk=new_institute_id) if new_institute_id else None
 
+        previous_end_date = membership_start_date - timedelta(days=1)
         if old_institute != new_institute:
             current_membership = member.current_membership(include_inactive=False)
             if current_membership and current_membership.is_active():
-                current_membership.end_date = now().date()
+                current_membership.end_date = previous_end_date
                 current_membership.save()
-            # Handle authorship adjustment
+            # Handle authorship adjustment for the current membership
             if member.is_active_author():
                 if not is_author:  # If `is_author` is unchecked
                     AuthorshipPeriod.objects.filter(member=member, end_date__isnull=True).update(
-                        end_date=now().date() + relativedelta(months=6)  # Stop after 6 months
+                        end_date=previous_end_date + relativedelta(months=6)  # Stop after 6 months
                     )
             if new_institute:
                 new_membership = MembershipPeriod.objects.create(
                     member=member,
-                    start_date=now().date(),
+                    start_date=membership_start_date,
                     institute=new_institute
                 )
+                new_membership.save()
 
                 # Handle new authorship if `is_author` is checked
                 if is_author and not member.is_active_author():
-                    AuthorshipPeriod.objects.create(
+                    authorship_period = AuthorshipPeriod.objects.create(
                         member=member,
                         start_date=new_membership.start_date + relativedelta(months=6)
                     )
+                    authorship_period.save()
             return True
         return False  # No change
 
-    def handle_membership_change(self, member, is_stopping_membership, is_author):
+    def handle_membership_change(self, member, is_stopping_membership, is_author, end_date, start_date, institute_id):
         """Handle stopping or restarting membership."""
         if is_stopping_membership:
             current_membership = member.current_membership(include_inactive=False)
             if current_membership:
-                current_membership.end_date = now().date()
+                current_membership.end_date = end_date
                 current_membership.save()
 
                 # Stop authorship 6 months later
                 if member.is_active_author():
                     current_authorship = member.current_authorship(include_inactive=False)
                     if current_authorship:
-                        current_authorship.end_date = now().date() + relativedelta(months=6)
+                        current_authorship.end_date = end_date + relativedelta(months=6)
                         current_authorship.save()
         else:  # Restart membership
             if not member.current_membership(include_inactive=False):  # No active membership
                 new_membership = MembershipPeriod.objects.create(
                     member=member,
-                    start_date=now().date(),
-                    institute=member.institute
+                    start_date=start_date,
+                    institute=Institute.objects.get(pk=institute_id) if institute_id else None
                 )
-
+                new_membership.save()
             # Handle authorship if `is_author` is checked
             if is_author and not member.is_active_author():
-                AuthorshipPeriod.objects.create(
+                authorship_period = AuthorshipPeriod.objects.create(
                     member=member,
                     start_date=new_membership.start_date + relativedelta(months=6)
                 )
+                authorship_period.save()
 
-    def handle_authorship_change(self, member, is_author, authorship_start):
+    def handle_authorship_change(self, member, is_author, auth_start, auth_end):
         """Handle starting or stopping authorship."""
         if is_author and not member.is_active_author():
-            AuthorshipPeriod.objects.create(
+            authorship_period = AuthorshipPeriod.objects.create(
                 member=member,
-                start_date=authorship_start + relativedelta(months=6)
+                start_date=auth_start + relativedelta(months=6)
             )
+            authorship_period.save()
         else:
             if member.is_active_author():
                 # Stopping authorship
                 current_authorship = member.current_authorship(include_inactive=False)
                 if current_authorship:
-                    current_authorship.end_date = now().date() + relativedelta(months=6)
+                    current_authorship.end_date = auth_end + relativedelta(months=6)
                     current_authorship.save()
 
     def post(self, request, pk=None):
@@ -454,28 +459,29 @@ class AddMember(LoginRequiredMixin, View):
                 start_date = form.cleaned_data['start_date']
                 end_date = form.cleaned_data.get('end_date')
                 institute_id = request.POST.get('institute')
-                logger.info(f"Received institute ID: {institute_id}")
+                #logger.info(f"Received institute ID: {institute_id}")
                 is_author = request.POST.get('is_author') == 'on'
-                authorship_start = request.POST.get('authorship_start')
-                authorship_end = request.POST.get('authorship_end')
+                authorship_start = parse_date(request.POST.get('authorship_start'))
+                authorship_end = parse_date(request.POST.get('authorship_end'))
 
                 if member:  # Editing an existing member
                     # Handle case 1: Changing institute
-                    institute_changed = self.handle_institute_change(member, institute_id, is_author)
+                    institute_changed = self.handle_institute_change(member, institute_id, is_author, start_date)
                     # Handle case 2: Stopping membership
-                    if not institute_changed:
-                        is_stopping_membership = end_date is not None and member.is_active_member()
-                        self.handle_membership_change(member, is_stopping_membership, is_author)
+                    # Check if membership has changed
+                    is_stopping_membership = end_date is not None and member.is_active_member()
+                    membership_changed = not institute_changed and is_stopping_membership
+                    if membership_changed:
+                        self.handle_membership_change(member, is_stopping_membership, is_author, end_date, start_date, institute_id)
                     # Handle case 3: Stopping or starting authorship
-                    self.handle_authorship_change(member, is_author, authorship_start)
+                    if not institute_changed and not membership_changed:
+                        self.handle_authorship_change(member, is_author, authorship_start, authorship_end)
                 else:  # Creating a new member
                     new_member.save()  # Save the new member instance
                     # Handle case 4: Starting new membership
-                    MembershipPeriod.objects.create(
-                        member=new_member,
-                        start_date=start_date,
-                        institute=Institute.objects.get(pk=institute_id)
-                    )
+                    MembershipPeriod.objects.create(member=new_member,
+                                                    start_date=start_date,
+                                                    institute=Institute.objects.get(pk=institute_id))
                     # Handle case 5: Starting new authorship if applicable
                     if is_author:
                         try:
@@ -490,11 +496,10 @@ class AddMember(LoginRequiredMixin, View):
                 resp['status'] = 'success'
                 messages.success(request, 'Member has been saved successfully!')
             else:
+                # If form has errors, include them in the response
                 logger.error(f"Form is invalid. Errors: {form.errors}")
-                # If form has errors, display them
-                for fields in form:
-                    for error in fields.errors:
-                        resp['msg'] += f"{fields.label}: {error}<br>"
+                resp['status'] = 'failed'
+                resp['msg'] = '<br>'.join([f"{field.label}: {', '.join(errors)}" for field, errors in form.errors.items()])
         else:
             resp['msg'] = 'No data has been sent.'
         return HttpResponse(json.dumps(resp), content_type='application/json')
