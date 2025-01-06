@@ -492,29 +492,35 @@
 
             // Open the modal with content
             setTimeout(() => {
-                // Dynamically load modal content
                 uni_modal(headerDiv, finalUrl, small ? 'modal-sm' : 'modal-md');
 
-                // Ensure modal footer exists
-                const existingModalFooter = document.querySelector('#uni_modal .modal-footer');
-                if (existingModalFooter) {
-                    existingModalFooter.innerHTML = ''; // Clear existing content
+                const checkFooter = setInterval(() => {
+                    let modalFooter = document.querySelector('#uni_modal .modal-footer');
+                    if (!modalFooter) {
+                        console.warn('Modal footer not found, creating one...');
+                        modalFooter = document.createElement('div');
+                        modalFooter.classList.add('modal-footer');
+                        document.querySelector('#uni_modal .modal-content').appendChild(modalFooter);
+                    }
 
-                    // Create save button
-                    const saveButton = document.createElement('button');
-                    saveButton.classList.add('btn', 'selected', 'edit');
-                    saveButton.innerHTML = '<i class="fa-solid fa-check me-2"></i> Save';
+                    if (modalFooter) {
+                        clearInterval(checkFooter); // Stop checking once footer exists
+                        modalFooter.innerHTML = ''; // Clear existing content
 
-                    // Add event listener to the save button
-                    saveButton.addEventListener('click', () => {
-                        $('#uni_modal form').submit();
-                    });
+                        // Create save button
+                        const saveButton = document.createElement('button');
+                        saveButton.classList.add('btn', 'selected', 'edit');
+                        saveButton.innerHTML = '<i class="fa-solid fa-check me-2"></i> Save';
 
-                    // Append save button to the modal footer
-                    existingModalFooter.appendChild(saveButton);
-                } else {
-                    console.error('Modal footer not found!');
-                }
+                        // Add event listener to the save button
+                        saveButton.addEventListener('click', () => {
+                            $('#uni_modal form').submit();
+                        });
+
+                        // Append save button to the modal footer
+                        modalFooter.appendChild(saveButton);
+                    }
+                }, 50); // Check every 50ms
             }, 300);
         };
     });
