@@ -236,9 +236,19 @@ class MemberList(LoginRequiredMixin, View):
                 and authorship_period.start_date <= today
                 and (authorship_period.end_date is None or authorship_period.end_date >= today)
             )
+            # Determine if the member will be an author within the next 6 months
+            will_become_author = (
+                authorship_period
+                and authorship_period.start_date > today
+                and authorship_period.start_date <= six_months_future
+            )
+
+            # Adjusted logic for CF contribution
             is_cf = (
                 is_author
-                and authorship_period.start_date <= six_months_future
+                or will_become_author  # Consider members who will become authors in the next 6 months
+            ) and (
+                authorship_period.start_date <= six_months_future
                 and (authorship_period.end_date is None or authorship_period.end_date > six_months_future)
             )
             # Prepare the dictionary for JSON serialization
