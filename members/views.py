@@ -221,15 +221,26 @@ class MemberList(LoginRequiredMixin, View):
 
         for member in members:
             # Determine current institute and membership
-            current_institute = member.current_institute(include_inactive=show_all)
-            active_membership = member.current_membership(include_inactive=show_all) or member.future_membership()
+            active_membership = member.current_membership(include_inactive=show_all)
+            future_membership = member.future_membership()
+            membership = active_membership or future_membership  # Use future membership if no active membership
+
+            current_institute = (membership.institute if membership else None)
+
             authorship_period = member.current_authorship(include_inactive=show_all) or member.future_authorship()
             # logger.debug(f"Authorship period for member {member.pk}, {member.name}: {authorship_period}")
             # logger.debug(f"{authorship_period.start_date.strftime('%Y-%m-%d') if authorship_period else None}")
             # Determine authorship and contribution status
-            is_author = (authorship_period and authorship_period.start_date <= today and (authorship_period.end_date is None or authorship_period.end_date >= today))
-            is_cf = (is_author and authorship_period.start_date <= six_months_future and (authorship_period.end_date is None or authorship_period.end_date > six_months_future))
-
+            is_author = (
+                authorship_period
+                and authorship_period.start_date <= today
+                and (authorship_period.end_date is None or authorship_period.end_date >= today)
+            )
+            is_cf = (
+                is_author
+                and authorship_period.start_date <= six_months_future
+                and (authorship_period.end_date is None or authorship_period.end_date > six_months_future)
+            )
             # Prepare the dictionary for JSON serialization
             member_list.append({
                 'pk': member.pk,
