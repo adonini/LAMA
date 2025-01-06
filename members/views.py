@@ -225,7 +225,7 @@ class MemberList(LoginRequiredMixin, View):
             future_membership = member.future_membership()
             membership = active_membership or future_membership  # Use future membership if no active membership
 
-            current_institute = (membership.institute if membership else None)
+            current_institute = membership.institute if membership else None
 
             authorship_period = member.current_authorship(include_inactive=show_all) or member.future_authorship()
             # logger.debug(f"Authorship period for member {member.pk}, {member.name}: {authorship_period}")
@@ -254,8 +254,8 @@ class MemberList(LoginRequiredMixin, View):
                 'is_cf': is_cf,
                 'authorship_start': authorship_period.start_date.strftime('%Y-%m-%d') if authorship_period else None,
                 'authorship_end': authorship_period.end_date.strftime('%Y-%m-%d') if authorship_period and authorship_period.end_date else None,
-                'group_name': current_institute.group.name if current_institute else 'No Group',
-                'country_name': current_institute.group.country.name if current_institute else 'No Country',
+                'group_name': current_institute.group.name if current_institute and current_institute.group else 'No Group',
+                'country_name': current_institute.group.country.name if current_institute and current_institute.group and current_institute.group.country else 'No Country',
                 'institute_name': current_institute.name if current_institute else 'No Institute',
             })
 
@@ -310,12 +310,12 @@ class MemberRecord(LoginRequiredMixin, View):
             # current_duties = [duty for duty in duties if duty.end_date is None]
             # historical_duties = [duty for duty in duties if duty.end_date is not None]
             duties = MemberDuty.objects.filter(member=member)
-            role = member.role if member.role else 'No role assigned'
+            role = member.role if member.role else None
 
             # Get the institutes and their related group information
-            institute = member.current_institute() if member.current_institute() else 'No institute assigned'
-            group = institute.group if institute else 'No group assigned'
-            country = group.country if group else 'No country assigned'
+            institute = member.current_institute() if member.current_institute() else None
+            group = institute.group if institute else None
+            country = group.country if group else None
 
             # Get historical duties if any
             historical_duties = MemberDuty.objects.filter(member=member).order_by('start_date') if MemberDuty.objects.filter(member=member) else []
