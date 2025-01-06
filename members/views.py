@@ -1,6 +1,6 @@
 import json
 import logging
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from .forms import LoginForm, AddMemberForm
 from .models import Member, Institute, Group, Duty, Country, MemberDuty, MembershipPeriod, AuthorshipPeriod
 from dateutil.relativedelta import relativedelta
@@ -13,10 +13,16 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from django.db.models import Q
-from django.utils.timezone import now
 
 
 logger = logging.getLogger('lama')
+
+
+def parse_date(date_string):
+    try:
+        return datetime.strptime(date_string, '%Y-%m-%d').date() if date_string else None
+    except ValueError:
+        return None
 
 
 def logout_user(request):
