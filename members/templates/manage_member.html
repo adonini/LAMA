@@ -61,10 +61,16 @@
                 <div id="authorship-fields" class="{% if not member.is_author %} d-none {% endif %}">
                     <div class="form-group mb-3">
                         <label for="authorship_start" class="control-label">Authorship Start</label>
+                        <a class="fas fa-info-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="right"
+                            title="Authorship will start 6 months after the entered date." style="cursor: pointer; margin-left: 5px;">
+                        </a>
                         <input type="date" class="form-control rounded-0" id="authorship_start" name="authorship_start" value="{{ authorship_start|date:"Y-m-d" }}">
                     </div>
                     <div class="form-group mb-3">
                         <label for="authorship_end" class="control-label">Authorship End</label>
+                        <a class="fas fa-info-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="right"
+                            title="Authorship will end 6 months after the entered date." style="cursor: pointer; margin-left: 5px;">
+                        </a>
                         <input type="date" class="form-control rounded-0" id="authorship_end" name="authorship_end" value="{{ authorship_end|date:"Y-m-d" }}">
                     </div>
                 </div>
@@ -99,6 +105,11 @@
         if (isAuthorCheckbox) {
             isAuthorCheckbox.addEventListener('change', toggleAuthorshipFields);
         }
+
+        let tooltipelements = document.querySelectorAll("[data-bs-toggle='tooltip']");
+        tooltipelements.forEach((el) => {
+            new bootstrap.Tooltip(el);
+        });
 
         $('#member-form').submit(function(e) {
             // preventing from page reload and default actions
