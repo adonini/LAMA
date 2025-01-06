@@ -79,8 +79,9 @@ def calculate_12_months_avg(queryset, date_field, today):
         month_date = start_month + relativedelta(months=-i)
         # Get the count of members/authors active until the 15th of the month
         monthly_count = queryset.filter(**{f"{date_field}__lte": month_date}) \
-                                .filter(Q(end_date__isnull=True) | Q(end_date__gt=month_date)) \
-                                .count()
+                                .filter(
+                                    Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=month_date)
+                                ).count()
         months_data.append(monthly_count)
     # Calculate the average over the 12 months
     return sum(months_data) / len(months_data) if months_data else 0
@@ -105,8 +106,9 @@ def calculate_averages(queryset, date_field, year, current_year, current_month):
     months = range(1, (current_month + 1) if year == current_year else 13)
     total = sum(
         queryset.filter(**{f"{date_field}__lte": datetime(year, month, 15)})
-        .filter(Q(end_date__isnull=True) | Q(end_date__gt=datetime(year, month, 15)))
-        .count()
+        .filter(
+            Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=datetime(year, month, 15))
+        ).count()
         for month in months
     )
     divisor = current_month if year == current_year else 12
@@ -116,14 +118,14 @@ def calculate_averages(queryset, date_field, year, current_year, current_month):
 def get_active_member_count(queryset, date_field, year, month):
     check_date = datetime(year, month, 15).date()
     return queryset.filter(**{f"{date_field}__lte": check_date}).filter(
-        Q(end_date__isnull=True) | Q(end_date__gt=check_date)
+        Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=check_date)
     ).count()
 
 
 def get_active_author_count(queryset, year, month):
     check_date = datetime(year, month, 15).date()
-    return queryset.filter(authorship_start__lte=check_date).filter(
-        Q(authorship_end__isnull=True) | Q(authorship_end__gt=check_date)
+    return queryset.filter(authorship_periods__start_date__lte=check_date).filter(
+        Q(authorship_periods__end_date__isnull=True) | Q(authorship_periods__end_date__gt=check_date)
     ).count()
 
 
@@ -589,26 +591,34 @@ class Statistics(TemplateView):
         # Calculations total active members and authors for tables
         #####################################################
         # Filter members whose membership is currently active as of today (used in table and cards)
-        total_members = (Member.objects.filter(end_date__gt=today) | Member.objects.filter(end_date__isnull=True)).count()
+        active_members = Member.objects.filter(
+            Q(membership_periods__end_date__isnull=True) |
+            Q(membership_periods__end_date__gt=today)
+        ).distinct()
+        total_members = active_members.count()
+
         # Filter authors with a valid authorship period as of today (used in table and cards)
-        total_authors = Member.objects.filter(authorship_start__lte=today).filter(
-            Q(authorship_end__isnull=True) | Q(authorship_end__gt=today)
-        ).count()
+        active_authors = Member.objects.filter(
+            authorship_periods__start_date__lte=today
+        ).filter(
+            Q(authorship_periods__end_date__isnull=True) | Q(authorship_periods__end_date__gt=today)
+        ).distinct()
+        total_authors = active_authors.count()
 
         # Members and authors by country with percentage calculations
         countries_data = []
         for country in Country.objects.order_by('name'):
             # Current members in each country as of today (used in table)
             country_members = Member.objects.filter(
-                institute__group__country=country,
-                start_date__lte=today,
-            ).filter(Q(end_date__isnull=True) | Q(end_date__gt=today)).count()
+                membership_periods__institute__group__country=country,
+                membership_periods__start_date__lte=today,
+            ).filter(Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=today)).count()
 
             # Current authors in each country as of today (used in table)
             country_authors = Member.objects.filter(
-                institute__group__country=country,
-                authorship_start__lte=today
-            ).filter(Q(authorship_end__isnull=True) | Q(authorship_end__gt=today)).count()
+                membership_periods__institute__group__country=country,
+                authorship_periods__start_date__lte=today
+            ).filter(Q(authorship_periods__end_date__isnull=True) | Q(authorship_periods__end_date__gt=today)).count()
 
             # Calculate percentages as of today (used in table)
             member_percentage = (country_members / total_members * 100) if total_members > 0 else 0
@@ -616,14 +626,14 @@ class Statistics(TemplateView):
 
             # Calculate monthly averages for the last 12 months based on the 15th of each month
             avg_members_12 = calculate_12_months_avg(
-                Member.objects.filter(institute__group__country=country),
-                'start_date',
+                Member.objects.filter(membership_periods__institute__group__country=country),
+                'membership_periods__start_date',
                 today
             )
 
             avg_authors_12 = calculate_12_months_avg(
-                Member.objects.filter(institute__group__country=country),
-                'authorship_start',
+                Member.objects.filter(membership_periods__institute__group__country=country),
+                'authorship_periods__start_date',
                 today
             )
 
@@ -642,15 +652,15 @@ class Statistics(TemplateView):
         for group in Group.objects.order_by('name'):
             # Current members in each group as of today (used in table)
             group_members = Member.objects.filter(
-                institute__group=group,
-                start_date__lte=today,
-            ).filter(Q(end_date__isnull=True) | Q(end_date__gt=today)).count()
+                membership_periods__institute__group=group,
+                membership_periods__start_date__lte=today,
+            ).filter(Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=today)).count()
 
             # Current authors in each group as of today (used in table)
             group_authors = Member.objects.filter(
-                institute__group=group,
-                authorship_start__lte=today
-            ).filter(Q(authorship_end__isnull=True) | Q(authorship_end__gt=today)).count()
+                membership_periods__institute__group=group,
+                authorship_periods__start_date__lte=today
+            ).filter(Q(authorship_periods__end_date__isnull=True) | Q(authorship_periods__end_date__gt=today)).count()
 
             # Calculate percentages as of today (used in table)
             member_percentage = (group_members / total_members * 100) if total_members > 0 else 0
@@ -658,14 +668,14 @@ class Statistics(TemplateView):
 
             # Calculate monthly averages for the last 12 months based on the 15th of each month
             avg_members_12 = calculate_12_months_avg(
-                Member.objects.filter(institute__group=group),
-                'start_date',
+                Member.objects.filter(membership_periods__institute__group=group),
+                'membership_periods__start_date',
                 today
             )
 
             avg_authors_12 = calculate_12_months_avg(
-                Member.objects.filter(institute__group=group),
-                'authorship_start',
+                Member.objects.filter(membership_periods__institute__group=group),
+                'authorship_periods__start_date',
                 today
             )
 
@@ -705,13 +715,11 @@ def get_filtered_chart_data(request):
 
     # Apply filters dynamically
     if country_name and country_name != 'all':
-        queryset = queryset.filter(institute__group__country__name=country_name)
-
+        queryset = queryset.filter(membership_periods__institute__group__country__name=country_name)
     if group_name:
-        queryset = queryset.filter(institute__group__name=group_name)
-
+        queryset = queryset.filter(membership_periods__institute__group__name=group_name)
     if institute_name:
-        queryset = queryset.filter(institute__name=institute_name)
+        queryset = queryset.filter(membership_periods__institute__name=institute_name)
 
     # Determine years range for averages
     today = datetime.now().date()
@@ -727,11 +735,11 @@ def get_filtered_chart_data(request):
 
     for year in years:
         # Average members
-        avg_members = calculate_averages(queryset, "start_date", year, current_year, today.month)
+        avg_members = calculate_averages(queryset, "membership_periods__start_date", year, current_year, today.month)
 
         # Average authors
-        avg_authors = calculate_averages(queryset.filter(authorship_start__isnull=False),
-                                         "authorship_start", year, current_year, today.month)
+        avg_authors = calculate_averages(queryset.filter(authorship_periods__start_date__isnull=False),
+                                         "authorship_periods__start_date", year, current_year, today.month)
 
         filtered_data['members'].append(avg_members)
         filtered_data['authors'].append(avg_authors)
@@ -778,13 +786,11 @@ def get_filtered_monthly_data(request):
     Returns monthly members and authors data for the selected filters (country, group, institute, and year).
     """
     # Extract filter parameters from GET request
-    year = request.GET.get('year')
+    year = int(request.GET.get('year'))  # Convert the year from string to integer
     country = request.GET.get('country', None)
     group = request.GET.get('group', None)
     institute = request.GET.get('institute', None)
 
-    # Convert the year from string to integer
-    year = int(year)
     # Get the current year and month
     current_year = datetime.now().year
     current_month = datetime.now().month
@@ -796,15 +802,15 @@ def get_filtered_monthly_data(request):
 
     # Apply filters dynamically
     if country and country != 'all':
-        queryset = queryset.filter(institute__group__country__name=country)
+        queryset = queryset.filter(membership_periods__institute__group__country__name=country)
     if group:
-        queryset = queryset.filter(institute__group__name=group)
+        queryset = queryset.filter(membership_periods__institute__group__name=group)
     if institute:
-        queryset = queryset.filter(institute__name=institute)
+        queryset = queryset.filter(membership_periods__institute__name=institute)
 
     # Calculate monthly data
     members = [
-        get_active_member_count(queryset, "start_date", year, month)
+        get_active_member_count(queryset, "membership_periods__start_date", year, month)
         for month in range(1, last_month + 1)
     ]
     authors = [
