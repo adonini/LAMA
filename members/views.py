@@ -419,19 +419,23 @@ class AddMember(LoginRequiredMixin, View):
         """Handle changes to institute, including stopping and restarting membership."""
         old_institute = member.current_institute(include_inactive=True)
         new_institute = Institute.objects.get(pk=new_institute_id) if new_institute_id else None
+        future_authorship = member.future_authorship()
 
         previous_end_date = membership_start_date - timedelta(days=1)
         if old_institute != new_institute:
+            # Step 1: Handle current membership
             current_membership = member.current_membership(include_inactive=False)
             if current_membership and current_membership.is_active():
                 current_membership.end_date = previous_end_date
                 current_membership.save()
-            # Handle authorship adjustment for the current membership
+
+            # Step 2: Adjust authorship if `is_author` is unchecked (member was an author)
             if member.is_active_author():
                 if not is_author:  # If `is_author` is unchecked
                     AuthorshipPeriod.objects.filter(member=member, end_date__isnull=True).update(
                         end_date=previous_end_date + relativedelta(months=6)  # Stop after 6 months
                     )
+            # Step 3: Create new membership if a new institute is selected
             if new_institute:
                 new_membership = MembershipPeriod.objects.create(
                     member=member,
@@ -440,14 +444,26 @@ class AddMember(LoginRequiredMixin, View):
                 )
                 new_membership.save()
 
-                # Handle new authorship if `is_author` is checked
-                if is_author and not member.is_active_author():
-                    authorship_period = AuthorshipPeriod.objects.create(
-                        member=member,
-                        start_date=new_membership.start_date + relativedelta(months=6)
-                    )
-                    authorship_period.save()
-            return True
+                # Step 4: Handle new authorship period if `is_author` is checked (before was not)
+                if is_author:
+                    if not member.is_active_author():
+                        # Case 4.1: If there is no future authorship, create a new one
+                        if not future_authorship:
+                            authorship_period = AuthorshipPeriod.objects.create(
+                                member=member,
+                                start_date=new_membership.start_date + relativedelta(months=6)
+                            )
+                            authorship_period.save()
+                        else:
+                            # Case 4.2: If a future authorship already exists, do nothing
+                            pass
+
+            # Step 5: Update future authorship if applicable
+            if future_authorship:
+                if not is_author:  # If `is_author` is unchecked,  end the future authorship
+                    future_authorship.end_date = previous_end_date + relativedelta(months=6)
+                    future_authorship.save()
+            return True  # Member/authorship was updated
         return False  # No change
 
     def handle_membership_change(self, member, is_stopping_membership, is_author, end_date, start_date, institute_id):
