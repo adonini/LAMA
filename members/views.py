@@ -82,7 +82,7 @@ def calculate_12_months_avg(queryset, date_field, today):
         monthly_count = queryset.filter(**{f"{date_field}__lte": month_date}) \
                                 .filter(
                                     Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=month_date)
-                                ).count()
+                                ).distinct().count()
         months_data.append(monthly_count)
     # Calculate the average over the 12 months
     return sum(months_data) / len(months_data) if months_data else 0
@@ -109,7 +109,7 @@ def calculate_averages(queryset, date_field, year, current_year, current_month):
         queryset.filter(**{f"{date_field}__lte": datetime(year, month, 15)})
         .filter(
             Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=datetime(year, month, 15))
-        ).count()
+        ).distinct().count()
         for month in months
     )
     divisor = current_month if year == current_year else 12
@@ -128,6 +128,42 @@ def get_active_author_count(queryset, year, month):
     return queryset.filter(authorship_periods__start_date__lte=check_date).filter(
         Q(authorship_periods__end_date__isnull=True) | Q(authorship_periods__end_date__gt=check_date)
     ).count()
+
+
+def get_active_periods_count(queryset, period_field, year, month):
+    """
+    Calculates and returns the total number of members who were active during a given month, considering
+    all of their membership or authorship periods (both past and current). The function checks if any of
+    a member's periods overlap with the 15th day of the specified month and counts them as active if they were.
+    Args:
+        queryset (QuerySet): A filtered Django queryset containing the member records to be evaluated.
+                              The queryset is expected to already be filtered by parameters such as country, group, or institute.
+        period_field (str): The name of the related field (either 'membership_periods' or 'authorship_periods')
+                            in the Member model that holds the historical periods of membership or authorship.
+        year (int): The year for which the activity is being checked.
+        month (int): The month for which the activity is being checked.
+    Returns:
+        int: The count of members who were active during the specified month, considering all their periods.
+    """
+    check_date = datetime(year, month, 15).date()  # Checking the 15th day of the month
+    active_count = 0
+
+    #print(f"Checking activity for {period_field} in {year}-{month}")
+
+    for member in queryset:
+        # Get all the periods for the specified field (membership or authorship)
+        periods = getattr(member, period_field).all()  # Get the membership or authorship periods
+        #print(f"  Checking member: {member.id} - {member.name} for {period_field} periods")
+        for period in periods:
+            #print(f"    Checking period: {period.start_date} to {period.end_date if period.end_date else 'None'}")
+            # Check if the period is active on the 15th day of the month
+            if period.start_date <= check_date and (not period.end_date or period.end_date >= check_date):
+                active_count += 1
+                #print(f"  member: {member.id} - {member.name} for {period_field} periods")
+                #print(f"    Period {period.start_date} to {period.end_date if period.end_date else 'None'} is active, member counted. Active count now: {active_count}")
+                break  # No need to count the same member multiple times
+    print(f"Total active members for {period_field} in {year}-{month}: {active_count}")
+    return active_count
 
 
 class Index(TemplateView):
@@ -719,8 +755,7 @@ def get_filtered_chart_data(request):
 
     # Initialize base queryset
     queryset = Member.objects.all()
-
-    # Apply filters dynamically
+    # Apply filters to the queryset
     if country_name and country_name != 'all':
         queryset = queryset.filter(membership_periods__institute__group__country__name=country_name)
     if group_name:
@@ -816,21 +851,28 @@ def get_filtered_monthly_data(request):
         queryset = queryset.filter(membership_periods__institute__name=institute)
 
     # Calculate monthly data
+    # members = [
+    #     get_active_member_count(queryset, "membership_periods__start_date", year, month)
+    #     for month in range(1, last_month + 1)
+    # ]
+    # authors = [
+    #     get_active_author_count(queryset, year, month)
+    #     for month in range(1, last_month + 1)
+    # ]
     members = [
-        get_active_member_count(queryset, "membership_periods__start_date", year, month)
+        get_active_periods_count(queryset, "membership_periods", year, month)
         for month in range(1, last_month + 1)
     ]
     authors = [
-        get_active_author_count(queryset, year, month)
+        get_active_periods_count(queryset, "authorship_periods", year, month)
         for month in range(1, last_month + 1)
     ]
-
     # Fill remaining months with zero for consistency
     members.extend([0] * (12 - last_month))
     authors.extend([0] * (12 - last_month))
 
-    logger.debug(f"Received filter parameters: Year={year}, Country={country}, Group={group}, Institute={institute}")
-    logger.debug(f"members: {members}, authors: {authors}")
+    #logger.debug(f"Received filter parameters: Year={year}, Country={country}, Group={group}, Institute={institute}")
+    #logger.debug(f"members: {members}, authors: {authors}")
     return JsonResponse({"members": members, "authors": authors})
 
 
