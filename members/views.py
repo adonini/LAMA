@@ -13,6 +13,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from django.db.models import Q
+from django.utils.timezone import now
 
 
 logger = logging.getLogger('lama')
@@ -556,6 +557,12 @@ class ManageMember(LoginRequiredMixin, View):
                 else:
                     context['authorship_start'] = None
                     context['authorship_end'] = None
+                # Future authorship periods
+                future_auth_periods = AuthorshipPeriod.objects.filter(
+                    member=member, start_date__gt=now()
+                ).order_by('start_date')
+                context['future_auth_periods'] = future_auth_periods
+
                 context['member_institute'] = member.current_institute()
                 context['duties'] = MemberDuty.objects.filter(member=member)
                 context['institute_list'] = Institute.objects.all()

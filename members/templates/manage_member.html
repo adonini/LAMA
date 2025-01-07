@@ -75,6 +75,31 @@
                     </div>
                 </div>
             </div>
+            <div class="col-md-12">
+                <div id="future-authorship" class="form-group mb-3">
+                    <label class="control-label">Future Authorship Periods</label>
+                    {% if future_auth_periods %}
+                        <ul class="list-group">
+                            {% for period in future_auth_periods %}
+                                <li class="list-group-item">
+                                    <div class="row">
+                                        <!-- Start Date -->
+                                        <div class="col-md-6 col-sm-12">
+                                            <strong>Start:</strong> {{ period.start_date|date:"Y-m-d" }}
+                                        </div>
+                                        <!-- End Date -->
+                                        <div class="col-md-6 col-sm-12">
+                                            <strong>End:</strong> {{ period.end_date|date:"Y-m-d" }}
+                                        </div>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No future authorship periods logged.</p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </form>
 </div>
