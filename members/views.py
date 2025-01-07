@@ -471,24 +471,33 @@ class AddMember(LoginRequiredMixin, View):
         if is_stopping_membership:
             current_membership = member.current_membership(include_inactive=False)
             if current_membership:
+                # Step 1: End the current membership
                 current_membership.end_date = end_date
                 current_membership.save()
 
-                # Stop authorship 6 months later
+                # Step 2: Stop eventual active authorship 6 months later
                 if member.is_active_author():
                     current_authorship = member.current_authorship(include_inactive=False)
                     if current_authorship:
                         current_authorship.end_date = end_date + relativedelta(months=6)
                         current_authorship.save()
+
+                # Step 3: Stop future authorship 6 months later if it exists
+                future_authorship = member.future_authorship()
+                if future_authorship:
+                    future_authorship.end_date = end_date + relativedelta(months=6)
+                    future_authorship.save()
         else:  # Restart membership
-            if not member.current_membership(include_inactive=False):  # No active membership
+            # Step 1: Create a new membership if no active one exists
+            if not member.current_membership(include_inactive=False):
                 new_membership = MembershipPeriod.objects.create(
                     member=member,
                     start_date=start_date,
                     institute=Institute.objects.get(pk=institute_id) if institute_id else None
                 )
                 new_membership.save()
-            # Handle authorship if `is_author` is checked
+
+            # Step 2: Handle authorship if `is_author` is checked
             if is_author and not member.is_active_author():
                 authorship_period = AuthorshipPeriod.objects.create(
                     member=member,
