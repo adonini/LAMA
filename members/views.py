@@ -659,11 +659,11 @@ class Statistics(TemplateView):
         # Calculations total active members and authors for tables
         #####################################################
         # Filter members whose membership is currently active as of today (used in table and cards)
-        active_members = Member.objects.filter(
+        total_members = Member.objects.filter(
             Q(membership_periods__end_date__isnull=True) |
-            Q(membership_periods__end_date__gt=today)
-        ).distinct()
-        total_members = active_members.count()
+            Q(membership_periods__end_date__gt=today),
+            membership_periods__start_date__lte=today
+        ).distinct().count()
 
         # Filter authors with a valid authorship period as of today (used in table and cards)
         active_authors = Member.objects.filter(
