@@ -529,6 +529,8 @@ class AddMember(LoginRequiredMixin, View):
         resp = {'status': 'failed', 'msg': ''}
         if request.method == 'POST':
             member = self.get_member(request.POST.get('id'))  # Fetch the existing member if ID is provided
+            if member:
+                current_email = member.primary_email.strip()
             form = AddMemberForm(request.POST, instance=member)
 
             if form.is_valid():
@@ -537,12 +539,27 @@ class AddMember(LoginRequiredMixin, View):
                 start_date = form.cleaned_data['start_date']
                 end_date = form.cleaned_data.get('end_date')
                 institute_id = request.POST.get('institute')
-                #logger.info(f"Received institute ID: {institute_id}")
                 is_author = request.POST.get('is_author') == 'on'
                 authorship_start = parse_date(request.POST.get('authorship_start'))
                 authorship_end = parse_date(request.POST.get('authorship_end'))
 
                 if member:  # Editing an existing member
+                    # Check if any authorship-related field has changed
+                    authorship_changed = False
+                    current_authorship = member.current_authorship(include_inactive=False) if member.is_active_author() else None
+
+                    # Check for changes in start and end dates
+                    if authorship_start != (current_authorship.start_date if current_authorship else None) or authorship_end != (current_authorship.end_date if current_authorship else None):
+                        authorship_changed = True
+                    # Check for email update
+                    updated_email = form.cleaned_data.get('primary_email').strip()
+                    email_changed = current_email != updated_email
+
+                    if email_changed:
+                        member.primary_email = updated_email.strip()
+                        member.save()
+                        logger.debug(f"Successfully updated email for Member ID={member.id}: {member.primary_email}")
+
                     # Handle case 1: Changing institute
                     institute_changed = self.handle_institute_change(member, institute_id, is_author, start_date)
                     # Handle case 2: Stopping membership
@@ -552,7 +569,8 @@ class AddMember(LoginRequiredMixin, View):
                     if membership_changed:
                         self.handle_membership_change(member, is_stopping_membership, is_author, end_date, start_date, institute_id)
                     # Handle case 3: Stopping or starting authorship
-                    if not institute_changed and not membership_changed:
+                    #if not institute_changed and not membership_changed:
+                    if authorship_changed:
                         self.handle_authorship_change(member, is_author, authorship_start, authorship_end)
                 else:  # Creating a new member
                     new_member.save()  # Save the new member instance
