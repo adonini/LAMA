@@ -290,9 +290,9 @@
             if (triggeredBy !== 'institute') updateDropdown(instituteDropdown, validInstitutes, selectedInstitute);
 
             // Apply filters to the table
-            table.column(6).search(selectedCountry !== 'All' ? selectedCountry : '').draw();
-            table.column(5).search(selectedGroup !== 'All' ? selectedGroup : '').draw();
-            table.column(4).search(selectedInstitute !== 'All' ? selectedInstitute : '').draw();
+            table.column(5).search(selectedCountry !== 'All' ? selectedCountry : '').draw();
+            table.column(4).search(selectedGroup !== 'All' ? selectedGroup : '').draw();
+            table.column(3).search(selectedInstitute !== 'All' ? selectedInstitute : '').draw();
         }
 
         for (let label of filterLabels) {
