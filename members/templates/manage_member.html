@@ -38,6 +38,8 @@
                         <option value="technician" {% if member.role == "technician" %} selected {% endif %}>Technician</option>
                         <option value="researcher" {% if member.role == "researcher" %} selected {% endif %}>Researcher</option>
                         <option value="affiliated" {% if member.role == "affiliated" %} selected {% endif %}>Affiliated</option>
+                        <option value="affiliated" {% if member.role == "engineer" %} selected {% endif %}>Engineer</option>
+                        <option value="affiliated" {% if member.role == "administrator" %} selected {% endif %}>Administrator</option>
                     </select>
                 </div>
                 <div class="form-group mb-3">
