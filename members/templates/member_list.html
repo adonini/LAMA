@@ -251,27 +251,24 @@
             let selectedCountry = countryDropdown.value;
             let selectedGroup = groupDropdown.value;
             let selectedInstitute = instituteDropdown.value;
+
             let validCountries = new Set();
             let validGroups = new Set();
             let validInstitutes = new Set();
 
-            // Calculate valid options based on the current selections
+            // Calculate valid options based on the selections
             for (let country in filters) {
                 let countryData = filters[country];
                 let countryGroups = countryData.groups;
 
-                // Loop through groups and their associated institutes
                 for (let group in countryGroups) {
                     let groupInstitutes = countryGroups[group];
                     let matchesCountry = selectedCountry === 'All' || selectedCountry === country;
                     let matchesGroup = selectedGroup === 'All' || selectedGroup === group;
                     let matchesInstitute = selectedInstitute === 'All' || groupInstitutes.includes(selectedInstitute);
+
                     // If the combination matches, add to the valid lists
-                    if (
-                        (matchesCountry && matchesGroup && matchesInstitute) ||
-                        (triggeredBy === 'group' && selectedGroup === group) ||
-                        (triggeredBy === 'institute' && groupInstitutes.includes(selectedInstitute))
-                    ) {
+                    if (matchesCountry && matchesGroup && matchesInstitute) {
                         validCountries.add(country);
                         validGroups.add(group);
                         groupInstitutes.forEach(institute => validInstitutes.add(institute));
@@ -287,7 +284,13 @@
             // Update dropdowns based on valid options
             if (triggeredBy !== 'country') updateDropdown(countryDropdown, validCountries, selectedCountry);
             if (triggeredBy !== 'group') updateDropdown(groupDropdown, validGroups, selectedGroup);
-            if (triggeredBy !== 'institute') updateDropdown(instituteDropdown, validInstitutes, selectedInstitute);
+
+            // Show only the selected institute if one is chosen
+            if (selectedInstitute !== 'All' && triggeredBy === 'institute') {
+                updateDropdown(instituteDropdown, [selectedInstitute], selectedInstitute);
+            } else {
+                if (triggeredBy !== 'institute') updateDropdown(instituteDropdown, validInstitutes, selectedInstitute);
+            }
 
             // Apply filters to the table
             table.column(5).search(selectedCountry !== 'All' ? selectedCountry : '').draw();
