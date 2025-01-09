@@ -90,30 +90,34 @@ def calculate_12_months_avg(queryset, date_field, today):
 
 def calculate_averages(queryset, date_field, year, current_year, current_month):
     """
-    Calculates the average count of members or authors for a specific year, considering data on the 15th of each month.
-    If the requested year is the current year, the calculation is based on the months up to the current month.
-    If it's a previous year, the calculation considers all 12 months of that year.
-    The function filters the queryset for each month, counting members or authors who are active on the 15th
-    of each month, based on the provided `date_field` (e.g., membership 'start_date' or 'authorship_start').
+    Calculates the average count of members or authors for a specific year, based on activity on the 15th of each month.
+    If the year is the current year, it includes months up to the current month; for previous years, all 12 months are considered.
     Args:
         queryset: The queryset of members or authors to be counted.
-        date_field: The date field used to filter the data (e.g., membership 'start_date' or 'authorship_start').
-        year: The year for which the average is being calculated.
-        current_year: The current year, used to adjust the calculation if the requested year is the current one.
-        current_month: The current month, used to limit the months considered for the current year.
+        date_field: The date field to filter by (e.g., 'start_date').
+        year: The year to calculate the average for.
+        current_year: The current year, used for limiting months if needed.
+        current_month: The current month, used for limiting months in the current year.
     Returns:
-        float: The average count of members or authors for the specified year.
+        float: The average count of active members or authors for the specified year.
     """
     months = range(1, (current_month + 1) if year == current_year else 13)
-    total = sum(
-        queryset.filter(**{f"{date_field}__lte": datetime(year, month, 15)})
-        .filter(
-            Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=datetime(year, month, 15))
-        ).distinct().count()
-        for month in months
-    )
-    divisor = current_month if year == current_year else 12
-    return total / divisor if divisor > 0 else 0
+    total = 0
+
+    for month in months:
+        count = queryset.filter(**{f"{date_field}__lte": datetime(year, month, 15)}) \
+            .filter(
+                Q(membership_periods__end_date__isnull=True) | 
+                Q(membership_periods__end_date__gt=datetime(year, month, 15))
+            ).distinct().count()
+
+        logger.debug(f"Year: {year}, Month: {month}, Active Members Count: {count}")
+        total += count
+
+    divisor = len(months)
+    average = total / divisor if divisor > 0 else 0
+
+    return average
 
 
 def get_active_member_count(queryset, date_field, year, month):
