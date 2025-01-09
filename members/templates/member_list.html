@@ -11,7 +11,7 @@
                 <button type="button" class="btn-new-member" id='add_new'><i class="fa fa-plus"></i> New Member</button>
             </div>
             {% endif %}
-	    <!-- Switch for Show Active Members/Show All Members -->
+            <!-- Switch for Show Active Members/Show All Members -->
             <div class="d-flex align-items-center ms-3">
                 <div class="custom-switch d-flex align-items-center">
                     <input type="checkbox" id="toggleShowAll" class="custom-control-input" {% if show_all %}checked{% endif %}>
@@ -29,7 +29,6 @@
                         <th class="text-center dark-text">#</th>
                         <th class="text-center dark-text">First Name</th>
                         <th class="text-center dark-text">Last Name</th>
-                        <th class="text-center dark-text">Email</th>
                         <th class="text-center dark-text">Institute</th>
                         <th class="text-center dark-text">Group</th>
                         <th class="text-center dark-text">Country</th>
@@ -48,7 +47,6 @@
                         <td class="align-center text-center light-text">{{ forloop.counter }}</td>
                         <td class="align-center text-center light-text">{{ member.name|default:"-"  }}</td>
                         <td class="align-center text-center light-text">{{ member.surname|default:"-"  }}</td>
-                        <td class="align-center text-center light-text">{{ member.primary_email|default:"-"  }}</td>
                         <td class="align-center text-center light-text">{{ member.institute_name|default:"-"  }}</td>
                         <td class="align-center text-center light-text">{{ member.group_name|default:"-"  }}</td>
                         <td class="align-center text-center light-text">{{ member.country_name|default:"-"  }}</td>
@@ -87,7 +85,7 @@
     let filters = {{ filters|safe }};
     //console.log(institutes);
     $(function() {
-	document.getElementById('toggleShowAll').addEventListener('change', function() {
+        document.getElementById('toggleShowAll').addEventListener('change', function() {
             // Get the current state of the checkbox (checked or not)
             const showAll = this.checked;
             // Update the URL with the show_all query parameter
@@ -124,32 +122,36 @@
             // Open the modal with the header content
             uni_modal(headerDiv, '{% url "add-member" %}', 'modal-md');
 
-            // Ensure the footer is cleared and prepared
-            const modalFooter = document.querySelector('.modal-footer');
-            modalFooter.innerHTML = ''; // Clear the footer
-
-            // Create and append the "Save" button to the footer
-            const saveButton = document.createElement('button');
-            saveButton.classList.add('btn', 'selected', 'edit');
-
-            const saveIcon = document.createElement('i');
-            saveIcon.classList.add('fa-solid', 'fa-check', 'me-2');
-
-            const saveText = document.createTextNode('Save');
-            saveButton.appendChild(saveIcon);
-            saveButton.appendChild(saveText);
-
-            // Handle form submission when Save is clicked
-            saveButton.addEventListener('click', function() {
-                $('#uni_modal form').submit();
-            });
-
-            // Append submit button to the modal footer
-            modalFooter.appendChild(saveButton);
             // Event listener to ensure the modal is shown before accessing the dropdown
             $('#uni_modal').on('shown.bs.modal', function () {
+                // Ensure the footer is cleared and prepared
+                const modalFooter = document.querySelector('.modal-footer');
+                if (modalFooter) {
+                    modalFooter.innerHTML = ''; // Clear the footer
+
+                    // Create and append the "Save" button to the footer
+                    const saveButton = document.createElement('button');
+                    saveButton.classList.add('btn', 'selected', 'edit');
+
+                    const saveIcon = document.createElement('i');
+                    saveIcon.classList.add('fa-solid', 'fa-check', 'me-2');
+
+                    const saveText = document.createTextNode('Save');
+                    saveButton.appendChild(saveIcon);
+                    saveButton.appendChild(saveText);
+
+                    // Handle form submission when Save is clicked
+                    saveButton.addEventListener('click', function () {
+                        $('#uni_modal form').submit();
+                    });
+
+                    // Append the Save button to the modal footer
+                    modalFooter.appendChild(saveButton);
+                } else {
+                    console.error('Modal footer not found.');
+                }
                 // Select the institute dropdown in the modal
-                let instituteSelect = document.getElementById('institute');
+                const instituteSelect = document.getElementById('institute');
                 if (instituteSelect) {
                     // Populate the institute dropdown
                     institutes.forEach(institute => {
@@ -184,7 +186,7 @@
                 }
             ],
             columnDefs: [
-                { orderable: false, targets: [0, 3, 9, 10, 12] }, // Disable ordering for specific columns
+                { orderable: false, targets: [0, 3, 4, 5, 8, 9, 12] }, // Disable ordering for specific columns
                 {targets: 0, searchable: false,
                     render: function(data, type, row, meta) {
                         return meta.row + meta.settings._iDisplayStart + 1; // Row numbering
@@ -339,9 +341,9 @@
                 divInput.style.marginTop = '3px';
                 input.addEventListener('change', function (e) {
                     if (e.target.value !== 'All') {
-                        table.column(10).search(e.target.value).draw();
+                        table.column(9).search(e.target.value).draw();
                     } else {
-                        table.column(10).search('').draw();
+                        table.column(9).search('').draw();
                     }
                 });
                 ['Yes', 'No'].forEach(authorStatus => {
@@ -358,9 +360,9 @@
                 divInput.style.marginTop = '5px';
                 input.addEventListener('change', function (e) {
                     if (e.target.value !== 'All') {
-                        table.column(9).search(e.target.value).draw();
+                        table.column(8).search(e.target.value).draw();
                     } else {
-                        table.column(9).search('').draw();
+                        table.column(8).search('').draw();
                     }
                 });
                 ['Yes', 'No'].forEach(cfStatus => {
@@ -454,7 +456,7 @@
             const id = e.target.dataset.id;
             const baseUrl = "{% url 'manage-member-pk' 0 %}";
             const finalUrl = baseUrl.replace('0', id);
-            const modalFooter = document.querySelector('.modal-footer');
+            const modalFooter = document.querySelector('#uni_modal .modal-footer');
 
             // Call the edit function
             editItem(id, modalFooter, finalUrl);
@@ -475,6 +477,7 @@
             const title = document.createElement('h5');
             title.classList.add('modal-title', 'dark-text', 'm-0');
             title.innerHTML = 'Edit Member';
+
             titleDiv.appendChild(editIcon);
             titleDiv.appendChild(title);
 
@@ -489,26 +492,36 @@
 
             // Open the modal with content
             setTimeout(() => {
-                uni_modal(headerDiv, finalUrl, 'modal-md');
+                uni_modal(headerDiv, finalUrl, small ? 'modal-sm' : 'modal-md');
+
+                const checkFooter = setInterval(() => {
+                    let modalFooter = document.querySelector('#uni_modal .modal-footer');
+                    if (!modalFooter) {
+                        console.warn('Modal footer not found, creating one...');
+                        modalFooter = document.createElement('div');
+                        modalFooter.classList.add('modal-footer');
+                        document.querySelector('#uni_modal .modal-content').appendChild(modalFooter);
+                    }
+
+                    if (modalFooter) {
+                        clearInterval(checkFooter); // Stop checking once footer exists
+                        modalFooter.innerHTML = ''; // Clear existing content
+
+                        // Create save button
+                        const saveButton = document.createElement('button');
+                        saveButton.classList.add('btn', 'selected', 'edit');
+                        saveButton.innerHTML = '<i class="fa-solid fa-check me-2"></i> Save';
+
+                        // Add event listener to the save button
+                        saveButton.addEventListener('click', () => {
+                            $('#uni_modal form').submit();
+                        });
+
+                        // Append save button to the modal footer
+                        modalFooter.appendChild(saveButton);
+                    }
+                }, 50); // Check every 50ms
             }, 300);
-
-            // Clear and set up modal footer
-            modalFooter.innerHTML = '';
-            const saveButton = document.createElement('button');
-            saveButton.classList.add('btn', 'selected', 'edit');
-
-            const saveIcon = document.createElement('i');
-            saveIcon.classList.add('fa-solid', 'fa-check', 'me-2');
-
-            const saveText = document.createTextNode('Save');
-            saveButton.appendChild(saveIcon);
-            saveButton.appendChild(saveText);
-
-            saveButton.addEventListener('click', () => {
-                $('#uni_modal form').submit();
-            });
-
-            modalFooter.appendChild(saveButton);
         };
     });
 </script>
