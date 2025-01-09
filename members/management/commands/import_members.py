@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from members.models import Member, Country, Group, Institute, Duty
+from members.models import Member, Country, Group, Institute, Duty, MembershipPeriod, AuthorshipPeriod
 import pandas as pd
 from datetime import datetime
 import logging
@@ -18,6 +18,13 @@ class Command(BaseCommand):
         failed_rows = []
         new_members_count = 0
 
+        def parse_date(date_str):
+            """Parse date string into a Python date object, handling empty or invalid values."""
+            try:
+                return datetime.strptime(date_str, '%b %d, %Y').date() if pd.notna(date_str) else None
+            except ValueError:
+                return None
+
         with transaction.atomic():
             for _, row in data.iterrows():
                 try:
@@ -33,13 +40,7 @@ class Command(BaseCommand):
                     # Handle multiple duties, splitting them by commas
                     duties = [duty.strip() for duty in row['Duty'].split(',')] if pd.notna(row['Duty']) else []
 
-                    # Parse dates with error handling
-                    def parse_date(date_str):
-                        try:
-                            return datetime.strptime(date_str, '%b %d, %Y').date() if pd.notna(date_str) else None
-                        except ValueError:
-                            return None
-
+                    # Parse dates
                     member_start = parse_date(row['Member Start'])
                     member_end = parse_date(row['Member End'])
                     author_start = parse_date(row['Author Start'])
@@ -51,18 +52,29 @@ class Command(BaseCommand):
                         defaults={
                             'name': str(row['First Name']).strip(),
                             'surname': str(row['Last Name']).strip(),
-                            'start_date': member_start,
-                            'end_date': member_end,
-                            'is_author': str(row['Author']).strip().lower() == 'yes',
-                            'authorship_start': author_start,
-                            'authorship_end': author_end,
-                            'institute': institute,
                             'role': str(row['Role']).strip().lower(),
                         }
                     )
 
                     if created:
                         new_members_count += 1  # Increment count if a new member was created
+
+                    # Create MembershipPeriod for the member
+                    if member_start:
+                        MembershipPeriod.objects.get_or_create(
+                            member=member,
+                            start_date=member_start,
+                            end_date=member_end,
+                            institute=institute
+                        )
+
+                    # Create AuthorshipPeriod for the member
+                    if author_start:
+                        AuthorshipPeriod.objects.get_or_create(
+                            member=member,
+                            start_date=author_start,
+                            end_date=author_end
+                        )
 
                     # Assign each duty to the member
                     for duty_name in duties:

@@ -147,6 +147,10 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
+SESSION_COOKIE_AGE = 1800  # 5 minutes
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_SAVE_EVERY_REQUEST = True
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
@@ -203,34 +207,40 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': '/Users/alicedonini/Lavoro/LST/Members_manager/collaboration_manager/logs/lama_logs.log',
+            'formatter': 'simple',
+        },
     },
     'root': {
-        'handlers': ['console'],
+        'handlers': ['console', 'file'],  # Log to both console and file
         'level': 'DEBUG',
     },
     'loggers': {
         'django': {
-            'handlers': ['console'],
+            'handlers': ['console', 'file'],
             'level': 'INFO',
-            'propagate': True,
+            'propagate': False,
         },
         'members': {
             'handlers': ['console'],
             'level': 'DEBUG',
-            'propagate': True,
+            'propagate': False,
         },
         "django_auth_ldap": {
             "level": 'DEBUG',
-            "handlers": ['console'],
-            'propagate': True,
+            'handlers': ['console', 'file'],
+            'propagate': False,
         },
         'ldap': {
             'level': 'DEBUG',  # Capture logs from python-ldap
-            'handlers': ['console'],
-            'propagate': True,
+            'handlers': ['console', 'file'],
+            'propagate': False,
         },
     },
 }
+
 
 # Production security settings
 ENVIRONMENT = os.getenv('DJANGO_ENVIRONMENT', 'development')

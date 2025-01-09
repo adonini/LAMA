@@ -29,10 +29,8 @@ if [ -z "$PROJECT_VERSION" ]; then
     exit 1
 fi
 
-export HOST_UID=$(id -u)
-export HOST_GID=$(id -g)
-
 # Build the Docker image
 echo "Building Django Docker image with version ${PROJECT_VERSION}"
+
 echo "Running command: docker build --build-arg HOST_UID=$HOST_UID --build-arg HOST_GID=$HOST_GID -f ${DJANGO_BASE_PATH}/Dockerfile . --tag django_lama:${PROJECT_VERSION}"
 docker build --build-arg UID=$HOST_UID --build-arg GID=$HOST_GID --tag django_lama:${PROJECT_VERSION} -f ${DJANGO_BASE_PATH}/Dockerfile .
