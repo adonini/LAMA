@@ -111,7 +111,7 @@ def calculate_averages(queryset, date_field, year, current_year, current_month):
                 Q(membership_periods__end_date__gt=datetime(year, month, 15))
             ).distinct().count()
 
-        logger.debug(f"Year: {year}, Month: {month}, Active Members Count: {count}")
+        #logger.debug(f"Year: {year}, Month: {month}, Active Members Count: {count}")
         total += count
 
     divisor = len(months)
