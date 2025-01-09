@@ -397,12 +397,22 @@
         clearFilterButton.appendChild(document.createTextNode('Clear filters'));
         clearFilterButton.addEventListener('click', function() {
             let inputs = document.querySelectorAll('.filterInput > select');
+
             // Reset all dropdowns to "All"
             inputs.forEach(input => {
-                input.value = 'All'; // Set the value back to "All"
-                let event = new Event('change'); // Trigger change event
-                input.dispatchEvent(event); // This will call the updateFilters function
+                input.value = 'All';
             });
+
+            // Sequentially update filters
+            updateFilters('country'); // Reset country
+            updateFilters('group');   // Reset group
+            updateFilters('institute'); // Reset institute explicitly
+
+            // Force repopulation of the institute dropdown
+            updateDropdown(instituteDropdown, Array.from(new Set(Object.values(filters).flatMap(country => {
+                return Object.values(country.groups).flat();
+            }))), 'All');
+
             // Clear any custom searches on the table
             table.search('').draw();
         });
