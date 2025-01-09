@@ -71,7 +71,7 @@ class Member(models.Model):
         ('student', 'Student'),
         ('technician', 'Technician'),
         ('researcher', 'Researcher'),
-        ('associate', 'Associate'),
+        ('affiliated', 'Affiliated'),
         ('engineer', 'Engineer'),
         ('administrator', 'Administrator'),
     ]
