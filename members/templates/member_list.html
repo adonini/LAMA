@@ -220,6 +220,8 @@
         // Helper function to update options dynamically
         function updateDropdown(dropdown, options, selectedValue) {
             dropdown.innerHTML = ''; // Clear existing options
+	    // Sort options alphabetically
+            options.sort((a, b) => a.localeCompare(b));
             // If there's only one option, select it automatically
             if (options.length === 1) {
                 let opt = document.createElement('option');
