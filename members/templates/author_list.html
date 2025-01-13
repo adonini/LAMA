@@ -1,0 +1,357 @@
+{% extends 'login/base.html' %}
+
+{% block content %}
+{% load custom_filter %}
+{% load humanize %}
+<div class="container-fluid">
+    <div class="header position-relative d-flex align-items-center">
+        <div class="d-flex align-items-center w-100 mt-0 mb-2">
+            {% if user|has_group:"admin" %}
+            <div class="tools d-flex align-items-center">
+                <!-- Dropdown for selecting journal -->
+                <div class="dropdown me-2">
+                    <select class="form-select form-select-sm" id="journalDropdown">
+                        <option selected disabled>Select Journal</option>
+                        <option value="journal1">AA</option>
+                        <option value="journal8">AA with email</option>
+                        <option value="journal2">ApJ</option>
+                        <option value="journal3">ArXiv</option>
+                        <option value="journal4">MNRAS</option>
+                        <option value="journal5">POS</option>
+                        <option value="journal6">Nature</option>
+                        <option value="journal7">Science</option>
+                    </select>
+                </div>
+
+                <!-- Date selectors -->
+                <input type="date" class="form-control form-control-sm me-2" id="Date" placeholder="Select Date">
+
+                <!-- Export Button -->
+                <button type="button" class="btn btn-primary btn-sm" id="exportList">
+                    <i class="fa fa-download"></i> Export List
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="body">
+        <div class="table-wrapper">
+            <table class="table table-sm table-hover" id="author-list">
+                <thead>
+                    <tr>
+                        <th class="text-center dark-text">#</th>
+                        <th class="text-center dark-text">First Name</th>
+                        <th class="text-center dark-text">Last Name</th>
+                        <th class="text-center dark-text">Institute</th>
+                        <th class="text-center dark-text">Group</th>
+                        <th class="text-center dark-text">Country</th>
+                        <th class="text-center dark-text">Authorship Start</th>
+                        <th class="text-center dark-text">Authorship End</th>
+                        <th class="text-center dark-text">{% if user|has_group:"admin" %} Actions {% else %} Details {% endif %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for author in authors %}
+                    <tr>
+                        <td class="align-center text-center light-text">{{ forloop.counter }}</td>
+                        <td class="align-center text-center light-text">{{ author.name|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ author.surname|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ author.institute_name|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ author.group_name|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ author.country_name|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ author.authorship_start|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ author.authorship_end|default:"-"  }}</td>
+                        <td class="align-center text-center light-text d-flex flex-wrap justify-content-around">
+                            <div class="d-flex">
+                                {% if user|has_group:"admin" %}
+                                    <button class="btn btn-sm selected edit-data" data-id="{{ author.pk }}" title="Edit author">
+                                        <i class="fa-solid fa-edit fa-2xl"></i>
+                                    </button>
+                                {% endif %}
+                                <button type="button" class="btn btn-bg-dark btn-sm item-data {% if user|has_group:'admin' %}ms-1 {% endif %}" data-id="{{ author.pk }}" title="Author information">
+                                    <i class="fa-solid fa-info-circle fa-2xl"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+
+{% block ScriptBlock %}
+<script>
+    let institutes = {{ institutes|safe }};
+    let groups = {{ groups|safe }};
+    let countries = {{ countries|safe }};
+    let filters = {{ filters|safe }};
+
+    //remove the default 'Search' text for all DataTable search boxes
+    $.extend(true, $.fn.dataTable.defaults, {
+        language: {
+            search: ""
+        }
+    });
+    let table = $('#author-list').DataTable({
+        responsive: true,
+        scrollX: true, // Only the table itself will scroll horizontally
+        dom: '<"top1"<"top1Start"f><"top1End"B>>t<"bottom"<"bottomStart"i><"bottomCenter"l><"bottomEnd"p>>',
+        buttons: [{extend: 'copy', exportOptions: {columns: ':not(:last-child)'} // Exclude the last column (Actions/Details)
+            },
+            {extend: 'csv', exportOptions: {columns: ':not(:last-child)'}
+            },
+            {extend: 'excel',exportOptions: {columns: ':not(:last-child)'}
+            },
+            {extend: 'print',exportOptions: {columns: ':not(:last-child)'}
+            }
+        ],
+        columnDefs: [
+            { orderable: false, targets: [0, 8] }, // Disable ordering for specific columns
+            {targets: 0, searchable: false,
+                render: function(data, type, row, meta) {
+                    return meta.row + meta.settings._iDisplayStart + 1; // Row numbering
+                }
+            },
+        ],
+        drawCallback: function(settings) {
+            let api = this.api();
+            api.rows({ page: 'current' }).every(function(rowIdx, tableLoop, rowLoop) {
+                $('td:eq(0)', this.node()).html(rowLoop + 1); // Update row numbers
+            });
+        }
+    });
+
+    // Custom Search placeholders and Clear Filter button
+    $('[type=search]').each(function () {
+        $(this).attr("placeholder", "Search...");
+        $(this).attr("autocomplete", "off");
+        $(this).before('<span class="fa fa-search"></span>');
+    });
+
+    // Define custom filter elements and behavior
+    let data = table.data().toArray()
+    let filterLabels = ['Country: ', 'Group: ', 'Institute: ', 'Author: ', 'CF: '];
+    let mainDiv = document.querySelector('.top1Start');
+    let generalDiv = document.createElement('div');
+    generalDiv.classList.add('d-flex', 'flex-wrap');
+    mainDiv.classList.add('filters');
+    let countryDropdown, groupDropdown, instituteDropdown; // Variables to store dropdowns
+
+    // Create a container for Author and CF filters
+    let authorCFContainer = document.createElement('div');
+    authorCFContainer.classList.add('d-flex', 'flex-wrap');
+    // Create a container for Country, Group, and Institute filters
+    let filtersContainer = document.createElement('div');
+    filtersContainer.classList.add('d-flex', 'flex-wrap');
+
+    // Helper function to update options dynamically
+    function updateDropdown(dropdown, options, selectedValue) {
+        dropdown.innerHTML = ''; // Clear existing options
+        // Sort options alphabetically
+        options.sort((a, b) => a.localeCompare(b));
+        // If there's only one option, select it automatically
+        if (options.length === 1) {
+            let opt = document.createElement('option');
+            opt.value = options[0];
+            opt.textContent = options[0];
+            opt.selected = true;
+            dropdown.appendChild(opt);
+        } else {
+            let defaultOption = document.createElement('option');
+            defaultOption.value = 'All';
+            defaultOption.textContent = 'All';
+            dropdown.appendChild(defaultOption);
+            // Add options
+            options.forEach(option => {
+                let opt = document.createElement('option');
+                opt.value = option;
+                opt.textContent = option;
+                // Maintain the selected value if it's available in the options
+                if (option === selectedValue) {
+                    opt.selected = true;
+                }
+                dropdown.appendChild(opt);
+            });
+        }
+    }
+
+    // Update other dropdowns based on current selections
+    function updateFilters(triggeredBy) {
+        let selectedCountry = countryDropdown.value;
+        let selectedGroup = groupDropdown.value;
+        let selectedInstitute = instituteDropdown.value;
+
+        let validCountries = new Set();
+        let validGroups = new Set();
+        let validInstitutes = new Set();
+
+        // Calculate valid options based on the selections
+        for (let country in filters) {
+            let countryData = filters[country];
+            let countryGroups = countryData.groups;
+
+            for (let group in countryGroups) {
+                let groupInstitutes = countryGroups[group];
+                let matchesCountry = selectedCountry === 'All' || selectedCountry === country;
+                let matchesGroup = selectedGroup === 'All' || selectedGroup === group;
+                let matchesInstitute = selectedInstitute === 'All' || groupInstitutes.includes(selectedInstitute);
+
+                // If the combination matches, add to the valid lists
+                if (matchesCountry && matchesGroup && matchesInstitute) {
+                    validCountries.add(country);
+                    validGroups.add(group);
+                    groupInstitutes.forEach(institute => validInstitutes.add(institute));
+                }
+            }
+        }
+
+        // Convert Sets to Arrays for dropdown updates
+        validCountries = Array.from(validCountries);
+        validGroups = Array.from(validGroups);
+        validInstitutes = Array.from(validInstitutes);
+
+        // Update dropdowns based on valid options
+        if (triggeredBy !== 'country') updateDropdown(countryDropdown, validCountries, selectedCountry);
+        if (triggeredBy !== 'group') updateDropdown(groupDropdown, validGroups, selectedGroup);
+
+        // Show only the selected institute if one is chosen
+        if (selectedInstitute !== 'All' && triggeredBy === 'institute') {
+            updateDropdown(instituteDropdown, [selectedInstitute], selectedInstitute);
+        } else {
+            if (triggeredBy !== 'institute') updateDropdown(instituteDropdown, validInstitutes, selectedInstitute);
+        }
+
+        // Apply filters to the table
+        table.column(5).search(selectedCountry !== 'All' ? selectedCountry : '').draw();
+        table.column(4).search(selectedGroup !== 'All' ? selectedGroup : '').draw();
+        table.column(3).search(selectedInstitute !== 'All' ? selectedInstitute : '').draw();
+    }
+
+    for (let label of filterLabels) {
+        let divInput = document.createElement('div');
+        divInput.classList.add('filterInput');
+        divInput.style.marginTop = '5px';
+
+        let input = document.createElement('select');
+        input.classList.add('rounded-pill', 'form-select');
+        let defaultOption = document.createElement('option');
+        defaultOption.appendChild(document.createTextNode('All'));
+        input.appendChild(defaultOption);
+
+        // Filter by Country
+        if (label.toLowerCase().includes('country')) {
+            countryDropdown = input;
+            input.addEventListener('change', () => updateFilters('country'));
+            // Populate with all countries initially
+            for (let country in filters) {
+                let option = document.createElement('option');
+                option.value = country;
+                option.appendChild(document.createTextNode(country));
+                input.appendChild(option);
+            }
+            filtersContainer.appendChild(divInput);
+        }
+
+        // Filter by Group
+        if (label.toLowerCase().includes('group')) {
+            groupDropdown = input;
+            input.addEventListener('change', () => updateFilters('group'));
+            // Initially empty; will be populated dynamically
+            filtersContainer.appendChild(divInput);
+        }
+
+        // Filter by Institute
+        if (label.toLowerCase().includes('institute')) {
+            instituteDropdown = input;
+            input.addEventListener('change', () => updateFilters('institute'));
+            // Initially empty; will be populated dynamically
+            filtersContainer.appendChild(divInput);
+        }
+
+        // Filter by Author
+        if (label.toLowerCase().includes('author')) {
+            divInput.style.marginTop = '3px';
+            input.addEventListener('change', function (e) {
+                if (e.target.value !== 'All') {
+                    table.column(9).search(e.target.value).draw();
+                } else {
+                    table.column(9).search('').draw();
+                }
+            });
+            ['Yes', 'No'].forEach(authorStatus => {
+                let option = document.createElement('option');
+                option.value = authorStatus;
+                option.appendChild(document.createTextNode(authorStatus));
+                input.appendChild(option);
+            });
+            authorCFContainer.appendChild(divInput);
+        }
+
+        // Filter by CF
+        if (label.toLowerCase().includes('cf')) {
+            divInput.style.marginTop = '5px';
+            input.addEventListener('change', function (e) {
+                if (e.target.value !== 'All') {
+                    table.column(8).search(e.target.value).draw();
+                } else {
+                    table.column(8).search('').draw();
+                }
+            });
+            ['Yes', 'No'].forEach(cfStatus => {
+                let option = document.createElement('option');
+                option.value = cfStatus;
+                option.appendChild(document.createTextNode(cfStatus));
+                input.appendChild(option);
+            });
+            authorCFContainer.appendChild(divInput);
+        }
+
+        // Set up the label and input for each filter
+        let inputLabel = document.createElement('label');
+        inputLabel.appendChild(document.createTextNode(label));
+        inputLabel.setAttribute('for', label);
+        divInput.appendChild(inputLabel);
+        divInput.appendChild(input);
+    }
+
+    // Append the Author and CF filters above the others
+    mainDiv.appendChild(authorCFContainer);
+
+    // Append the other filters container
+    mainDiv.appendChild(filtersContainer);
+
+    // Initialize dropdowns with valid options
+    updateFilters();
+
+    let top1End = document.querySelector('.top1End');
+    let clearFilterButton = document.createElement('div');
+    clearFilterButton.classList.add('btn', 'btn-clear', 'rounded-xl');
+    clearFilterButton.appendChild(document.createTextNode('Clear filters'));
+    clearFilterButton.addEventListener('click', function() {
+        let inputs = document.querySelectorAll('.filterInput > select');
+
+        // Reset all dropdowns to "All"
+        inputs.forEach(input => {
+            input.value = 'All';
+        });
+
+        // Sequentially update filters
+        updateFilters('country'); // Reset country
+        updateFilters('group');   // Reset group
+        updateFilters('institute'); // Reset institute explicitly
+
+        // Force repopulation of the institute dropdown
+        updateDropdown(instituteDropdown, Array.from(new Set(Object.values(filters).flatMap(country => {
+            return Object.values(country.groups).flat();
+        }))), 'All');
+
+        // Clear any custom searches on the table
+        table.search('').draw();
+    });
+    top1End.appendChild(clearFilterButton);
+</script>
+{% endblock ScriptBlock %}
