@@ -2,7 +2,8 @@ import json
 import logging
 from datetime import date, datetime, timedelta
 from .forms import LoginForm, AddMemberForm
-from .models import Member, Institute, Group, Duty, Country, MemberDuty, MembershipPeriod, AuthorshipPeriod
+from .models import (Member, Institute, Group, Duty, Country, MemberDuty,
+                     MembershipPeriod, AuthorshipPeriod, AuthorDetails)
 from dateutil.relativedelta import relativedelta
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -940,3 +941,71 @@ def get_countries(request):
     countries = Country.objects.all()
     countries_data = [{'id': country.id, 'name': country.name} for country in countries]
     return JsonResponse({'countries': countries_data})
+
+
+class AuthorList(LoginRequiredMixin, View):
+    def get(self, request):
+        today = now().date()
+
+        # Fetch members with active authorships
+        authors = Member.objects.prefetch_related(
+            'membership_periods__institute__group__country',
+            'authorship_periods'
+        ).distinct().filter(
+            Q(authorship_periods__start_date__lte=today) & (
+                Q(authorship_periods__end_date__isnull=True) | Q(authorship_periods__end_date__gte=today)
+            )
+        )
+
+        author_list = []
+
+        for author in authors:
+            # Determine active membership
+            membership = author.current_membership(include_inactive=True)
+            current_institute = membership.institute if membership else None
+
+            # Active authorship period
+            authorship_period = author.current_authorship()
+            is_author = (
+                authorship_period
+                and authorship_period.start_date <= today
+                and (authorship_period.end_date is None or authorship_period.end_date >= today)
+            )
+
+            if is_author:
+                author_list.append({
+                    'pk': author.pk,
+                    'name': author.name,
+                    'surname': author.surname,
+                    'primary_email': author.primary_email,
+                    'authorship_start': authorship_period.start_date.strftime('%Y-%m-%d') if authorship_period else None,
+                    'authorship_end': authorship_period.end_date.strftime('%Y-%m-%d') if authorship_period and authorship_period.end_date else None,
+                    'group_name': current_institute.group.name if current_institute and current_institute.group else 'No Group',
+                    'country_name': current_institute.group.country.name if current_institute and current_institute.group and current_institute.group.country else 'No Country',
+                    'institute_name': current_institute.name if current_institute else 'No Institute',
+                })
+
+        # Data for the filters
+        countries = Country.objects.prefetch_related('groups__institutes').order_by('name')
+        filters_data = {
+            country.name: {
+                "groups": {
+                    group.name: list(group.institutes.values_list('name', flat=True))
+                    for group in country.groups.all()
+                }
+            }
+            for country in countries
+        }
+
+        context = {
+            'page_title': 'Author List',
+            'authors': author_list,
+            'author_data': json.dumps(author_list),
+            'institutes': list(Institute.objects.order_by('name').values('id', 'name')),
+            'groups': list(Group.objects.order_by('name').values('id', 'name')),
+            'countries': list(Country.objects.order_by('name').values('id', 'name')),
+            'userGroups': list(request.user.groups.values_list('name', flat=True)),
+            'filters': filters_data,
+            'current_date': now().strftime('%B %d, %Y'),
+        }
+        return render(request, 'author_list.html', context)
