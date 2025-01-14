@@ -21,4 +21,12 @@ urlpatterns = [
     path('api/get-countries/', views.get_countries, name='get_countries'),
     path('authors/', views.AuthorList.as_view(), name='author_list'),
     path('authors/<int:pk>/', views.AuthorRecord.as_view(), name='author-record'),
+    path('export-aa-with-emails/', views.generate_aa_email, name='export_aa_with_emails'),
+    path('export-aa/', views.generate_aa, name='export_aa'),
+    path('export-apj/', views.generate_apj, name='export_apj'),
+    path('export-arxiv/', views.generate_arxiv, name='export_arxiv'),
+    path('export-mnras/', views.generate_mnras, name='export_mnras'),
+    path('export-pos/', views.generate_pos, name='export_pos'),
+    path('export-nature/', views.generate_nature, name='export_nature'),
+    path('export-science/', views.generate_science, name='export_science'),
 ]
