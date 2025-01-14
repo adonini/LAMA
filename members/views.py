@@ -1461,3 +1461,67 @@ def generate_pos(request):
     response = HttpResponse("".join(latex_content), content_type="application/x-tex")
     response['Content-Disposition'] = 'attachment; filename=LST_authors_POS.tex'
     return response
+
+
+def generate_nature(request):
+    """Generates LaTeX for the Nature format, filtering by authorship validity on a specified date in UTC."""
+    selected_date_str = request.GET.get('date')  # Get the selected date from query parameters
+    if not selected_date_str:
+        return JsonResponse({'error': 'No date provided'}, status=400)
+
+    authors, selected_date, valid_authors = get_valid_authors_for_date(selected_date_str)
+    if authors is None:
+        return JsonResponse({'error': selected_date}, status=400)
+
+    latex_content = []
+    institute_dict = {}
+    institute_counter = 1
+    institute_lines = []
+
+    # Add warning at the top if there are missing authors
+    missing_authors = get_missing_authors(valid_authors)
+    if missing_authors:
+        latex_content.append("% WARNING: The following members are listed as authors, but no AuthorDetails are available for them:\n")
+        latex_content.append("% " + ", ".join(missing_authors) + "\n\n")
+
+    latex_content.append("% Nature format\n")
+    latex_content.append(f"% Generated on {selected_date.strftime('%Y-%m-%d')}\n")
+
+    # Build institute dictionary
+    for author in authors:
+        for affiliation in author.institute_affiliations.all():
+            institute = affiliation.institute
+            if institute.name not in institute_dict:
+                institute_dict[institute.name] = institute_counter
+                institute_lines.append(f"\\normalsize{{$^{{{institute_counter}}}$ {{{institute.long_description}}},}}\\\\\n")
+                institute_counter += 1
+
+    # Write author details
+    for index, author in enumerate(authors):
+        author_name = author.author_name.replace("  ", " ").replace(" ", "~")
+        number_of_affiliations = len(author.institute_affiliations.all())
+
+        if number_of_affiliations == 0:
+            print(f"Author {author_name} has no affiliation!")
+            continue  # Or handle this case more explicitly
+
+        author_string = f"{author_name} $^{{"
+        institute_indices = sorted(
+            [institute_dict[aff.institute.name] for aff in author.institute_affiliations.all()]
+        )
+        author_string += ",".join(str(idx) for idx in institute_indices) + "}$"
+
+        if index != len(authors) - 1:
+            author_string += ",\n"
+        else:
+            author_string += "\n\\\\\n"
+
+        latex_content.append(author_string)
+
+    # Add institute details
+    latex_content.append("".join(institute_lines))
+
+    # Join the LaTeX content and return as response
+    response = HttpResponse("".join(latex_content), content_type="application/x-tex")
+    response['Content-Disposition'] = 'attachment; filename=LST_authors_Nature.tex'
+    return response
