@@ -1394,3 +1394,70 @@ def generate_mnras(request):
     response = HttpResponse("".join(latex_content), content_type="application/x-tex")
     response['Content-Disposition'] = 'attachment; filename=LST_authors_MNRAS.tex'
     return response
+
+
+def generate_pos(request):
+    """Generates LaTeX for The POS format without emails, ensuring affiliations are in the correct order and formatting institutes properly."""
+    selected_date_str = request.GET.get('date')  # Get the selected date from query parameters
+    if not selected_date_str:
+        return JsonResponse({'error': 'No date provided'}, status=400)
+
+    authors, selected_date, valid_authors = get_valid_authors_for_date(selected_date_str)
+    if authors is None:
+        return JsonResponse({'error': selected_date}, status=400)
+
+    latex_content = []
+    institute_dict = {}
+    institute_counter = 1
+    institute_lines = []
+
+    # Add warning at the top if there are missing authors
+    missing_authors = get_missing_authors(valid_authors)
+    if missing_authors:
+        latex_content.append("% WARNING: The following members are listed as authors, but no AuthorDetails are available for them:\n")
+        latex_content.append("% " + ", ".join(missing_authors) + "\n\n")
+
+    latex_content.append("% POS format\n")
+    latex_content.append(f"% Generated on {selected_date.strftime('%Y-%m-%d')}\n")
+
+    # Build institute dictionary with corrected formatting
+    for author in authors:
+        affiliations = author.institute_affiliations.order_by('order')  # Ensure affiliations are in the correct order
+        for affiliation in affiliations:
+            institute = affiliation.institute
+            if institute.name not in institute_dict:
+                institute_dict[institute.name] = institute_counter
+                # Correct formatting for institute, keeping {} for the descriptions
+                institute_lines.append(f"$^{{{institute_counter}}}${{{institute.long_description}}}.\n")
+                institute_counter += 1
+
+    # Write author details
+    latex_content.append("\\tiny{\\noindent\n")
+    for i, author in enumerate(authors):
+        affiliations = author.institute_affiliations.order_by('order')  # Ensure affiliations are in the correct order
+        if not affiliations:
+            print(f"Author {author.author_name} has no affiliation!")
+            continue
+
+        # Generate indices in the correct order (only one set of curly braces for the indices)
+        institute_indices = [institute_dict[aff.institute.name] for aff in affiliations]
+        indices_str = ",".join(map(str, institute_indices))
+        author_string = f"{author.author_name.replace(' ', '~')}$^{{{indices_str}}}$"  # Correct LaTeX format
+
+        # Add comma if not the last author
+        if i < len(authors) - 1:
+            author_string += ",\n"
+        else:
+            author_string += "\n"
+
+        latex_content.append(author_string)
+
+    latex_content.append("}\\\\\n\n")
+    latex_content.append("\\tiny{\\noindent")
+    latex_content.append("".join(institute_lines))
+    latex_content.append("}")
+
+    # Join the LaTeX content and return as response
+    response = HttpResponse("".join(latex_content), content_type="application/x-tex")
+    response['Content-Disposition'] = 'attachment; filename=LST_authors_POS.tex'
+    return response
