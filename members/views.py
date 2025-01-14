@@ -1258,7 +1258,6 @@ def generate_apj(request):
         latex_content.append(author_string)
 
     # Join and finalize the LaTeX document
-    latex_content.append("\\end{document}\n")
     response = HttpResponse("".join(latex_content), content_type="application/x-tex")
     response['Content-Disposition'] = 'attachment; filename=LST_authors_ApJ.tex'
     return response
@@ -1366,7 +1365,7 @@ def generate_mnras(request):
     # Assign unique indices to institutes
     for idx, institute in enumerate(all_institutes.values(), start=1):
         institute_dict[institute.name] = idx
-        institute_lines.append(f"$^{idx}$ {{ {institute.long_description} }}\\\\")
+        institute_lines.append(f"$^{{{idx}}}$ {{ {institute.long_description} }}\\\\")
 
     # Generate author strings
     author_lines = []
