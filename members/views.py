@@ -213,14 +213,18 @@ class Index(TemplateView):
         ).filter(Q(end_date__isnull=True) | Q(end_date__gt=six_months_future)).values('member').distinct().count()
 
         # Count institutes and groups per country
-        total_institutes = Institute.objects.count()
+        #total_institutes = Institute.objects.count()
+        total_institutes = Institute.objects.filter(is_lst=True).count()
         total_groups = Group.objects.count()
         total_countries = Country.objects.count()
 
         institutes_per_country = {}
         groups_per_country = {}
         for country in Country.objects.all():
-            institutes_per_country[country.name] = Institute.objects.filter(group__country=country).count()
+            lst_institutes = Institute.objects.filter(group__country=country, is_lst=True)
+            institutes_per_country[country.name] = lst_institutes.count()
+
+            #institutes_per_country[country.name] = Institute.objects.filter(group__country=country).count()
             groups_per_country[country.name] = Group.objects.filter(country=country).count()
 
         # Prepare the context to pass to the template
@@ -318,7 +322,7 @@ class MemberList(LoginRequiredMixin, View):
         filters_data = {
             country.name: {
                 "groups": {
-                    group.name: list(group.institutes.values_list('name', flat=True))
+                    group.name: list(group.institutes.filter(is_lst=True).values_list('name', flat=True))
                     for group in country.groups.all()
                 }
             }
@@ -330,7 +334,7 @@ class MemberList(LoginRequiredMixin, View):
             'members': member_list,
             'member_data': json.dumps(member_list),
             'duties': list(Duty.objects.order_by('name').values('id', 'name')),
-            'institutes': list(Institute.objects.order_by('name').values('id', 'name')),
+            'institutes': list(Institute.objects.filter(is_lst=True).order_by('name').values('id', 'name')),
             'groups': list(Group.objects.order_by('name').values('id', 'name')),
             'countries': list(Country.objects.order_by('name').values('id', 'name')),
             'userGroups': list(request.user.groups.values_list('name', flat=True)),
