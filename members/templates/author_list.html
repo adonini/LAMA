@@ -28,7 +28,7 @@
 
                 <!-- Export Button -->
                 <button type="button" class="btn btn-primary btn-sm" id="exportList">
-                    <i class="fa fa-download"></i> Export List
+                    <i class="fa fa-download me-2"></i> Export List
                 </button>
             </div>
             {% endif %}
@@ -47,6 +47,7 @@
                         <th class="text-center dark-text">Country</th>
                         <th class="text-center dark-text">Authorship Start</th>
                         <th class="text-center dark-text">Authorship End</th>
+                        <th class="text-center dark-text">Main Affiliation</th>
                         <th class="text-center dark-text">{% if user|has_group:"admin" %} Actions {% else %} Details {% endif %}</th>
                     </tr>
                 </thead>
@@ -61,6 +62,7 @@
                         <td class="align-center text-center light-text">{{ author.country_name|default:"-"  }}</td>
                         <td class="align-center text-center light-text">{{ author.authorship_start|default:"-"  }}</td>
                         <td class="align-center text-center light-text">{{ author.authorship_end|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ author.main_affiliation|default:"-" }}</td>
                         <td class="align-center text-center light-text d-flex flex-wrap justify-content-around">
                             <div class="d-flex">
                                 {% if user|has_group:"admin" %}
@@ -110,7 +112,7 @@
             }
         ],
         columnDefs: [
-            { orderable: false, targets: [0, 8] }, // Disable ordering for specific columns
+            { orderable: false, targets: [0, 9] }, // Disable ordering for specific columns
             {targets: 0, searchable: false,
                 render: function(data, type, row, meta) {
                     return meta.row + meta.settings._iDisplayStart + 1; // Row numbering
@@ -353,5 +355,47 @@
         table.search('').draw();
     });
     top1End.appendChild(clearFilterButton);
+
+    $(document).on('click', '.item-data', function(e) {
+        // Handle event target for button or icon click
+        let targetButton = e.target.closest('.item-data');
+        let id = targetButton.dataset.id;
+        let baseUrl = "{% url 'author-record' 0 %}";
+        let finalUrl = baseUrl.replace('0', id);
+
+        // Create header for the modal
+        let headerDiv = document.createElement('div');
+        headerDiv.classList.add("modal-header", "d-flex", "align-items-center", "justify-content-between", "border-0");
+
+        // Title of the modal with icon
+        let titleDiv = document.createElement('div');
+        titleDiv.classList.add('d-flex', 'align-items-center');
+        let addIcon = document.createElement('i');
+        addIcon.classList.add('fa-solid', 'fa-circle-info', 'me-2');
+        let title = document.createElement('h5');
+        title.classList.add('modal-title', 'dark-text', 'm-0');
+        title.innerText = "Author Information";
+        titleDiv.appendChild(addIcon);
+        titleDiv.appendChild(title);
+
+        // Close button for the modal header
+        let closeButton = document.createElement('button');
+        closeButton.classList.add('btn-close', 'btn-close1');
+        closeButton.setAttribute('data-bs-dismiss', 'modal');
+        closeButton.setAttribute('aria-label', 'Close');
+        headerDiv.appendChild(titleDiv);
+        headerDiv.appendChild(closeButton);
+
+        // Open the modal
+        uni_modal(headerDiv, finalUrl, 'modal-md');
+
+        // Ensure modal footer is removed after content is loaded
+        $(document).on('shown.bs.modal', function() {
+            let modalFooter = document.querySelector('.modal-footer');
+            if (modalFooter) {
+                modalFooter.remove();
+            }
+        });
+    });
 </script>
 {% endblock ScriptBlock %}

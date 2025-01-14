@@ -973,6 +973,18 @@ class AuthorList(LoginRequiredMixin, View):
             )
 
             if is_author:
+                main_affiliation = None
+                try:
+                    # Attempt to fetch author details
+                    author_details = author.author_details
+                    if author_details:
+                        institutes = author_details.ordered_institutes()
+                        if institutes:
+                            main_affiliation = institutes[0].name  # Get the first institute name
+                except Member.author_details.RelatedObjectDoesNotExist:
+                    # Handle the case where there are no author details
+                    main_affiliation = 'No Affiliation'
+
                 author_list.append({
                     'pk': author.pk,
                     'name': author.name,
@@ -983,6 +995,7 @@ class AuthorList(LoginRequiredMixin, View):
                     'group_name': current_institute.group.name if current_institute and current_institute.group else 'No Group',
                     'country_name': current_institute.group.country.name if current_institute and current_institute.group and current_institute.group.country else 'No Country',
                     'institute_name': current_institute.name if current_institute else 'No Institute',
+                    'main_affiliation': main_affiliation or 'No Affiliation',
                 })
 
         # Data for the filters
@@ -1009,3 +1022,39 @@ class AuthorList(LoginRequiredMixin, View):
             'current_date': now().strftime('%B %d, %Y'),
         }
         return render(request, 'author_list.html', context)
+
+
+class AuthorRecord(LoginRequiredMixin, View):
+    def get(self, request, pk=None):
+        context = {}
+        context['page_title'] = 'Author Information'
+        if pk is None:
+            messages.error(request, "Author ID is not recognized")
+            return redirect('author_list')
+        else:
+            try:
+                author = Member.objects.get(id=pk)
+            except Member.DoesNotExist:
+                messages.error(request, "Author not found")
+                return redirect('author_list')
+
+            # Fetch author details
+            author_details = getattr(author, 'author_details', None)
+
+            # Fetch current institute, group, and country
+            institute = author.current_institute() if author.current_institute() else None
+            group = institute.group if institute else None
+            country = group.country if group else None
+
+            # Fetch authorship periods
+            authorship_periods = author.authorship_periods.order_by('-start_date') if hasattr(author, 'authorship_periods') else []
+
+            context.update({
+                'member': author,
+                'author_details': author_details,
+                'institute': institute,
+                'group': group,
+                'country': country,
+                'authorship_periods': authorship_periods,
+            })
+            return render(request, 'author_record.html', context)

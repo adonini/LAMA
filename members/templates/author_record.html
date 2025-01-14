@@ -1,0 +1,76 @@
+{% load humanize %}
+{% load custom_filter %}
+
+<div class="">
+    <h5 class="text-dark section-title">General</h5>
+    <div class="affiliation-section">
+        <ul class="list-group list-group-flush ul-left">
+            <li class="list-group-item"><strong class="text-dark fw-bold">First Name</strong> <br> {{ member.name|default:"-" }}</li>
+            <li class="list-group-item"><strong class="text-dark fw-bold">Email</strong> <br> {{ member.primary_email|default:"-" }}</li>
+            <li class="list-group-item"><strong class="text-dark fw-bold">Group</strong> <br> {{ group.name|default:"-" }}</li>
+        </ul>
+        <ul class="list-group list-group-flush ul-right">
+            <li class="list-group-item"><strong class="text-dark fw-bold">Second Name</strong> <br> {{ member.surname|default:"-" }}</li>
+            <li class="list-group-item"><strong class="text-dark fw-bold">Institute</strong> <br> {{ institute.name|default:"-" }}</li>
+            <li class="list-group-item"><strong class="text-dark fw-bold">Country</strong> <br> {{ country.name|default:"-" }}</li>
+        </ul>
+    </div>
+    <div class="mt-3">
+        <h5 class="text-dark section-title">Authorship</h5>
+        {% if authorship_periods %}
+            <table class="table table-bordered table-hover styled-table">
+                <thead>
+                    <tr>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for period in authorship_periods %}
+                        <tr>
+                            <td>{{ period.start_date|date:"Y-m-d" }}</td>
+                            <td>{{ period.end_date|date:"Y-m-d"|default:"Active" }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="text-dark">No authorship period</p>
+        {% endif %}
+    </div>
+    <div class="mt-3">
+        <h5 class="text-dark section-title">Publishing Info</h5>
+        <div class="affiliation-section">
+            <ul class="list-group list-group-flush ul-left">
+                <li class="list-group-item"><strong class="text-dark fw-bold">Author Name</strong> <br> {{ author_details.author_name|default:"-" }}</li>
+                <li class="list-group-item"><strong class="text-dark fw-bold">Email</strong> <br> {{ author_details.author_email|default:"-" }}</li>
+            </ul>
+            <ul class="list-group list-group-flush ul-right">
+                <li class="list-group-item"><strong class="text-dark fw-bold">ORCID</strong> <br> {{ author_details.orcid|default:"-" }}</li>
+            </ul>
+        </div>
+        <div class="mt-3">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">
+                    <strong class="text-dark fw-bold">Affiliations</strong>
+                    <br>
+                    {% if author_details.institute_affiliations %}
+                        <ul class="list-group list-group-flush mt-2">
+                            {% for affiliation in author_details.institute_affiliations.all %}
+                                <li class="list-group-item">
+                                    <strong class="text-dark fw-bold">{{ affiliation.order }}.</strong> {{ affiliation.institute.name }}
+                                    <br>
+                                    <small class="text-muted">
+                                        {{ affiliation.institute.long_description|default:"No detailed description available." }}
+                                    </small>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-dark mt-2">No affiliations</p>
+                    {% endif %}
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
