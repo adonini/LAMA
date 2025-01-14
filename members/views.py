@@ -1210,3 +1210,56 @@ def generate_aa(request):
     response['Content-Disposition'] = 'attachment; filename=LST_authors_AA.tex'
     return response
 
+
+def generate_apj(request):
+    """Generates LaTeX for The Astrophysical Journal (ApJ) without emails, filtering by authorship validity on a specified date in UTC."""
+    selected_date_str = request.GET.get('date')  # Get the selected date from query parameters
+    if not selected_date_str:
+        return JsonResponse({'error': 'No date provided'}, status=400)
+
+    authors, selected_date, valid_authors = get_valid_authors_for_date(selected_date_str)
+    if authors is None:
+        return JsonResponse({'error': selected_date}, status=400)
+
+    latex_content = []
+
+    # Add warning at the top if there are missing authors
+    missing_authors = get_missing_authors(valid_authors)
+    if missing_authors:
+        latex_content.append("% WARNING: The following members are listed as authors, but no AuthorDetails are available for them:\n")
+        latex_content.append("% " + ", ".join(missing_authors) + "\n\n")
+
+    latex_content.append("% ApJ format\n")
+    latex_content.append(f"% Generated on {selected_date.strftime('%Y-%m-%d')}\n")
+    latex_content.append("\\usepackage[T1]{fontenc}\n")
+
+    # Generate LaTeX for authors
+    for author in authors:
+        # Get affiliations sorted by the 'order' field
+        affiliations = author.institute_affiliations.all().order_by('order')
+        number_of_affiliations = len(affiliations)
+
+        if number_of_affiliations == 0:
+            print(f"Author {author.author_name} has no affiliation!")
+            return JsonResponse({'error': f"Author {author.author_name} has no affiliation!"}, status=400)
+
+        # Build author string
+        author_name = author.author_name.replace("  ", " ").replace(" ", "~")
+        orcid = getattr(author, 'orcid', None)  # Assuming `orcid` is a field in the author model
+        if orcid:
+            author_string = f"\\author[{orcid}]{{{author_name}}}\n"
+        else:
+            author_string = f"\\author{{{author_name}}}\n"
+
+        # Add affiliations in the correct order
+        for affiliation in affiliations:
+            author_string += f"\\affiliation{{{affiliation.institute.long_description}}}\n"
+
+        latex_content.append(author_string)
+
+    # Join and finalize the LaTeX document
+    latex_content.append("\\end{document}\n")
+    response = HttpResponse("".join(latex_content), content_type="application/x-tex")
+    response['Content-Disposition'] = 'attachment; filename=LST_authors_ApJ.tex'
+    return response
+
