@@ -3,7 +3,8 @@ import logging
 from datetime import date, datetime, timedelta
 from .forms import LoginForm, AddMemberForm
 from .models import (Member, Institute, Group, Duty, Country, MemberDuty,
-                     MembershipPeriod, AuthorshipPeriod, AuthorDetails)
+                     MembershipPeriod, AuthorshipPeriod, AuthorDetails,
+                     AuthorInstituteAffiliation)
 from dateutil.relativedelta import relativedelta
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -14,7 +15,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from django.db.models import Q
-from django.utils.timezone import now
+from django.utils.timezone import now, make_aware
+from django.db.models import Prefetch
+from pytz import UTC
 
 
 logger = logging.getLogger('lama')
@@ -169,6 +172,47 @@ def get_active_periods_count(queryset, period_field, year, month):
                 break  # No need to count the same member multiple times
     print(f"Total active members for {period_field} in {year}-{month}: {active_count}")
     return active_count
+
+
+def get_valid_authors_for_date(selected_date_str):
+    """
+    Returns a list of authors and their affiliations that are valid on the given date.
+    The function ensures that the authorship periods overlap with the selected date.
+    """
+    try:
+        # Parse the date string and convert it to a UTC-aware datetime object at midnight
+        selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
+        selected_date = make_aware(datetime.combine(selected_date, datetime.min.time()), timezone=UTC)
+    except ValueError:
+        return None, "Invalid date format"
+
+    # Step 1: Find all members with valid authorship periods on the selected date
+    valid_authors = Member.objects.filter(
+        Q(authorship_periods__start_date__lte=selected_date) &
+        (Q(authorship_periods__end_date__gte=selected_date) | Q(authorship_periods__end_date__isnull=True))
+    ).distinct()
+
+    # Step 2: Fetch AuthorDetails for those members, prefetching related institute affiliations
+    authors = AuthorDetails.objects.filter(member__in=valid_authors).prefetch_related(
+        Prefetch('institute_affiliations', queryset=AuthorInstituteAffiliation.objects.select_related('institute'))
+    ).order_by('author_name_family', 'author_name_given')  # Order by surname and given name
+
+    return authors, selected_date, valid_authors
+
+
+def get_missing_authors(valid_authors):
+    """
+    Takes a list of valid authors and returns a list of authors who don't have AuthorDetails.
+    It also appends a warning message if there are missing authors.
+    """
+    missing_authors = []
+
+    # Step 3: Identify authors without AuthorDetails
+    for member in valid_authors:
+        if not AuthorDetails.objects.filter(member=member).exists():
+            missing_authors.append(f"{member.name} {member.surname}")
+
+    return missing_authors
 
 
 class Index(TemplateView):
