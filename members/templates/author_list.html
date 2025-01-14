@@ -12,14 +12,14 @@
                 <div class="dropdown me-2">
                     <select class="form-select form-select-sm" id="journalDropdown">
                         <option selected disabled>Select Journal</option>
-                        <option value="journal1">AA</option>
-                        <option value="journal8">AA with email</option>
-                        <option value="journal2">ApJ</option>
-                        <option value="journal3">ArXiv</option>
-                        <option value="journal4">MNRAS</option>
-                        <option value="journal5">POS</option>
-                        <option value="journal6">Nature</option>
-                        <option value="journal7">Science</option>
+                        <option value="aa">AA</option>
+                        <option value="aa_w_e">AA with email</option>
+                        <option value="apj">ApJ</option>
+                        <option value="arxiv">ArXiv</option>
+                        <option value="mnras">MNRAS</option>
+                        <option value="pos">POS</option>
+                        <option value="nature">Nature</option>
+                        <option value="science">Science</option>
                     </select>
                 </div>
 
@@ -98,6 +98,7 @@
             search: ""
         }
     });
+
     let table = $('#author-list').DataTable({
         responsive: true,
         scrollX: true, // Only the table itself will scroll horizontally
@@ -354,6 +355,7 @@
         // Clear any custom searches on the table
         table.search('').draw();
     });
+
     top1End.appendChild(clearFilterButton);
 
     $(document).on('click', '.item-data', function(e) {
@@ -397,5 +399,39 @@
             }
         });
     });
+
+    $(document).on('click', '#exportList', function () {
+        const journal = $('#journalDropdown').val();
+        const selectedDate = $('#Date').val();
+
+        if (!selectedDate) {
+            alert('Please select a date.');
+            return;
+        }
+
+        // Format the date in YYYY-MM-DD format
+        const formattedDate = new Date(selectedDate).toISOString().split('T')[0];
+
+        if (journal === 'aa') {
+            window.location.href = `/export-aa/?date=${formattedDate}`;
+        } else if (journal === 'aa_w_e') {
+            window.location.href = `/export-aa-with-emails/?date=${formattedDate}`;
+        } else if (journal === 'apj') {
+            window.location.href = `/export-apj/?date=${formattedDate}`;
+        } else if (journal === 'arxiv') {
+            window.location.href = `/export-arxiv/?date=${formattedDate}`;
+        } else if (journal === 'mnras') {
+            window.location.href = `/export-mnras/?date=${formattedDate}`;
+        } else if (journal === 'pos') {
+            window.location.href = `/export-pos/?date=${formattedDate}`;
+        } else if (journal === 'nature') {
+            window.location.href = `/export-nature/?date=${formattedDate}`;
+        } else if (journal === 'science') {
+            window.location.href = `/export-science/?date=${formattedDate}`;
+        } else {
+            alert('Selected journal is not yet implemented.');
+        }
+    });
+
 </script>
 {% endblock ScriptBlock %}
