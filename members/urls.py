@@ -19,4 +19,6 @@ urlpatterns = [
     path('api/get-institutes/', views.get_institutes, name='get_institutes'),
     path('api/get-filtered-monthly-data/', views.get_filtered_monthly_data, name='get_filtered_monthly_data'),
     path('api/get-countries/', views.get_countries, name='get_countries'),
+    path('authors/', views.AuthorList.as_view(), name='author_list'),
+    path('authors/<int:pk>/', views.AuthorRecord.as_view(), name='author-record'),
 ]
