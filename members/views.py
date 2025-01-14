@@ -1263,3 +1263,65 @@ def generate_apj(request):
     response['Content-Disposition'] = 'attachment; filename=LST_authors_ApJ.tex'
     return response
 
+
+def generate_arxiv(request):
+    """Generates LaTeX for ArXiv without emails, filtering by authorship validity on a specified date in UTC."""
+    selected_date_str = request.GET.get('date')  # Get the selected date from query parameters
+    if not selected_date_str:
+        return JsonResponse({'error': 'No date provided'}, status=400)
+
+    authors, selected_date, valid_authors = get_valid_authors_for_date(selected_date_str)
+    if authors is None:
+        return JsonResponse({'error': selected_date}, status=400)
+
+    latex_content = []
+    institute_dict = {}
+    institute_counter = 1
+    institute_lines = []
+
+    # Add a warning for missing authors
+    missing_authors = get_missing_authors(valid_authors)
+    if missing_authors:
+        latex_content.append("% WARNING: The following members are listed as authors, but no AuthorDetails are available for them:\n")
+        latex_content.append("% " + ", ".join(missing_authors) + "\n\n")
+
+    # Add LaTeX header
+    latex_content.append("% ArXiv format\n")
+    latex_content.append(f"% Generated on {selected_date.strftime('%Y-%m-%d')}\n")
+    latex_content.append("CTA-LST Project: ")
+
+    # Build and sort institute dictionary
+    for author in authors:
+        affiliations = sorted(
+            author.institute_affiliations.all(),
+            key=lambda aff: aff.order  # Sort by the 'order' field
+        )
+        for affiliation in affiliations:
+            institute = affiliation.institute
+            if institute.name not in institute_dict:
+                institute_dict[institute.name] = institute_counter
+                institute_lines.append(f"({institute_counter}) {institute.long_description}")
+                institute_counter += 1
+
+    # Generate author strings
+    author_strings = []
+    for author in authors:
+        affiliations = sorted(
+            author.institute_affiliations.all(),
+            key=lambda aff: aff.order  # Sort by the 'order' field
+        )
+        institute_indices = sorted([institute_dict[aff.institute.name] for aff in affiliations])
+        indices_str = ",".join(map(str, institute_indices))
+        author_strings.append(f"{author.author_name} ({indices_str})")
+
+    # Combine authors into a single line
+    latex_content.append(", ".join(author_strings))
+    latex_content.append("\n")
+
+    # Append institute details
+    latex_content.append(" ".join(institute_lines))
+
+    # Finalize LaTeX content and return as a response
+    response = HttpResponse("".join(latex_content), content_type="application/x-tex")
+    response['Content-Disposition'] = 'attachment; filename=LST_authors_ArXiv.tex'
+    return response
