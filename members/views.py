@@ -1106,3 +1106,107 @@ class AuthorRecord(LoginRequiredMixin, View):
                 'authorship_periods': authorship_periods,
             })
             return render(request, 'author_record.html', context)
+
+
+def generate_aa_email(request):
+    """Generates LaTeX for A&A with emails, filtering by authorship validity on a specified date in UTC."""
+    selected_date_str = request.GET.get('date')  # Get the selected date from query parameters
+    if not selected_date_str:
+        return JsonResponse({'error': 'No date provided'}, status=400)
+
+    authors, selected_date, valid_authors = get_valid_authors_for_date(selected_date_str)
+    if authors is None:
+        return JsonResponse({'error': selected_date}, status=400)
+
+    latex_content = []
+    institute_dict = {}
+    institute_counter = 1
+    institute_lines = []
+    missing_authors = []
+
+    # Add warning at the top if there are missing authors
+    missing_authors = get_missing_authors(valid_authors)
+    if missing_authors:
+        latex_content.append("% WARNING: The following members are listed as authors, but no AuthorDetails are available for them:\n")
+        latex_content.append("% " + ", ".join(missing_authors) + "\n\n")
+
+    # Build institute dictionary and LaTeX content for valid authors
+    for author in authors:
+        for affiliation in author.institute_affiliations.all():
+            institute = affiliation.institute
+            if institute.name not in institute_dict:
+                institute_dict[institute.name] = institute_counter
+                prefix = "\\and " if institute_counter > 1 else ""
+                institute_lines.append(f"{prefix}{institute.long_description}")
+                institute_counter += 1
+
+    latex_content.append(f"% AA format\n% Generated on {selected_date.strftime('%Y-%m-%d')}\n")
+    latex_content.append("\\author{\n")
+    for author in authors:
+        institute_indices = sorted(
+            [institute_dict[aff.institute.name] for aff in author.institute_affiliations.all()]
+        )
+        indices_str = ",".join(map(str, institute_indices))
+        latex_content.append(f"{author.author_name.replace(' ', '~')}\\inst{{{indices_str}}}\\email{{{author.author_email}}} \\and\n")
+
+    latex_content.append("}\n")
+    latex_content.append("\\institute{\n")
+    latex_content.append("\n".join(institute_lines))
+    latex_content.append("}\n")
+
+    # Join the LaTeX content and return as response
+    response = HttpResponse("".join(latex_content), content_type="application/x-tex")
+    response['Content-Disposition'] = 'attachment; filename=LST_authors_AA_w_emails.tex'
+    return response
+
+
+def generate_aa(request):
+    """Generates LaTeX for A&A without emails, filtering by authorship validity on a specified date in UTC."""
+    selected_date_str = request.GET.get('date')  # Get the selected date from query parameters
+    if not selected_date_str:
+        return JsonResponse({'error': 'No date provided'}, status=400)
+
+    authors, selected_date, valid_authors = get_valid_authors_for_date(selected_date_str)
+    if authors is None:
+        return JsonResponse({'error': selected_date}, status=400)
+
+    latex_content = []
+    institute_dict = {}
+    institute_counter = 1
+    institute_lines = []
+
+    # Add warning at the top if there are missing authors
+    missing_authors = get_missing_authors(valid_authors)
+    if missing_authors:
+        latex_content.append("% WARNING: The following members are listed as authors, but no AuthorDetails are available for them:\n")
+        latex_content.append("% " + ", ".join(missing_authors) + "\n\n")
+
+    # Build institute dictionary
+    for author in authors:
+        for affiliation in author.institute_affiliations.all():
+            institute = affiliation.institute
+            if institute.name not in institute_dict:
+                institute_dict[institute.name] = institute_counter
+                prefix = "\\and " if institute_counter > 1 else ""
+                institute_lines.append(f"{prefix}{institute.long_description}")
+                institute_counter += 1
+
+    latex_content.append(f"% AA format\n% Generated on {selected_date.strftime('%Y-%m-%d')}\n")
+    latex_content.append("\\author{\n")
+    for author in authors:
+        institute_indices = sorted(
+            [institute_dict[aff.institute.name] for aff in author.institute_affiliations.all()]
+        )
+        indices_str = ",".join(map(str, institute_indices))
+        latex_content.append(f"{author.author_name.replace(' ', '~')}\\inst{{{indices_str}}} \\and\n")
+
+    latex_content.append("}\n")
+    latex_content.append("\\institute{\n")
+    latex_content.append("\n".join(institute_lines))
+    latex_content.append("}\n")
+
+    # Join the LaTeX content and return as response
+    response = HttpResponse("".join(latex_content), content_type="application/x-tex")
+    response['Content-Disposition'] = 'attachment; filename=LST_authors_AA.tex'
+    return response
+
