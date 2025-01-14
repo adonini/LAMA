@@ -1325,3 +1325,72 @@ def generate_arxiv(request):
     response = HttpResponse("".join(latex_content), content_type="application/x-tex")
     response['Content-Disposition'] = 'attachment; filename=LST_authors_ArXiv.tex'
     return response
+
+
+def generate_mnras(request):
+    """Generates LaTeX for The Monthly Notices of the Royal Astronomy Society (MNRAS) without emails, filtering by authorship validity on a specified date in UTC."""
+    selected_date_str = request.GET.get('date')
+    if not selected_date_str:
+        return JsonResponse({'error': 'No date provided'}, status=400)
+
+    authors, selected_date, valid_authors = get_valid_authors_for_date(selected_date_str)
+    if authors is None:
+        return JsonResponse({'error': selected_date}, status=400)
+
+    institute_dict = {}
+    latex_content = []
+    institute_lines = []
+
+    # Add warning for missing authors
+    missing_authors = get_missing_authors(valid_authors)
+    if missing_authors:
+        latex_content.append("% WARNING: Missing authors:\n")
+        latex_content.append("% " + ", ".join(missing_authors) + "\n\n")
+
+    # Start LaTeX document
+    latex_content.append("% MNRAS format\n")
+    latex_content.append(f"% Generated on {selected_date.strftime('%Y-%m-%d')}\n")
+
+    # Build and sort institutes for each author
+    all_institutes = {}
+    for author in authors:
+        affiliations = sorted(
+            author.institute_affiliations.all(),
+            key=lambda aff: aff.order  # Sort by 'order'
+        )
+        for affiliation in affiliations:
+            institute = affiliation.institute
+            if institute.name not in all_institutes:
+                all_institutes[institute.name] = institute
+
+    # Assign unique indices to institutes
+    for idx, institute in enumerate(all_institutes.values(), start=1):
+        institute_dict[institute.name] = idx
+        institute_lines.append(f"$^{idx}$ {{ {institute.long_description} }}\\\\")
+
+    # Generate author strings
+    author_lines = []
+    for author in authors:
+        affiliations = sorted(
+            author.institute_affiliations.all(),
+            key=lambda aff: aff.order  # Sort by 'order'
+        )
+        institute_indices = [institute_dict[aff.institute.name] for aff in affiliations]
+        indices_str = ",".join(map(str, institute_indices))
+        author_name = author.author_name.replace("  ", " ").replace(" ", "~")
+        author_lines.append(f"{author_name} $^{{{indices_str}}}$")
+
+    # Combine authors into the LaTeX structure
+    first_author = authors[0].author_name.replace("  ", " ").replace(" ", "~")
+    latex_content.append(f"\\author[{first_author}~et.~al.]{{\\parbox{{\\textwidth}}{{\\Large{{\n")
+    latex_content.append(",\n".join(author_lines))
+    latex_content.append("}}\\\\\n")
+
+    # Add sorted institutes
+    latex_content.append("\n".join(institute_lines))
+    latex_content.append("}")
+
+    # Finalize LaTeX document
+    response = HttpResponse("".join(latex_content), content_type="application/x-tex")
+    response['Content-Disposition'] = 'attachment; filename=LST_authors_MNRAS.tex'
+    return response
