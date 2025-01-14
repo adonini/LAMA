@@ -24,7 +24,10 @@ class Group(models.Model):
 
 class Institute(models.Model):
     name = models.CharField(max_length=150)
-    group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='institutes')
+    long_name = models.CharField(max_length=100)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='institutes', null=True, blank=True)
+    long_description = models.TextField(blank=True)
+    is_lst = models.BooleanField(default=True)  # Flag to indicate LST-specific institutes
 
     def __str__(self):
         return self.name
@@ -170,6 +173,44 @@ class Member(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
+
+
+class AuthorDetails(models.Model):
+    member = models.OneToOneField(Member, on_delete=models.CASCADE, related_name='author_details',
+                                  help_text="The member associated with this author information.")
+    author_name = models.CharField(max_length=150, blank=True,
+                                   help_text="Full author name as it appears in publications.")
+    author_name_given = models.CharField(max_length=80, blank=True,
+                                         help_text="Given name as it appears in publications.")
+    author_name_family = models.CharField(max_length=80, blank=True,
+                                          help_text="Family name as it appears in publications.")
+    author_email = models.EmailField(blank=True,
+                                     help_text="Email used for publications.")
+    orcid = models.CharField(max_length=25, blank=True)  # ORCID has 19 characters including hyphens
+
+    def __str__(self):
+        return f"Author Info: {self.member.name} {self.member.surname}"
+
+    def ordered_institutes(self):
+        """
+        Return the institutes in the specified order.
+        """
+        return [affiliation.institute for affiliation in self.institute_affiliations.all()]
+
+
+class AuthorInstituteAffiliation(models.Model):
+    author_details = models.ForeignKey('AuthorDetails', on_delete=models.CASCADE, related_name='institute_affiliations',
+                                       help_text="The author details associated with this institute.")
+    institute = models.ForeignKey('Institute', on_delete=models.CASCADE,
+                                  help_text="Institute affiliated with this author.")
+    order = models.PositiveIntegerField(help_text="The order in which the institute appears for the author.")
+
+    class Meta:
+        unique_together = ('author_details', 'institute')  # Prevent duplicates
+        ordering = ['order']  # Always return institutes in the specified order
+
+    def __str__(self):
+        return f"{self.institute.name} ({self.order})"
 
 
 class MemberDuty(models.Model):
