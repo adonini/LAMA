@@ -6,7 +6,7 @@ from .models import (Member, Institute, Group, Duty, Country, MemberDuty,
                      MembershipPeriod, AuthorshipPeriod, AuthorDetails,
                      AuthorInstituteAffiliation)
 from dateutil.relativedelta import relativedelta
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.views.generic import TemplateView
@@ -1106,6 +1106,97 @@ class AuthorRecord(LoginRequiredMixin, View):
                 'authorship_periods': authorship_periods,
             })
             return render(request, 'author_record.html', context)
+
+
+class ManageAuthor(LoginRequiredMixin, View):
+    def get(self, request, pk=None):
+        """Fetch and display existing author details."""
+        context = {
+            'page_title': "Manage Author",
+            'today': date.today(),
+            #'countries': Country.objects.all(),
+        }
+        institute_list = Institute.objects.all()
+        context['institute_list'] = sorted(institute_list, key=lambda x: x.name)
+        if pk:
+            # Retrieve and display a specific member if pk is provided
+            logger.debug(f"Received pk: {pk}")
+            try:
+                # Fetch the author details and affiliations
+                author_details = AuthorDetails.objects.get(member__id=pk)
+                logger.debug(f"AuthorDetails found: {author_details}")
+
+                context['author_details'] = author_details
+                context['member'] = author_details.member
+
+                affiliations = AuthorInstituteAffiliation.objects.filter(author_details=author_details).order_by('order')
+                context['affiliations'] = affiliations
+
+                # Set the edit flag
+                context['is_edit'] = True
+
+                return render(request, 'manage_author.html', context)
+            except AuthorDetails.DoesNotExist:
+                # Handle case where author details are not found
+                logger.error(f"AuthorDetails with pk {pk} not found.")
+                messages.error(request, "Author not found.")
+                return redirect('author_list')
+            except Exception as e:
+                # Log any unexpected exceptions
+                logger.exception(f"Error occurred while fetching AuthorDetails: {e}")
+                messages.error(request, "An unexpected error occurred.")
+                return redirect('author_list')
+        else:
+            # No pk, setting up for creating a new member
+            context['author_details'] = {}
+            context['is_edit'] = False  # Flag to indicate adding a new author
+            context['institute_list'] = Institute.objects.all()
+
+        return render(request, 'manage_author.html', context)
+
+
+class AddAuthor(View):
+    def get(self, request, pk=None):
+        """Render the form for editing an author's details."""
+        author_details = get_object_or_404(AuthorDetails, pk=pk) if pk else None
+        affiliations = (
+            [{"id": aff.institute.id, "name": aff.institute.name} for aff in author_details.affiliations.all()]
+            if author_details else []
+        )
+        context = {
+            'page_title': "Manage Author",
+            'author': author_details,
+            'author_details': author_details,
+            'affiliations': affiliations,
+        }
+        return render(request, 'manage_author.html', context)
+
+    def post(self, request, pk=None):
+        """Handle the submission of the form."""
+        try:
+            author_details = get_object_or_404(AuthorDetails, pk=pk)
+            data = request.POST
+
+            # Update basic author details
+            author_details.author_name = data.get('author_name')
+            author_details.author_name_given = data.get('author_name_given')
+            author_details.author_name_family = data.get('author_name_family')
+            author_details.author_email = data.get('author_email')
+            author_details.orcid = data.get('orcid')
+            author_details.save()
+
+            # Update affiliations
+            affiliations = data.getlist('affiliations[]', [])
+            author_details.affiliations.clear()  # Clear existing affiliations
+            for affiliation_name in affiliations:
+                institute = Institute.objects.filter(name=affiliation_name.strip()).first()
+                if institute:
+                    author_details.affiliations.add(institute)
+
+            messages.success(request, "Author details have been successfully updated.")
+            return JsonResponse({'status': 'success', 'message': "Author details updated successfully."})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
 
 
 def generate_aa_email(request):
