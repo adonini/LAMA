@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
-from .models import Member, Institute, Group, Duty, Country
+from .models import Member, Institute, Group, Duty, Country, AuthorDetails
 
 
 class LoginForm(AuthenticationForm):
@@ -54,6 +54,55 @@ class AddMemberForm(forms.ModelForm):
 
     def save(self, commit=True):
         instance = super(AddMemberForm, self).save(commit=False)
+        if commit:
+            instance.save()
+        return instance
+
+
+class AddAuthorDetailsForm(forms.ModelForm):
+    """
+    Form for managing author details, including optional fields for ORCID, email, and affiliations.
+    """
+    # Match the "name" attributes in the template
+    author_name = forms.CharField(
+        required=False,
+        max_length=150,
+        help_text="Full author name as it appears in publications.",
+        label="Full Name"  # Matches the label in the template
+    )
+    author_name_given = forms.CharField(
+        required=False,
+        max_length=80,
+        help_text="Given name as it appears in publications.",
+        label="Given Name"
+    )
+    author_name_family = forms.CharField(
+        required=False,
+        max_length=80,
+        help_text="Family name as it appears in publications.",
+        label="Family Name"
+    )
+    author_email = forms.EmailField(
+        required=False,
+        help_text="Email used for publications. Leave blank if not applicable.",
+        label="Email"
+    )
+    orcid = forms.CharField(
+        required=False,
+        max_length=25,
+        help_text="Enter the ORCID (19 characters including hyphens). Leave blank if not applicable.",
+        label="ORCID"
+    )
+
+    class Meta:
+        model = AuthorDetails
+        fields = ['author_name', 'author_name_given', 'author_name_family', 'author_email', 'orcid']
+
+    def save(self, commit=True):
+        """
+        Save the form instance, including any custom logic for related models.
+        """
+        instance = super().save(commit=False)
         if commit:
             instance.save()
         return instance
