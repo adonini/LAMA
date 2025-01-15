@@ -552,6 +552,11 @@ class AddMember(LoginRequiredMixin, View):
 
             # Step 2: Handle authorship if `is_author` is checked
             if is_author and not member.is_active_author():
+                # Ensure AuthorDetails is created if it doesn't exist
+                author_details, created = AuthorDetails.objects.get_or_create(member=member)
+                if created:
+                    logger.debug(f"Created new AuthorDetails for Member ID={member.id}")
+
                 authorship_period = AuthorshipPeriod.objects.create(
                     member=member,
                     start_date=new_membership.start_date + relativedelta(months=6)
@@ -561,6 +566,11 @@ class AddMember(LoginRequiredMixin, View):
     def handle_authorship_change(self, member, is_author, auth_start, auth_end):
         """Handle starting or stopping authorship."""
         if is_author and not member.is_active_author():
+            # Ensure AuthorDetails is created if it doesn't exist
+            author_details, created = AuthorDetails.objects.get_or_create(member=member)
+            if created:
+                logger.debug(f"Created new AuthorDetails for Member ID={member.id}")
+
             authorship_period = AuthorshipPeriod.objects.create(
                 member=member,
                 start_date=auth_start + relativedelta(months=6)
@@ -635,6 +645,11 @@ class AddMember(LoginRequiredMixin, View):
                                 start_date=start_date + relativedelta(months=6)
                             )
                             authorship_period.save()
+                            # Ensure AuthorDetails is created if it doesn't exist
+                            author_details, created = AuthorDetails.objects.get_or_create(member=member)
+                            if created:
+                                logger.debug(f"Created new AuthorDetails for Member ID={member.id}")
+
                             #logger.debug(f"AuthorshipPeriod successfully created for Member ID={new_member.id}")
                         except Exception as e:
                             logger.error(f"Failed to create AuthorshipPeriod for Member ID={new_member.id}: {e}")
