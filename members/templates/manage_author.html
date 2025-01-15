@@ -1,8 +1,9 @@
+{% load custom_filter %}
 <div class="container-fluid">
     <div class="err-msg"></div>
-    <form action="" id="author-form">
+    <form action="{% url 'add-author' %}" method="POST" id="author-form">
         {% csrf_token %}
-        <input type="hidden" name="id" value="{{ author.id }}">
+        <input type="hidden" name="id" value="{{ member.id }}">
         <!-- Author Details Section -->
         <div class="row">
             <!-- Left Column -->
@@ -59,11 +60,13 @@
         </div>
     </form>
 </div>
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script>
     $(document).ready(function() {
         let affiliationCount = {{ affiliations|length }};
         // Add new affiliation
         $('#add-affiliation').click(function () {
+            //console.log("Add affiliation clicked.");
             affiliationCount += 1;
             const newAffiliationField = `
                 <div class="form-group mb-3 d-flex align-items-center">
@@ -76,31 +79,34 @@
                     <button type="button" class="btn btn-danger btn-sm remove-affiliation me-2">Remove</button>
                 </div>`;
             $('#affiliations-list').append(newAffiliationField);
+            //console.log("New affiliation field added.");
         });
 
         // Remove affiliation
         $('#affiliations-list').on('click', '.remove-affiliation', function () {
+            //console.log("Remove affiliation clicked.");
             $(this).closest('.form-group').remove();
         });
 
         // Form submission
         $('#author-form').submit(function(e) {
+            // Temporarily remove e.preventDefault() to see if the form is being submitted
+            //console.log("Form submission triggered.");
             e.preventDefault();
-            var _this = $(this)
-            let form = new FormData($(this)[0])
+            var _this = $(this);
+            let form = new FormData($(this)[0]);
 
-            // Clear previous error messages
-            $('.err-msg').remove();
-            var el = $('<div>')
-            el.addClass("alert alert-danger err-msg")
-            el.hide()
 
             // Check if the form is valid
             if (_this[0].checkValidity() == false) {
                 _this[0].reportValidity();
                 return false;
+            } else {
+                console.log("Form is valid.");
             }
+
             start_loader();
+
             $.ajax({
                 url: "{% url 'add-author' %}",
                 data: form,
@@ -118,18 +124,21 @@
                     end_loader();
                 },
                 success: function(resp) {
+                    //console.log("AJAX success response:", resp);
                     if (resp.status === 'success') {
-                        // Success response
+                        //console.log("Form submission successful.");
                         el.removeClass("alert alert-danger err-msg").addClass("alert alert-success");
-                        el.text("Member successfully saved!");
+                        el.text("Author successfully saved!");
                         _this.prepend(el);
                         el.show('slow');
                         location.reload();  // Reload page on success
                     } else if (resp.status === 'failed' && resp.msg) {
+                        //console.log("Form submission failed. Message:", resp.msg);
                         el.html(resp.msg);
                         _this.prepend(el);
                         el.show('slow');
                     } else {
+                        //console.log("Unexpected response structure.");
                         el.text("An unexpected error occurred. Please try again.");
                         _this.prepend(el);
                         el.show('slow');
