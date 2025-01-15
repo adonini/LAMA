@@ -467,6 +467,7 @@
                 modalFooter.remove();  // This will completely remove the footer
             }
         })
+
         $(document).on('click', '.edit-data', function (e) {
             const id = e.target.dataset.id;
             const baseUrl = "{% url 'manage-member-pk' 0 %}";

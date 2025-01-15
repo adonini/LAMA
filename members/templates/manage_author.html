@@ -59,11 +59,9 @@
         </div>
     </form>
 </div>
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script>
     $(document).ready(function() {
         let affiliationCount = {{ affiliations|length }};
-
         // Add new affiliation
         $('#add-affiliation').click(function () {
             affiliationCount += 1;
@@ -88,19 +86,21 @@
         // Form submission
         $('#author-form').submit(function(e) {
             e.preventDefault();
-            var _this = $(this);
-            let form = new FormData(_this[0]);
+            var _this = $(this)
+            let form = new FormData($(this)[0])
 
-            // Clear error messages
+            // Clear previous error messages
             $('.err-msg').remove();
-            var el = $('<div>').addClass("alert alert-danger err-msg").hide();
+            var el = $('<div>')
+            el.addClass("alert alert-danger err-msg")
+            el.hide()
 
-            if (!_this[0].checkValidity()) {
+            // Check if the form is valid
+            if (_this[0].checkValidity() == false) {
                 _this[0].reportValidity();
                 return false;
             }
             start_loader();
-
             $.ajax({
                 url: "{% url 'add-author' %}",
                 data: form,
@@ -108,6 +108,8 @@
                 contentType: false,
                 processData: false,
                 method: 'POST',
+                type: 'POST',
+                dataType: 'json',
                 error: function(err) {
                     console.log("AJAX Error:", err);
                     el.text("An error occurred while processing the request. Please try again.");
@@ -117,10 +119,12 @@
                 },
                 success: function(resp) {
                     if (resp.status === 'success') {
-                        el.removeClass("alert alert-danger").addClass("alert alert-success").text("Member successfully saved!");
+                        // Success response
+                        el.removeClass("alert alert-danger err-msg").addClass("alert alert-success");
+                        el.text("Member successfully saved!");
                         _this.prepend(el);
                         el.show('slow');
-                        location.reload();
+                        location.reload();  // Reload page on success
                     } else if (resp.status === 'failed' && resp.msg) {
                         el.html(resp.msg);
                         _this.prepend(el);
