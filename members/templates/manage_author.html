@@ -1,0 +1,138 @@
+<div class="container-fluid">
+    <div class="err-msg"></div>
+    <form action="" id="author-form">
+        {% csrf_token %}
+        <input type="hidden" name="id" value="{{ author.id }}">
+        <!-- Author Details Section -->
+        <div class="row">
+            <!-- Left Column -->
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="author_name" class="control-label">Full Name</label>
+                    <input type="text" class="form-control rounded-0" id="author_name" name="author_name" value="{{ author_details.author_name }}" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="author_name_given" class="control-label">Given Name</label>
+                    <input type="text" class="form-control rounded-0" id="author_name_given" name="author_name_given" value="{{ author_details.author_name_given }}" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="author_email" class="control-label">Email</label>
+                    <input type="email" class="form-control rounded-0" id="author_email" name="author_email" value="{{ author_details.author_email }}" required>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="author_name_family" class="control-label">Family Name</label>
+                    <input type="text" class="form-control rounded-0" id="author_name_family" name="author_name_family" value="{{ author_details.author_name_family }}" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="orcid" class="control-label">ORCID</label>
+                    <input type="text" class="form-control rounded-0" id="orcid" name="orcid" value="{{ author_details.orcid }}">
+                </div>
+            </div>
+        </div>
+
+        <!-- Affiliations Section -->
+        <div class="row">
+            <div class="col-md-12">
+                <label class="control-label">Publishing Affiliations</label>
+                <div id="affiliations-list">
+                    {% for affiliation in affiliations %}
+                        <div class="form-group mb-3 d-flex align-items-center">
+                            <div class="dropdown-wrapper position-relative w-100">
+                                <select class="form-control rounded-0 me-2 dropdown-input" name="affiliations[]">
+                                    <option value="{{ affiliation.institute.id }}" selected>{{ affiliation.institute.name }}</option>
+                                    {% for institute in institute_list|dictsort:"name" %}
+                                        <option value="{{ institute.id }}">{{ institute.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <span class="dropdown-caret position-absolute end-0 me-3">&#9662;</span>
+                            </div>
+                            <button type="button" class="btn btn-danger btn-sm remove-affiliation me-2">Remove</button>
+                        </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" id="add-affiliation">Add Affiliation</button>
+            </div>
+        </div>
+    </form>
+</div>
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        let affiliationCount = {{ affiliations|length }};
+
+        // Add new affiliation
+        $('#add-affiliation').click(function () {
+            affiliationCount += 1;
+            const newAffiliationField = `
+                <div class="form-group mb-3 d-flex align-items-center">
+                    <select class="form-control rounded-0 me-2" name="affiliations[]">
+                        <option value="">Select an institute</option>
+                        {% for institute in institute_list|dictsort:"name" %}
+                            <option value="{{ institute.id }}">{{ institute.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="button" class="btn btn-danger btn-sm remove-affiliation me-2">Remove</button>
+                </div>`;
+            $('#affiliations-list').append(newAffiliationField);
+        });
+
+        // Remove affiliation
+        $('#affiliations-list').on('click', '.remove-affiliation', function () {
+            $(this).closest('.form-group').remove();
+        });
+
+        // Form submission
+        $('#author-form').submit(function(e) {
+            e.preventDefault();
+            var _this = $(this);
+            let form = new FormData(_this[0]);
+
+            // Clear error messages
+            $('.err-msg').remove();
+            var el = $('<div>').addClass("alert alert-danger err-msg").hide();
+
+            if (!_this[0].checkValidity()) {
+                _this[0].reportValidity();
+                return false;
+            }
+            start_loader();
+
+            $.ajax({
+                url: "{% url 'add-author' %}",
+                data: form,
+                cache: false,
+                contentType: false,
+                processData: false,
+                method: 'POST',
+                error: function(err) {
+                    console.log("AJAX Error:", err);
+                    el.text("An error occurred while processing the request. Please try again.");
+                    _this.prepend(el);
+                    el.show('slow');
+                    end_loader();
+                },
+                success: function(resp) {
+                    if (resp.status === 'success') {
+                        el.removeClass("alert alert-danger").addClass("alert alert-success").text("Member successfully saved!");
+                        _this.prepend(el);
+                        el.show('slow');
+                        location.reload();
+                    } else if (resp.status === 'failed' && resp.msg) {
+                        el.html(resp.msg);
+                        _this.prepend(el);
+                        el.show('slow');
+                    } else {
+                        el.text("An unexpected error occurred. Please try again.");
+                        _this.prepend(el);
+                        el.show('slow');
+                    }
+                    end_loader();
+                }
+            });
+        });
+    });
+</script>
