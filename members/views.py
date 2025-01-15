@@ -1,7 +1,7 @@
 import json
 import logging
 from datetime import date, datetime, timedelta
-from .forms import LoginForm, AddMemberForm
+from .forms import LoginForm, AddMemberForm, AddAuthorDetailsForm
 from .models import (Member, Institute, Group, Duty, Country, MemberDuty,
                      MembershipPeriod, AuthorshipPeriod, AuthorDetails,
                      AuthorInstituteAffiliation)
@@ -1139,7 +1139,7 @@ class ManageAuthor(LoginRequiredMixin, View):
             try:
                 # Fetch the author details and affiliations
                 author_details = AuthorDetails.objects.get(member__id=pk)
-                logger.debug(f"AuthorDetails found: {author_details}")
+                #logger.debug(f"AuthorDetails found: {author_details}")
 
                 context['author_details'] = author_details
                 context['member'] = author_details.member
@@ -1166,52 +1166,69 @@ class ManageAuthor(LoginRequiredMixin, View):
             context['author_details'] = {}
             context['is_edit'] = False  # Flag to indicate adding a new author
             context['institute_list'] = Institute.objects.all()
-
         return render(request, 'manage_author.html', context)
 
 
 class AddAuthor(View):
-    def get(self, request, pk=None):
+    def get(self, request):
         """Render the form for editing an author's details."""
-        author_details = get_object_or_404(AuthorDetails, pk=pk) if pk else None
-        affiliations = (
-            [{"id": aff.institute.id, "name": aff.institute.name} for aff in author_details.affiliations.all()]
-            if author_details else []
-        )
         context = {
             'page_title': "Manage Author",
-            'author': author_details,
-            'author_details': author_details,
-            'affiliations': affiliations,
+            'today': date.today(),
         }
         return render(request, 'manage_author.html', context)
 
     def post(self, request, pk=None):
         """Handle the submission of the form."""
-        try:
-            author_details = get_object_or_404(AuthorDetails, pk=pk)
-            data = request.POST
+        resp = {'status': 'failed', 'msg': ''}
+        if request.method == 'POST':
+            logger.debug("POST data")
+            #author_details = get_object_or_404(AuthorDetails, pk=pk) if pk else None
+            author_details = AuthorDetails.objects.get(member__id=pk)
+            logger.debug(f"AuthorDetails: {author_details}")
+            form = AddAuthorDetailsForm(request.POST, instance=author_details)
+            logger.debug(f"POST data: {request.POST}")
+            if form.is_valid():
+                logger.info(f"Form is valid. Data: {form.cleaned_data}")
 
-            # Update basic author details
-            author_details.author_name = data.get('author_name')
-            author_details.author_name_given = data.get('author_name_given')
-            author_details.author_name_family = data.get('author_name_family')
-            author_details.author_email = data.get('author_email')
-            author_details.orcid = data.get('orcid')
-            author_details.save()
+                # Save the AuthorDetails instance first
+                author_details = form.save()
+                #author_details.save()
 
-            # Update affiliations
-            affiliations = data.getlist('affiliations[]', [])
-            author_details.affiliations.clear()  # Clear existing affiliations
-            for affiliation_name in affiliations:
-                institute = Institute.objects.filter(name=affiliation_name.strip()).first()
-                if institute:
-                    author_details.affiliations.add(institute)
+                # Handle updating affiliations if provided
+                affiliations = request.POST.getlist('affiliations[]', [])
+                logger.debug(f"Affiliations to be updated: {affiliations}")
 
-            messages.success(request, "Author details have been successfully updated.")
-            return JsonResponse({'status': 'success', 'message': "Author details updated successfully."})
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)})
+                if affiliations:
+                    # Clear existing affiliations
+                    author_details.affiliations.clear()
+
+                    for i, affiliation_name in enumerate(affiliations):
+                        institute = Institute.objects.filter(name=affiliation_name.strip()).first()
+                        if institute:
+                            # Create or update the affiliation
+                            affiliation, created = AuthorInstituteAffiliation.objects.get_or_create(
+                                author_details=author_details,
+                                institute=institute,
+                                defaults={'order': i + 1}
+                            )
+                            if not created:
+                                affiliation.order = i + 1
+                                affiliation.save()
+                            affiliation.save()
+                author_details.save()
+                resp = {'status': 'success'}
+                messages.success(request, "Author details updated successfully.")
+            else:
+                # Log and return form errors
+                logger.error(f"Form is invalid. Errors: {form.errors}")
+                logger.error(f"Form is invalid. Errors: {form.errors.as_json()}")
+                resp['msg'] = '<br>'.join(
+                    [f"{field.label}: {', '.join(errors)}" for field, errors in form.errors.items()]
+                )
+        else:
+            resp['msg'] = 'No data has been sent.'
+        return HttpResponse(json.dumps(resp), content_type='application/json')
 
 
 def generate_aa_email(request):
