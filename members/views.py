@@ -1169,11 +1169,11 @@ class ManageAuthor(LoginRequiredMixin, View):
         return render(request, 'manage_author.html', context)
 
 
-class AddAuthor(View):
+class AddAuthor(LoginRequiredMixin, View):
     def get(self, request):
         """Render the form for editing an author's details."""
         context = {
-            'page_title': "Manage Author",
+            'page_title': "Add Author",
             'today': date.today(),
         }
         return render(request, 'manage_author.html', context)
@@ -1182,18 +1182,16 @@ class AddAuthor(View):
         """Handle the submission of the form."""
         resp = {'status': 'failed', 'msg': ''}
         if request.method == 'POST':
-            logger.debug("POST data")
-            #author_details = get_object_or_404(AuthorDetails, pk=pk) if pk else None
-            author_details = AuthorDetails.objects.get(member__id=pk)
-            logger.debug(f"AuthorDetails: {author_details}")
+            member_id = request.POST.get('id')
+            member = Member.objects.get(id=member_id)
+            author_details = AuthorDetails.objects.get(member=member)
             form = AddAuthorDetailsForm(request.POST, instance=author_details)
-            logger.debug(f"POST data: {request.POST}")
+            #logger.debug(f"POST data: {request.POST}")
             if form.is_valid():
                 logger.info(f"Form is valid. Data: {form.cleaned_data}")
 
                 # Save the AuthorDetails instance first
                 author_details = form.save()
-                #author_details.save()
 
                 # Handle updating affiliations if provided
                 affiliations = request.POST.getlist('affiliations[]', [])
@@ -1201,10 +1199,10 @@ class AddAuthor(View):
 
                 if affiliations:
                     # Clear existing affiliations
-                    author_details.affiliations.clear()
+                    author_details.institute_affiliations.all().delete()  # Deletes all related AuthorInstituteAffiliation objects
 
-                    for i, affiliation_name in enumerate(affiliations):
-                        institute = Institute.objects.filter(name=affiliation_name.strip()).first()
+                    for i, affiliation_id in enumerate(affiliations):
+                        institute = Institute.objects.filter(id=affiliation_id.strip()).first()  # Use ID for lookup
                         if institute:
                             # Create or update the affiliation
                             affiliation, created = AuthorInstituteAffiliation.objects.get_or_create(
@@ -1215,10 +1213,11 @@ class AddAuthor(View):
                             if not created:
                                 affiliation.order = i + 1
                                 affiliation.save()
-                            affiliation.save()
+
                 author_details.save()
                 resp = {'status': 'success'}
                 messages.success(request, "Author details updated successfully.")
+                return redirect('author_list')
             else:
                 # Log and return form errors
                 logger.error(f"Form is invalid. Errors: {form.errors}")
