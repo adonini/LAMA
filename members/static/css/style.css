@@ -668,3 +668,22 @@ button>p{
     color: black;
     border: 1px solid black;
 }
+
+.dropdown-wrapper {
+    position: relative;
+}
+
+.dropdown-input {
+    appearance: none; /* Removes default dropdown styling */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding-right: 2rem; /* Ensures space for the caret */
+}
+
+.dropdown-caret {
+    pointer-events: none;
+    font-size: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d; /* Gray color for the caret */
+}
