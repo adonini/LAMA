@@ -197,6 +197,9 @@ class AuthorDetails(models.Model):
         """
         return [affiliation.institute for affiliation in self.institute_affiliations.all()]
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
 
 class AuthorInstituteAffiliation(models.Model):
     author_details = models.ForeignKey('AuthorDetails', on_delete=models.CASCADE, related_name='institute_affiliations',
@@ -211,6 +214,9 @@ class AuthorInstituteAffiliation(models.Model):
 
     def __str__(self):
         return f"{self.institute.name} ({self.order})"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
 
 
 class MemberDuty(models.Model):
