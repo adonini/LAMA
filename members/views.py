@@ -521,8 +521,8 @@ class AddMember(LoginRequiredMixin, View):
 
     def handle_membership_change(self, member, is_stopping_membership, is_author, end_date, start_date, institute_id):
         """Handle stopping or restarting membership."""
+        current_membership = member.current_membership(include_inactive=False)
         if is_stopping_membership:
-            current_membership = member.current_membership(include_inactive=False)
             if current_membership:
                 # Step 1: End the current membership
                 current_membership.end_date = end_date
@@ -540,9 +540,16 @@ class AddMember(LoginRequiredMixin, View):
                 if future_authorship:
                     future_authorship.end_date = end_date + relativedelta(months=6)
                     future_authorship.save()
-        else:  # Restart membership
+        else:  # Restart or adjust membership
+            if current_membership:
+                logger.debug(f"Current membership exists for Member ID={member.id}")
+                # Check if the start_date has changed
+                if current_membership.start_date != start_date:
+                    current_membership.start_date = start_date
+                    logger.debug(f"Updated start date {current_membership.start_date}")
+                    current_membership.save()
             # Step 1: Create a new membership if no active one exists
-            if not member.current_membership(include_inactive=False):
+            else:
                 new_membership = MembershipPeriod.objects.create(
                     member=member,
                     start_date=start_date,
@@ -623,8 +630,10 @@ class AddMember(LoginRequiredMixin, View):
                     institute_changed = self.handle_institute_change(member, institute_id, is_author, start_date)
                     # Handle case 2: Stopping membership
                     # Check if membership has changed
+                    current_membership = member.current_membership(include_inactive=False)
                     is_stopping_membership = end_date is not None and member.is_active_member()
-                    membership_changed = not institute_changed and is_stopping_membership
+                    start_date_changed = (current_membership and current_membership.start_date != start_date)
+                    membership_changed = not institute_changed and (is_stopping_membership or start_date_changed)
                     if membership_changed:
                         self.handle_membership_change(member, is_stopping_membership, is_author, end_date, start_date, institute_id)
                     # Handle case 3: Stopping or starting authorship
