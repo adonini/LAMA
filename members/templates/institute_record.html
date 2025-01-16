@@ -1,0 +1,31 @@
+{% load humanize %}
+{% load custom_filter %}
+
+<div class="mb-4">
+    <ul class="list-unstyled">
+        <li class="mb-3">
+            <strong class="text-dark fw-bold">Name</strong>
+            <p class="text-muted">{{ institute.name|default:"-" }}</p>
+        </li>
+        <li class="mb-3">
+            <strong class="text-dark fw-bold">Long Name</strong>
+            <p class="text-muted">{{ institute.long_name|default:"-" }}</p>
+        </li>
+        <li class="mb-3">
+            <strong class="text-dark fw-bold">Group</strong>
+            <p class="text-muted">{{ institute.group.name|default:"-" }}</p>
+        </li>
+        <li class="mb-3">
+            <strong class="text-dark fw-bold">Country</strong>
+            <p class="text-muted">{{ institute.group.country.name|default:"-" }}</p>
+        </li>
+        <li class="mb-3">
+            <strong class="text-dark fw-bold">Official Institute</strong>
+            <p class="text-muted">{{ institute.is_lst|yesno:"Yes,No" }}</p>
+        </li>
+        <li class="mb-3">
+            <strong class="text-dark fw-bold">Description</strong>
+            <p class="text-muted">{{ institute.long_description|default:"-" }}</p>
+        </li>
+    </ul>
+</div>

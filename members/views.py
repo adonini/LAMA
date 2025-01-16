@@ -6,7 +6,7 @@ from .models import (Member, Institute, Group, Duty, Country, MemberDuty,
                      MembershipPeriod, AuthorshipPeriod, AuthorDetails,
                      AuthorInstituteAffiliation)
 from dateutil.relativedelta import relativedelta
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.views.generic import TemplateView
@@ -111,8 +111,7 @@ def calculate_averages(queryset, date_field, year, current_year, current_month):
     for month in months:
         count = queryset.filter(**{f"{date_field}__lte": datetime(year, month, 15)}) \
             .filter(
-                Q(membership_periods__end_date__isnull=True) | 
-                Q(membership_periods__end_date__gt=datetime(year, month, 15))
+                Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=datetime(year, month, 15))
             ).distinct().count()
 
         #logger.debug(f"Year: {year}, Month: {month}, Active Members Count: {count}")
@@ -336,10 +335,7 @@ class MemberList(LoginRequiredMixin, View):
             )
 
             # Adjusted logic for CF contribution
-            is_cf = (
-                is_author
-                or will_become_author  # Consider members who will become authors in the next 6 months
-            ) and (
+            is_cf = (is_author or will_become_author) and (  # Consider members who will become authors in the next 6 months
                 authorship_period.start_date <= six_months_future
                 and (authorship_period.end_date is None or authorship_period.end_date > six_months_future)
             )
@@ -755,8 +751,7 @@ class Statistics(TemplateView):
         #####################################################
         # Filter members whose membership is currently active as of today (used in table and cards)
         total_members = Member.objects.filter(
-            Q(membership_periods__end_date__isnull=True) |
-            Q(membership_periods__end_date__gt=today),
+            Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=today),
             membership_periods__start_date__lte=today
         ).distinct().count()
 
@@ -1778,3 +1773,30 @@ class InstituteList(LoginRequiredMixin, View):
         }
         return render(request, 'institute_list.html', context)
 
+
+class InstituteRecord(LoginRequiredMixin, View):
+    def get(self, request, pk=None):
+        context = {}
+        context['page_title'] = 'Institute Information'
+
+        if pk is None:
+            messages.error(request, "Institute ID is not recognized")
+            return redirect('institute_list')  # Adjust 'institute_list' to your relevant URL name
+
+        try:
+            institute = Institute.objects.get(id=pk)
+        except Institute.DoesNotExist:
+            messages.error(request, "Institute not found")
+            return redirect('institute_list')  # Adjust 'institute_list' to your relevant URL name
+
+        # Get the related group and country information
+        group = institute.group if institute.group else None
+        country = group.country if group else None
+
+        # Add to context the institute details along with the group and country information
+        context.update({
+            'institute': institute,
+            'group': group,
+            'country': country,
+        })
+        return render(request, 'institute_record.html', context)
