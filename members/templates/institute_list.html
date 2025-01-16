@@ -1,0 +1,357 @@
+{% extends 'login/base.html' %}
+
+{% block content %}
+{% load custom_filter %}
+{% load humanize %}
+<div class="container-fluid">
+    <div class="header position-relative d-flex align-items-center">
+        <div class="d-flex align-items-center w-100 mt-0 mb-2">
+            {% if user|has_group:"admin" %}
+            <div class="tools">
+                <button type="button" class="btn-new-member" id='add_inst'><i class="fa fa-plus"></i> New Institute</button>
+            </div>
+            {% endif %}
+            <!-- Switch for Show Active Members/Show All Members -->
+            <div class="d-flex align-items-center ms-3">
+                <div class="custom-switch d-flex align-items-center">
+                    <input type="checkbox" id="toggleShowAll" class="custom-control-input" {% if show_all %}checked{% endif %}>
+                    <label class="custom-control-label mb-0" for="toggleShowAll"></label>
+                </div>
+                <span class="ml-2 switch-text">Include Unofficial Institutes</span>
+            </div>
+        </div>
+    </div>
+    <div class="body">
+        <div class="table-wrapper">
+            <table class="table table-sm table-hover" id="institute-list">
+                <thead>
+                    <tr>
+                        <th class="text-center dark-text">#</th>
+                        <th class="text-center dark-text">Institute Name</th>
+                        <th class="text-center dark-text">Long Name</th>
+                        <th class="text-center dark-text">Group</th>
+                        <th class="text-center dark-text">Country</th>
+                        <th class="text-center dark-text">Official</th>
+                        <th class="text-center dark-text">Long Description</th>
+                        <th class="text-center dark-text">{% if user|has_group:"admin" %} Actions {% else %} Details {% endif %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for institute in institutes %}
+                    <tr>
+                        <td class="align-center text-center light-text">{{ forloop.counter }}</td>
+                        <td class="align-center text-center light-text">{{ institute.name|default:"-" }}</td>
+                        <td class="align-center text-center light-text">{{ institute.long_name|default:"-" }}</td>
+                        <td class="align-center text-center light-text">
+                            {% if institute.group %}
+                                {{ institute.group.name }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td class="align-center text-center light-text">{{ institute.country_name }}</td>
+                        <td class="align-center text-center light-text">
+                            {% if institute.is_lst %}
+                                Yes
+                            {% else %}
+                                No
+                            {% endif %}
+                        </td>
+                        <td class="align-center text-center light-text">{{ institute.long_description|default:"-" }}</td>
+                        <td class="align-center text-center light-text d-flex flex-wrap justify-content-around">
+                            <div class="d-flex">
+                                {% if user|has_group:"admin" %}
+                                    <button class="btn btn-sm selected edit-data" data-id="{{ institute.pk }}" title="Edit Institute">
+                                        <i class="fa-solid fa-edit fa-2xl"></i>
+                                    </button>
+                                {% endif %}
+                                <button type="button" class="btn btn-bg-dark btn-sm item-data {% if user|has_group:'admin' %}ms-1 {% endif %}" data-id="{{ institute.pk }}" title="Institute information">
+                                    <i class="fa-solid fa-info-circle fa-2xl"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+{% block ScriptBlock %}
+<script>
+    let institutes = {{ institutes|safe }};
+    let groups = {{ groups|safe }};
+    let countries = {{ countries|safe }};
+    let filters = {{ filters|safe }};
+    //console.log(institutes);
+    $(function() {
+        document.getElementById('toggleShowAll').addEventListener('change', function() {
+            // Get the current state of the checkbox (checked or not)
+            const showAll = this.checked;
+            // Update the URL with the show_all query parameter
+            const url = new URL(window.location.href);
+            url.searchParams.set('show_all', showAll ? 'true' : 'false'); // 'true' if checked, 'false' if unchecked
+            // Reload the page with the new URL
+            window.location.href = url.toString();
+        });
+        //remove the default 'Search' text for all DataTable search boxes
+        $.extend(true, $.fn.dataTable.defaults, {
+            language: {
+                search: ""
+            }
+        });
+        let table = $('#institute-list').DataTable({
+            responsive: true,
+            scrollX: true, // Only the table itself will scroll horizontally
+            dom: '<"top1"<"top1Start"f><"top1End"B>>t<"bottom"<"bottomStart"i><"bottomCenter"l><"bottomEnd"p>>',
+            buttons: [{extend: 'copy', exportOptions: {columns: ':not(:last-child)'} // Exclude the last column (Actions/Details)
+                },
+                {extend: 'csv', exportOptions: {columns: ':not(:last-child)'}
+                },
+                {extend: 'excel',exportOptions: {columns: ':not(:last-child)'}
+                },
+                {extend: 'print',exportOptions: {columns: ':not(:last-child)'}
+                }
+            ],
+            order: [[1, 'asc']], // Default sorting by Institute Name (column index 1) in ascending order
+            columnDefs: [
+                { orderable: false, targets: [0, 6, 7] }, // Disable ordering for specific columns
+                {targets: 0, searchable: false,
+                    render: function(data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1; // Row numbering
+                    }
+                },
+            ],
+            drawCallback: function(settings) {
+                let api = this.api();
+                api.rows({ page: 'current' }).every(function(rowIdx, tableLoop, rowLoop) {
+                    $('td:eq(0)', this.node()).html(rowLoop + 1); // Update row numbers
+                });
+            }
+        });
+
+        // Define custom filter elements and behavior
+        let data = table.data().toArray()
+        let filterLabels = ['Country: ', 'Group: ', 'Institute: '];
+        let mainDiv = document.querySelector('.top1Start');
+        let generalDiv = document.createElement('div');
+        generalDiv.classList.add('d-flex', 'flex-wrap');
+        mainDiv.classList.add('filters');
+        let countryDropdown, groupDropdown, instituteDropdown; // Variables to store dropdowns
+
+        // Create a container for Country, Group, and Institute filters
+        let filtersContainer = document.createElement('div');
+        filtersContainer.classList.add('d-flex', 'flex-wrap');
+
+        // Helper function to update options dynamically
+        function updateDropdown(dropdown, options, selectedValue) {
+            dropdown.innerHTML = ''; // Clear existing options
+            // Sort options alphabetically
+            options.sort((a, b) => a.localeCompare(b));
+            // If there's only one option, select it automatically
+            if (options.length === 1) {
+                let opt = document.createElement('option');
+                opt.value = options[0];
+                opt.textContent = options[0];
+                opt.selected = true;
+                dropdown.appendChild(opt);
+            } else {
+                let defaultOption = document.createElement('option');
+                defaultOption.value = 'All';
+                defaultOption.textContent = 'All';
+                dropdown.appendChild(defaultOption);
+                // Add options
+                options.forEach(option => {
+                    let opt = document.createElement('option');
+                    opt.value = option;
+                    opt.textContent = option;
+                    // Maintain the selected value if it's available in the options
+                    if (option === selectedValue) {
+                        opt.selected = true;
+                    }
+                    dropdown.appendChild(opt);
+                });
+            }
+        }
+
+        // Update other dropdowns based on current selections
+        function updateFilters(triggeredBy) {
+            let selectedCountry = countryDropdown.value;
+            let selectedGroup = groupDropdown.value;
+            let selectedInstitute = instituteDropdown.value;
+
+            let validCountries = new Set();
+            let validGroups = new Set();
+            let validInstitutes = new Set();
+
+            // Calculate valid options based on the selections
+            for (let country in filters) {
+                let countryData = filters[country];
+                let countryGroups = countryData.groups;
+
+                for (let group in countryGroups) {
+                    let groupInstitutes = countryGroups[group];
+                    let matchesCountry = selectedCountry === 'All' || selectedCountry === country;
+                    let matchesGroup = selectedGroup === 'All' || selectedGroup === group;
+                    let matchesInstitute = selectedInstitute === 'All' || groupInstitutes.includes(selectedInstitute);
+
+                    // If the combination matches, add to the valid lists
+                    if (matchesCountry && matchesGroup && matchesInstitute) {
+                        validCountries.add(country);
+                        validGroups.add(group);
+                        groupInstitutes.forEach(institute => validInstitutes.add(institute));
+                    }
+                }
+            }
+
+            // Convert Sets to Arrays for dropdown updates
+            validCountries = Array.from(validCountries);
+            validGroups = Array.from(validGroups);
+            validInstitutes = Array.from(validInstitutes);
+
+            // Update dropdowns based on valid options
+            if (triggeredBy !== 'country') updateDropdown(countryDropdown, validCountries, selectedCountry);
+            if (triggeredBy !== 'group') updateDropdown(groupDropdown, validGroups, selectedGroup);
+
+            // Show only the selected institute if one is chosen
+            if (selectedInstitute !== 'All' && triggeredBy === 'institute') {
+                updateDropdown(instituteDropdown, [selectedInstitute], selectedInstitute);
+            } else {
+                if (triggeredBy !== 'institute') updateDropdown(instituteDropdown, validInstitutes, selectedInstitute);
+            }
+
+            // Apply filters to the table
+            table.column(4).search(selectedCountry !== 'All' ? selectedCountry : '').draw();
+            table.column(3).search(selectedGroup !== 'All' ? selectedGroup : '').draw();
+            table.column(1).search(selectedInstitute !== 'All' ? selectedInstitute : '').draw();
+        }
+
+        for (let label of filterLabels) {
+            let divInput = document.createElement('div');
+            divInput.classList.add('filterInput');
+            divInput.style.marginTop = '5px';
+
+            let input = document.createElement('select');
+            input.classList.add('rounded-pill', 'form-select');
+            let defaultOption = document.createElement('option');
+            defaultOption.appendChild(document.createTextNode('All'));
+            input.appendChild(defaultOption);
+
+            // Filter by Country
+            if (label.toLowerCase().includes('country')) {
+                countryDropdown = input;
+                input.addEventListener('change', () => updateFilters('country'));
+                // Populate with all countries initially
+                for (let country in filters) {
+                    let option = document.createElement('option');
+                    option.value = country;
+                    option.appendChild(document.createTextNode(country));
+                    input.appendChild(option);
+                }
+                filtersContainer.appendChild(divInput);
+            }
+
+            // Filter by Group
+            if (label.toLowerCase().includes('group')) {
+                groupDropdown = input;
+                input.addEventListener('change', () => updateFilters('group'));
+                // Initially empty; will be populated dynamically
+                filtersContainer.appendChild(divInput);
+            }
+
+            // Filter by Institute
+            if (label.toLowerCase().includes('institute')) {
+                instituteDropdown = input;
+                input.addEventListener('change', () => updateFilters('institute'));
+                // Initially empty; will be populated dynamically
+                filtersContainer.appendChild(divInput);
+            }
+
+            // Set up the label and input for each filter
+            let inputLabel = document.createElement('label');
+            inputLabel.appendChild(document.createTextNode(label));
+            inputLabel.setAttribute('for', label);
+            divInput.appendChild(inputLabel);
+            divInput.appendChild(input);
+        }
+
+        // Append the other filters container
+        mainDiv.appendChild(filtersContainer);
+
+        // Initialize dropdowns with valid options
+        updateFilters();
+
+        let top1End = document.querySelector('.top1End');
+        let clearFilterButton = document.createElement('div');
+        clearFilterButton.classList.add('btn', 'btn-clear', 'rounded-xl');
+        clearFilterButton.appendChild(document.createTextNode('Clear filters'));
+        clearFilterButton.addEventListener('click', function() {
+            let inputs = document.querySelectorAll('.filterInput > select');
+
+            // Reset all dropdowns to "All"
+            inputs.forEach(input => {
+                input.value = 'All';
+            });
+
+            // Sequentially update filters
+            updateFilters('country'); // Reset country
+            updateFilters('group');   // Reset group
+            updateFilters('institute'); // Reset institute explicitly
+
+            // Force repopulation of the institute dropdown
+            updateDropdown(instituteDropdown, Array.from(new Set(Object.values(filters).flatMap(country => {
+                return Object.values(country.groups).flat();
+            }))), 'All');
+
+            // Clear any custom searches on the table
+            table.search('').draw();
+        });
+        top1End.appendChild(clearFilterButton);
+
+        // Custom Search placeholders and Clear Filter button
+        $('[type=search]').each(function () {
+            $(this).attr("placeholder", "Search...");
+            $(this).attr("autocomplete", "off");
+            $(this).before('<span class="fa fa-search"></span>');
+        });
+        $(document).on('click', '.item-data', function(e) {
+            let id = e.target.dataset.id
+            let baseUrl = "{% url 'institute-record' 0 %}";
+            let finalUrl = baseUrl.replace('0', id);
+
+            // Create header for the modal
+            let headerDiv = document.createElement('div')
+            headerDiv.classList.add("modal-header", "d-flex", "align-items-center", "justify-content-between", "border-0")
+
+            // Title of the modal with icon
+            let titleDiv = document.createElement('div');
+            titleDiv.classList.add('d-flex', 'align-items-center');
+            let addIcon = document.createElement('i');
+            addIcon.classList.add('fa-solid', 'fa-circle-info', 'me-2');
+            let title = document.createElement('h5');
+            title.classList.add('modal-title', 'dark-text', 'm-0');
+            title.innerText = "Institute Information";
+            titleDiv.appendChild(addIcon);
+            titleDiv.appendChild(title);
+
+            // Close button for the modal header
+            let closeButton = document.createElement('button');
+            closeButton.classList.add('btn-close', 'btn-close1');
+            closeButton.setAttribute('data-bs-dismiss', 'modal');
+            closeButton.setAttribute('aria-label', 'Close');
+            headerDiv.appendChild(titleDiv);
+            headerDiv.appendChild(closeButton);
+
+            // Open the modal
+            uni_modal(headerDiv, finalUrl, 'modal-md')
+
+            // Completely remove the footer from the modal
+            let modalFooter = document.querySelector('.modal-footer');
+            if (modalFooter) {
+                modalFooter.remove();  // This will completely remove the footer
+            }
+        })
+    });
+</script>
+{% endblock ScriptBlock %}

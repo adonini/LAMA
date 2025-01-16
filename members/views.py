@@ -1719,3 +1719,62 @@ def generate_science(request):
     response = HttpResponse("".join(latex_content), content_type="application/x-tex")
     response['Content-Disposition'] = 'attachment; filename=LST_authors_Science.tex'
     return response
+
+
+class InstituteList(LoginRequiredMixin, View):
+    def get(self, request):
+        # Fetch institutes with related group and country
+        institutes = Institute.objects.select_related('group__country').all()
+
+        # Optional filtering based on the LST flag
+        show_all = request.GET.get('show_all', 'false').lower() == 'true'
+        # Filter out non-LST institutes if show_all is False
+        if not show_all:
+            institutes = institutes.filter(is_lst=True)
+
+        institute_list = []
+
+        for institute in institutes:
+            # Extract related data (group and country)
+            group_name = institute.group.name if institute.group else 'No Group'
+            country_name = institute.group.country.name if institute.group and institute.group.country else 'No Country'
+
+            # Add the institute details to the list
+            institute_list.append({
+                'pk': institute.pk,
+                'name': institute.name,
+                'long_name': institute.long_name,
+                'group_name': group_name,
+                'country_name': country_name,
+                'long_description': institute.long_description,
+                'is_lst': "Yes" if institute.is_lst else "No",
+            })
+
+        # Data for the filters (countries, groups, institutes)
+        countries = Country.objects.prefetch_related('groups__institutes').order_by('name')
+        filters_data = {
+            country.name: {
+                "groups": {
+                    group.name: list(
+                        group.institutes.values_list('name', flat=True)
+                        if show_all else
+                        group.institutes.filter(is_lst=True).values_list('name', flat=True)
+                    )
+                    for group in country.groups.all()
+                }
+            }
+            for country in countries
+        }
+
+        context = {
+            'page_title': 'Institute List',
+            'institutes': institute_list,
+            'institute_data': json.dumps(institute_list),
+            'groups': list(Group.objects.order_by('name').values('id', 'name')),
+            'countries': list(Country.objects.order_by('name').values('id', 'name')),
+            'filters': filters_data,
+            'current_date': timezone.now().strftime('%B %d, %Y'),
+            'show_all': show_all,
+        }
+        return render(request, 'institute_list.html', context)
+
