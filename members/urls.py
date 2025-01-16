@@ -33,4 +33,6 @@ urlpatterns = [
     path('export-pos/', views.generate_pos, name='export_pos'),
     path('export-nature/', views.generate_nature, name='export_nature'),
     path('export-science/', views.generate_science, name='export_science'),
+    path('institutes/', views.InstituteList.as_view(), name='institute_list'),
+    path('institutes/<int:pk>/', views.InstituteRecord.as_view(), name='institute-record'),
 ]
