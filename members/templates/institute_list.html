@@ -352,6 +352,64 @@
                 modalFooter.remove();  // This will completely remove the footer
             }
         })
+
+        $('#add_inst').click(function() {
+            // Create the header for the modal
+            const headerDiv = document.createElement('div');
+            headerDiv.classList.add("modal-header", "d-flex", "align-items-center", "justify-content-between", "border-0");
+
+            // Title of the modal with icon
+            const titleDiv = document.createElement('div');
+            titleDiv.classList.add('d-flex', 'align-items-center');
+            const addIcon = document.createElement('i');
+            addIcon.classList.add('fa', 'fa-plus', 'me-2');
+            const title = document.createElement('h5');
+            title.classList.add('modal-title', 'dark-text', 'm-0');
+            title.innerText = "New Institute";
+            titleDiv.appendChild(addIcon);
+            titleDiv.appendChild(title);
+
+            // Close button for the modal header
+            const closeButton = document.createElement('button');
+            closeButton.classList.add('btn-close', 'btn-close1');
+            closeButton.setAttribute('data-bs-dismiss', 'modal');
+            closeButton.setAttribute('aria-label', 'Close');
+            headerDiv.appendChild(titleDiv);
+            headerDiv.appendChild(closeButton);
+
+            // Open the modal with the header content
+            uni_modal(headerDiv, '{% url "add-institute" %}', 'modal-md');
+
+            // Event listener to ensure the modal is shown before accessing the dropdown
+            $('#uni_modal').on('shown.bs.modal', function () {
+                // Ensure the footer is cleared and prepared
+                const modalFooter = document.querySelector('.modal-footer');
+                if (modalFooter) {
+                    modalFooter.innerHTML = ''; // Clear the footer
+
+                    // Create and append the "Save" button to the footer
+                    const saveButton = document.createElement('button');
+                    saveButton.classList.add('btn', 'selected', 'edit');
+
+                    const saveIcon = document.createElement('i');
+                    saveIcon.classList.add('fa-solid', 'fa-check', 'me-2');
+
+                    const saveText = document.createTextNode('Save');
+                    saveButton.appendChild(saveIcon);
+                    saveButton.appendChild(saveText);
+
+                    // Handle form submission when Save is clicked
+                    saveButton.addEventListener('click', function () {
+                        $('#uni_modal form').submit();
+                    });
+
+                    // Append the Save button to the modal footer
+                    modalFooter.appendChild(saveButton);
+                } else {
+                    console.error('Modal footer not found.');
+                }
+            });
+        });
     });
 </script>
 {% endblock ScriptBlock %}
