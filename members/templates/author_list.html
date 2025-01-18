@@ -450,11 +450,13 @@
                     saveButton.innerHTML = '<i class="fa-solid fa-check me-2"></i> Save';
 
                     // Add event listener to the save button
+                    //saveButton.addEventListener('click', () => {
+                    //    const form = document.querySelector('#uni_modal form');
+                    //    if (form) form.submit();
+                    //});
                     saveButton.addEventListener('click', () => {
-                        const form = document.querySelector('#uni_modal form');
-                        if (form) form.submit();
+                        $('#uni_modal form').submit();
                     });
-
                     // Append save button to the modal footer
                     modalFooter.appendChild(saveButton);
                 }
