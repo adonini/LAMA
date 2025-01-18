@@ -35,4 +35,8 @@ urlpatterns = [
     path('export-science/', views.generate_science, name='export_science'),
     path('institutes/', views.InstituteList.as_view(), name='institute_list'),
     path('institutes/<int:pk>/', views.InstituteRecord.as_view(), name='institute-record'),
+    path('manage_institute/', views.ManageInstitute.as_view(), name='manage-institute'),
+    path('manage_institute/<int:pk>/', views.ManageInstitute.as_view(), name='manage-institute-pk'),
+    path('add_institute/', views.AddInstitute.as_view(), name='add-institute'),
+    path('add_institute/<int:pk>', views.AddInstitute.as_view(), name='add-institute-pk'),
 ]
