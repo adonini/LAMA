@@ -21,6 +21,11 @@
                         </a>
                     </li>
                     <li class="nav-item me-4">
+                        <a class="btn border-white rounded-pill text-white {% if request.path == '/institutes/' %}selected{% endif %}" href="{% url 'institute_list' %}">
+                            <i class="fa-solid fa-building-columns me-1"></i> Institutes
+                        </a>
+                    </li>
+                    <li class="nav-item me-4">
                         <a class="btn border-white rounded-pill text-white {% if request.path == '/members/' %}selected{% endif %}" href="{% url 'member_list' %}">
                             <i class="fa-solid fa-users me-1"></i> Members
                         </a>
