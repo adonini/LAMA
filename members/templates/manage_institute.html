@@ -1,0 +1,162 @@
+{% load custom_filter %}
+
+<div class="container-fluid">
+    <div class="err-msg"></div>
+    <form action="" id="institute-form"> <!-- "{% url 'add-institute' %}" method="POST" -->
+        {% csrf_token %}
+        <input type="hidden" name="id" value="{{ institute.id }}">
+        <div class="row">
+            <!-- Left Column -->
+            <div class="col-md-6">
+                <div class="form-group mb-3 position-relative">
+                    <label for="name" class="control-label">Short Name</label>
+                    <input type="text" class="form-control rounded-0" id="name" name="name" value="{{ institute.name }}" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="group" class="control-label">Group</label>
+                    <div class="dropdown-wrapper position-relative">
+                        <select class="form-control rounded-0 dropdown-input" id="group" name="group">
+                            <option value="" disabled selected>Select a Group</option> <!-- Placeholder option -->
+                            {% for group in groups %}
+                            <option value="{{ group.id }}" data-country="{{ group.country.id }}" {% if institute.group.id == group.id %}selected{% endif %}>
+                                {{ group.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <span class="dropdown-caret position-absolute end-0 me-3">&#9662;</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-md-6">
+                <div class="form-group mb-3 position-relative">
+                    <label for="long_name" class="control-label">Full Institute Name</label>
+                    <input type="text" class="form-control rounded-0" id="long_name" name="long_name" value="{{ institute.long_name }}">
+                </div>
+                <div class="form-group mb-3">
+                    <label for="country" class="control-label">Country</label>
+                    <a class="fas fa-info-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="right"
+                       title="Country is derived from the selected group, but you can also select manually."
+                       style="cursor: pointer; margin-left: 5px;">
+                    </a>
+                    <div class="dropdown-wrapper position-relative">
+                        <select class="form-control rounded-0 dropdown-input" id="country" name="country">
+                            <option value="" disabled selected>Select a Country</option> <!-- Placeholder option -->
+                            {% for country in countries %}
+                            <option value="{{ country.id }}" {% if selected_country and selected_country.id == country.id %}selected{% endif %}>
+                                {{ country.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <span class="dropdown-caret position-absolute end-0 me-3">&#9662;</span> <!-- Dropdown caret -->
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="form-group mb-3">
+                    <label for="long_description" class="control-label">Address</label>
+                    <textarea class="form-control rounded-0" id="long_description" name="long_description" rows="4">{{ institute.long_description }}</textarea>
+                </div>
+                <div class="form-group mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="is_lst" name="is_lst" {% if institute.is_lst %}checked{% endif %}>
+                    <label class="form-check-label" for="is_lst">Is official LST</label>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    $(document).ready(function() {
+        // Initialize Bootstrap tooltips
+        document.addEventListener("DOMContentLoaded", function () {
+            let tooltipElements = document.querySelectorAll("[data-bs-toggle='tooltip']");
+            tooltipElements.forEach((el) => {
+                new bootstrap.Tooltip(el);
+            });
+        });
+
+        // Set the country dropdown value based on the selected group on page load
+        const selectedGroup = $('#group option:selected');
+        const selectedCountryId = selectedGroup.data('country'); // Extract the country ID
+        console.log("Selected group country ID on page load:", selectedCountryId); // Debugging line
+
+        if (selectedCountryId) {
+            $('#country').val(selectedCountryId); // Set the selected country in the country dropdown
+            console.log("Country dropdown set to:", selectedCountryId); // Debugging line
+        }
+
+        // On group selection change
+        $('#group').change(function() {
+            const selectedGroup = $('#group option:selected'); // Get the selected group option
+            const selectedCountryId = selectedGroup.data('country'); // Extract the country ID
+            console.log("Selected group country ID on change:", selectedCountryId); // Debugging line
+
+            if (selectedCountryId) {
+                $('#country').val(selectedCountryId); // Set the selected country in the country dropdown
+                console.log("Country dropdown set to:", selectedCountryId); // Debugging line
+            }
+        });
+
+        $('#institute-form').submit(function(e) {
+            e.preventDefault();
+            var _this = $(this);
+            let form = new FormData($(this)[0]);
+
+            // Check if the form is valid
+            if (_this[0].checkValidity() == false) {
+                _this[0].reportValidity();
+                return false;
+            } else {
+                console.log("Form is valid.");
+            }
+
+            var el = $('.err-msg'); // Reference to the element for displaying messages
+            el.addClass("alert alert-danger err-msg"); // Add alert classes
+
+            start_loader();
+            url = "{% url 'add-institute' %}"
+            console.log(url)
+            $.ajax({
+                url: url,
+                data: form,
+                cache: false,
+                contentType: false,
+                processData: false,
+                method: 'POST',
+                type: 'POST',
+                dataType: 'json',
+                error: function(err) {
+                    console.error("AJAX Error:", err);
+                    el.text("An error occurred while processing the request. Please try again.");
+                    _this.prepend(el);
+                    el.show('slow');
+                    end_loader();
+                },
+                success: function(resp) {
+                    //console.log("AJAX success response:", resp);
+                    if (resp.status === 'success') {
+                        //console.log("Form submission successful.");
+                        el.removeClass("alert alert-danger err-msg").addClass("alert alert-success");
+                        el.text("Institute successfully saved!");
+                        _this.prepend(el);
+                        el.show('slow');
+                        location.reload();  // Reload page on success
+                    } else if (resp.status === 'failed' && resp.msg) {
+                        //console.log("Form submission failed. Message:", resp.msg);
+                        el.html(resp.msg);
+                        _this.prepend(el);
+                        el.show('slow');
+                    } else {
+                        //console.log("Unexpected response structure.");
+                        el.text("An unexpected error occurred. Please try again.");
+                        _this.prepend(el);
+                        el.show('slow');
+                    }
+                    end_loader();
+                }
+            });
+        });
+    });
+</script>
