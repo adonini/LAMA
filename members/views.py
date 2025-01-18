@@ -1,7 +1,7 @@
 import json
 import logging
 from datetime import date, datetime, timedelta
-from .forms import LoginForm, AddMemberForm, AddAuthorDetailsForm
+from .forms import LoginForm, AddMemberForm, AddAuthorDetailsForm, AddInstituteForm
 from .models import (Member, Institute, Group, Duty, Country, MemberDuty,
                      MembershipPeriod, AuthorshipPeriod, AuthorDetails,
                      AuthorInstituteAffiliation)
@@ -651,9 +651,9 @@ class AddMember(LoginRequiredMixin, View):
                             )
                             authorship_period.save()
                             # Ensure AuthorDetails is created if it doesn't exist
-                            author_details, created = AuthorDetails.objects.get_or_create(member=member)
+                            author_details, created = AuthorDetails.objects.get_or_create(member=new_member)
                             if created:
-                                logger.debug(f"Created new AuthorDetails for Member ID={member.id}")
+                                logger.debug(f"Created new AuthorDetails for Member ID={new_member.id}")
 
                             #logger.debug(f"AuthorshipPeriod successfully created for Member ID={new_member.id}")
                         except Exception as e:
@@ -664,7 +664,10 @@ class AddMember(LoginRequiredMixin, View):
                 # If form has errors, include them in the response
                 logger.error(f"Form is invalid. Errors: {form.errors}")
                 resp['status'] = 'failed'
-                resp['msg'] = '<br>'.join([f"{field.label}: {', '.join(errors)}" for field, errors in form.errors.items()])
+                resp['msg'] = '<br>'.join([
+                    f"{form[field_name].label if field_name in form.fields else field_name}: {', '.join(errors)}"
+                    for field_name, errors in form.errors.items()
+                ])
         else:
             resp['msg'] = 'No data has been sent.'
         return HttpResponse(json.dumps(resp), content_type='application/json')
@@ -1221,7 +1224,7 @@ class AddAuthor(LoginRequiredMixin, View):
                 author_details.save()
                 resp = {'status': 'success'}
                 messages.success(request, "Author details updated successfully.")
-                return redirect('author_list')
+                #return redirect('author_list')
             else:
                 # Log and return form errors
                 logger.error(f"Form is invalid. Errors: {form.errors}")
@@ -1800,3 +1803,110 @@ class InstituteRecord(LoginRequiredMixin, View):
             'country': country,
         })
         return render(request, 'institute_record.html', context)
+
+
+class ManageInstitute(LoginRequiredMixin, View):
+    def get(self, request, pk=None):
+        context = {
+            'page_title': "Manage Institute",
+            'countries': Country.objects.all(),
+            'groups': Group.objects.all(),
+            'today': date.today(),
+        }
+
+        if pk:
+            # Retrieve and display a specific ember institute
+            try:
+                institute = Institute.objects.get(id=pk)
+                context['institute'] = institute
+                context['is_edit'] = True  # Flag to indicate editing
+                # Set the selected group and its associated country
+                context['selected_group_country'] = institute.group.country if institute.group else None
+            except Institute.DoesNotExist:
+                messages.error(request, "Institute not found.")
+                return redirect('institute_list')
+        else:
+            context['institute'] = {}
+            context['is_edit'] = False  # Flag to indicate adding a new institute
+            context['selected_group_country'] = None
+        return render(request, 'manage_institute.html', context)
+
+
+class AddInstitute(LoginRequiredMixin, View):
+    def get_inst(self, institute_id):
+        """Retrieve an existing institute or return None if ID is not provided or invalid."""
+        if institute_id and institute_id.isnumeric():
+            return Institute.objects.filter(pk=institute_id).first()
+        return None
+
+    def get(self, request):
+        context = {
+            'page_title': "Add Institute",
+            'today': date.today(),
+            'countries': Country.objects.all(),
+            'groups': Group.objects.all(),  # For the group dropdown
+        }
+        return render(request, 'manage_institute.html', context)
+
+    def post(self, request, pk=None):
+        resp = {'status': 'failed', 'msg': ''}
+        if request.method == 'POST':
+            institute_id = request.POST.get('id')
+            institute = self.get_inst(institute_id)
+            logger.debug(f"Received institute ID: {institute_id}")
+            form = AddInstituteForm(request.POST, instance=institute)
+
+            if form.is_valid():
+                logger.info(f"Form is valid. Data: {form.cleaned_data}")
+                new_inst = form.save(commit=False)
+                #logger.debug(f"Institute saved: {new_inst}")
+                # Extract form data
+                name = form.cleaned_data['name']
+                long_name = form.cleaned_data['long_name']
+                long_description = form.cleaned_data['long_description']
+                group = form.cleaned_data['group']
+                #group = Group.objects.filter(id=group_id).first() if group_id else None
+                # If no group is selected, set to None
+                if not group:
+                    group = None
+                is_lst = request.POST.get('is_lst') == 'on'
+
+                if institute:
+                    # Update the existing institute
+                    institute.name = name
+                    institute.long_name = long_name
+                    institute.long_description = long_description
+                    institute.group = group
+                    institute.is_lst = is_lst
+                    institute.save()
+                    resp = {'status': 'success'}
+                    messages.success(request, "Institute updated successfully.")
+                else:
+                    # new_inst.name = form.cleaned_data['name']
+                    # new_inst.long_name = form.cleaned_data['long_name']
+                    # new_inst.long_description = form.cleaned_data['long_description']
+                    # new_inst.is_lst = form.cleaned_data['is_lst']
+                    # new_inst.group = form.cleaned_data['group']
+                    # new_inst.country = form.cleaned_data['country']
+                    new_inst.save()  # Save the new_institute instance
+                    # Create a new institute
+                    logger.debug(f"Creating new institute: {new_inst.id}, {new_inst.name}")
+                    # inst = Institute.objects.create(name=name,
+                    #                          long_name=long_name,
+                    #                          long_description=long_description,
+                    #                          group=group,
+                    #                          is_lst=is_lst)
+                    # inst.save()
+                    resp = {'status': 'success'}
+                    messages.success(request, "Institute added successfully.")
+            else:
+                # If form has errors, include them in the response
+                logger.error(f"Form is invalid. Errors: {form.errors}")
+                resp['status'] = 'failed'
+                resp['msg'] = '<br>'.join([
+                    f"{form[field_name].label if field_name in form.fields else field_name}: {', '.join(errors)}"
+                    for field_name, errors in form.errors.items()
+                ])
+        else:
+            resp['msg'] = 'No data has been sent.'
+        return HttpResponse(json.dumps(resp), content_type='application/json')
