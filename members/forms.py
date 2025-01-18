@@ -106,3 +106,50 @@ class AddAuthorDetailsForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
+
+
+class AddInstituteForm(forms.ModelForm):
+    country = forms.ModelChoiceField(
+        queryset=Country.objects.all(),
+        initial=0,
+        required=False,
+        label="Country",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    group = forms.ModelChoiceField(
+        queryset=Group.objects.all(),
+        initial=0,
+        required=False,
+        label="Group",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    name = forms.CharField(
+        required=True,
+        label="Institute Name",
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter institute name'})
+    )
+    long_name = forms.CharField(
+        required=False,
+        label="Long Name",
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter full institute name'})
+    )
+    long_description = forms.CharField(
+        required=False,
+        label="Description",
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Enter a detailed description'})
+    )
+    is_lst = forms.BooleanField(
+        required=False,
+        label="Is LST?",
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+
+    class Meta:
+        model = Institute
+        fields = ['name', 'long_name', 'long_description', 'is_lst', 'group', 'country']
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if commit:
+            instance.save()
+        return instance
