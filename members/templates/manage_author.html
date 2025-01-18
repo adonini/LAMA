@@ -90,7 +90,6 @@
 
         // Form submission
         $('#author-form').submit(function(e) {
-            // Temporarily remove e.preventDefault() to see if the form is being submitted
             //console.log("Form submission triggered.");
             e.preventDefault();
             var _this = $(this);
@@ -104,6 +103,9 @@
             } else {
                 console.log("Form is valid.");
             }
+
+            var el = $('.err-msg');
+            el.addClass("alert alert-danger err-msg"); // Add alert classes
 
             start_loader();
 
