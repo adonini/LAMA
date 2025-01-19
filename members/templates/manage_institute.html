@@ -114,6 +114,7 @@
 
             var el = $('.err-msg'); // Reference to the element for displaying messages
             el.addClass("alert alert-danger err-msg"); // Add alert classes
+            el.hide(); // Hide the element
 
             start_loader();
             url = "{% url 'add-institute' %}"
