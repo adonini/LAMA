@@ -5,8 +5,20 @@
 {% load humanize %}
 <div class="container-fluid">
     {% if authors_missing_details %}
-        <div id="authorsMissingDetailsAlert" class="alert alert-warning alert-dismissible fade show" role="alert">
+        <div class="alert alert-warning alert-dismissible" role="alert">
             <strong>Attention:</strong> There are authors missing author details. Please update them.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
+    {% if authors_missing_full_name %}
+    <div class="alert alert-warning alert-dismissible">
+        <strong>Warning:</strong> The following authors are missing full names: {{ authors_missing_full_name|join:", " }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+    {% if authors_missing_affiliation%}
+        <div class="alert alert-warning alert-dismissible">
+            <strong>Warning:</strong> The following authors are missing affiliation information: {{ authors_missing_affiliation|join:", " }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     {% endif %}

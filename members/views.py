@@ -1036,6 +1036,9 @@ class AuthorList(LoginRequiredMixin, View):
         )
 
         author_list = []
+        authors_missing_details = []  # To track authors without details
+        authors_missing_full_name = []  # To track authors missing full name
+        authors_missing_affiliation = []  # To track authors missing affiliation
 
         for author in authors:
             # Determine active membership
@@ -1052,6 +1055,8 @@ class AuthorList(LoginRequiredMixin, View):
 
             if is_author:
                 main_affiliation = None
+                full_name_missing = False
+                affiliation_missing = False
                 try:
                     # Attempt to fetch author details
                     author_details = author.author_details
@@ -1059,9 +1064,21 @@ class AuthorList(LoginRequiredMixin, View):
                         institutes = author_details.ordered_institutes()
                         if institutes:
                             main_affiliation = institutes[0].name  # Get the first institute name
+                        else:
+                            affiliation_missing = True  # No affiliation found
+                        # Check if full name is missing
+                        if not author_details.author_name:
+                            full_name_missing = True
                 except Member.author_details.RelatedObjectDoesNotExist:
                     # Handle the case where there are no author details
+                    authors_missing_details.append(author)
                     main_affiliation = 'No Affiliation'
+
+                # Track authors missing full name or affiliation
+                if full_name_missing:
+                    authors_missing_full_name.append(author)
+                if affiliation_missing:
+                    authors_missing_affiliation.append(author)
 
                 author_list.append({
                     'pk': author.pk,
@@ -1098,6 +1115,9 @@ class AuthorList(LoginRequiredMixin, View):
             'userGroups': list(request.user.groups.values_list('name', flat=True)),
             'filters': filters_data,
             'current_date': now().strftime('%B %d, %Y'),
+            'authors_missing_details': authors_missing_details,
+            'authors_missing_full_name': authors_missing_full_name,
+            'authors_missing_affiliation': authors_missing_affiliation,
         }
         return render(request, 'author_list.html', context)
 
