@@ -125,28 +125,48 @@ class AddInstituteForm(forms.ModelForm):
     )
     name = forms.CharField(
         required=True,
-        label="Institute Name",
+        label="Short Name",
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter institute name'})
     )
     long_name = forms.CharField(
         required=False,
-        label="Long Name",
+        label="Full Institute Name",
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter full institute name'})
     )
     long_description = forms.CharField(
         required=False,
-        label="Description",
+        label="Address",
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Enter a detailed description'})
     )
     is_lst = forms.BooleanField(
         required=False,
-        label="Is LST?",
+        label="Is official LST?",
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
 
     class Meta:
         model = Institute
         fields = ['name', 'long_name', 'long_description', 'is_lst', 'group', 'country']
+
+    def clean_name(self):
+        name = self.cleaned_data.get('name')
+        if self.instance.pk:  # Editing an existing institute
+            if Institute.objects.exclude(pk=self.instance.pk).filter(name=name).exists():
+                raise forms.ValidationError("This short name is already in use.")
+        else:  # Adding a new institute
+            if Institute.objects.filter(name=name).exists():
+                raise forms.ValidationError("This short name is already in use.")
+        return name
+
+    def clean_long_name(self):
+        long_name = self.cleaned_data.get('long_name')
+        if self.instance.pk:  # Editing an existing institute
+            if Institute.objects.exclude(pk=self.instance.pk).filter(long_name=long_name).exists():
+                raise forms.ValidationError("This full institute name is already in use.")
+        else:  # Adding a new institute
+            if Institute.objects.filter(long_name=long_name).exists():
+                raise forms.ValidationError("This full institute name is already in use.")
+        return long_name
 
     def save(self, commit=True):
         instance = super().save(commit=False)
