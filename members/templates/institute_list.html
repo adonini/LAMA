@@ -43,8 +43,8 @@
                         <td class="align-center text-center light-text">{{ institute.name|default:"-" }}</td>
                         <td class="align-center text-center light-text">{{ institute.long_name|default:"-" }}</td>
                         <td class="align-center text-center light-text">
-                            {% if institute.group %}
-                                {{ institute.group.name }}
+                            {% if institute.group_name %}
+                                {{ institute.group_name }}
                             {% else %}
                                 -
                             {% endif %}
