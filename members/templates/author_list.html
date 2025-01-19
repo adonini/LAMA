@@ -64,7 +64,8 @@
                         <th class="text-center dark-text">Authorship Start</th>
                         <th class="text-center dark-text">Authorship End</th>
                         <th class="text-center dark-text">Main Affiliation</th>
-                        <th class="text-center dark-text">{% if user|has_group:"admin" %} Actions {% else %} Details {% endif %}</th>
+                        <th class="text-center dark-text">{% if user|has_group:"admin" or user|has_group:"sapo" %}
+                            Actions {% else %} Details {% endif %}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -81,12 +82,13 @@
                         <td class="align-center text-center light-text">{{ author.main_affiliation|default:"-" }}</td>
                         <td class="align-center text-center light-text d-flex flex-wrap justify-content-around">
                             <div class="d-flex">
-                                {% if user|has_group:"admin" %}
+                                {% if user|has_group:"admin" or user|has_group:"sapo" %}
                                     <button class="btn btn-sm selected edit-data" data-id="{{ author.pk }}" title="Edit author">
                                         <i class="fa-solid fa-edit fa-2xl"></i>
                                     </button>
                                 {% endif %}
-                                <button type="button" class="btn btn-bg-dark btn-sm item-data {% if user|has_group:'admin' %}ms-1 {% endif %}" data-id="{{ author.pk }}" title="Author information">
+                                <button type="button" class="btn btn-bg-dark btn-sm item-data {% if user|has_group:'admin' or user|has_group:"sapo" %}
+                                    ms-1 {% endif %}" data-id="{{ author.pk }}" title="Author information">
                                     <i class="fa-solid fa-info-circle fa-2xl"></i>
                                 </button>
                             </div>
