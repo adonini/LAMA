@@ -13,8 +13,8 @@
             </div>
 
             <!-- Center Navigation -->
-            <div class="truly-center-child">
-                <ul class="navbar-nav align-items-center">
+            <div class="truly-center-child flex-grow-1">
+                <ul class="navbar-nav d-flex flex-wrap justify-content-center">
                     <li class="nav-item me-4">
                         <a class="btn border-white rounded-pill text-white {% if request.path == '/' %}selected{% endif %}" href="{% url 'index' %}">
                             <i class="fa-solid fa-house me-1"></i> Home
