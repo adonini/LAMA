@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.timezone import now
 from django.db.models import Q
+#from django.core.exceptions import ValidationError
 
 
 class Country(models.Model):
@@ -20,14 +21,27 @@ class Group(models.Model):
 
 
 class Institute(models.Model):
-    name = models.CharField(max_length=150)
-    long_name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True, help_text="A unique short name (abbreviation) for the institute, to be used in the app.")
+    long_name = models.CharField(max_length=200, unique=True, help_text="The full name for the institute. Must be unique.")
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='institutes', null=True, blank=True)
     long_description = models.TextField(blank=True)
     is_lst = models.BooleanField(default=True)  # Flag to indicate LST-specific institutes
 
     def __str__(self):
         return self.name
+
+    # def clean(self):
+    #     # Validate short_name uniqueness
+    #     if Institute.objects.exclude(pk=self.pk).filter(name=self.name).exists():
+    #         raise ValidationError({'name': "This short name is already in use."})
+
+    #     # Validate long_name uniqueness
+    #     if Institute.objects.exclude(pk=self.pk).filter(long_name=self.long_name).exists():
+    #         raise ValidationError({'long_name': "This long name is already in use."})
+
+    def save(self, *args, **kwargs):
+        self.clean()  # Call clean to ensure validation
+        super().save(*args, **kwargs)
 
 
 class Duty(models.Model):
