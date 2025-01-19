@@ -127,13 +127,16 @@
 
         // Define custom filter elements and behavior
         let data = table.data().toArray()
-        let filterLabels = ['Country: ', 'Group: ', 'Institute: '];
+        let filterLabels = ['Country: ', 'Group: ', 'Institute: ', 'LST Official: '];
         let mainDiv = document.querySelector('.top1Start');
         let generalDiv = document.createElement('div');
         generalDiv.classList.add('d-flex', 'flex-wrap');
         mainDiv.classList.add('filters');
         let countryDropdown, groupDropdown, instituteDropdown; // Variables to store dropdowns
 
+        // Create a container for LST Official filter
+        let lstOfficialContainer = document.createElement('div');
+        lstOfficialContainer.classList.add('d-flex', 'flex-wrap');
         // Create a container for Country, Group, and Institute filters
         let filtersContainer = document.createElement('div');
         filtersContainer.classList.add('d-flex', 'flex-wrap');
@@ -262,6 +265,28 @@
                 filtersContainer.appendChild(divInput);
             }
 
+            // Filter by LST Official
+            if (label.toLowerCase().includes('lst')) {
+                lstOfficialContainer.style.marginTop = '3px';
+                input.addEventListener('change', function (e) {
+                    // Apply LST filter when changed
+                    let lstFilterValue = e.target.value;
+                    if (lstFilterValue !== 'All') {
+                        table.column(5).search(lstFilterValue).draw(); // Column index for 'LST Official'
+                    } else {
+                        table.column(5).search('').draw(); // Clear the filter
+                    }
+                });
+                ['Yes', 'No'].forEach(lstStatus => {
+                    let option = document.createElement('option');
+                    option.value = lstStatus;
+                    option.appendChild(document.createTextNode(lstStatus));
+                    input.appendChild(option);
+                });
+                lstOfficialContainer.appendChild(divInput); // Append to container
+            }
+
+
             // Set up the label and input for each filter
             let inputLabel = document.createElement('label');
             inputLabel.appendChild(document.createTextNode(label));
@@ -269,6 +294,9 @@
             divInput.appendChild(inputLabel);
             divInput.appendChild(input);
         }
+
+        // Append the LST filter above the others
+        mainDiv.appendChild(lstOfficialContainer);
 
         // Append the other filters container
         mainDiv.appendChild(filtersContainer);
