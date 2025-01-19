@@ -612,6 +612,8 @@ class AddMember(LoginRequiredMixin, View):
             member = self.get_member(request.POST.get('id'))  # Fetch the existing member if ID is provided
             if member:
                 current_email = member.primary_email.strip()
+                current_name = member.name.strip()
+                current_surname = member.surname.strip()
             form = AddMemberForm(request.POST, instance=member)
 
             if form.is_valid():
@@ -632,14 +634,30 @@ class AddMember(LoginRequiredMixin, View):
                     # Check for changes in start and end dates
                     if authorship_start != (current_authorship.start_date if current_authorship else None) or authorship_end != (current_authorship.end_date if current_authorship else None):
                         authorship_changed = True
-                    # Check for email update
+                    # Check for changes in `name`, `surname`, and `email`
+                    updated_name = form.cleaned_data.get('name').strip()
+                    updated_surname = form.cleaned_data.get('surname').strip()
                     updated_email = form.cleaned_data.get('primary_email').strip()
+
+                    name_changed = current_name != updated_name
+                    surname_changed = current_surname != updated_surname
                     email_changed = current_email != updated_email
 
+                    # Update fields if changed
+                    if name_changed:
+                        member.name = updated_name
+                        logger.debug(f"Updated name for Member ID={member.id}: {member.name}")
+
+                    if surname_changed:
+                        member.surname = updated_surname
+                        logger.debug(f"Updated surname for Member ID={member.id}: {member.surname}")
+
                     if email_changed:
-                        member.primary_email = updated_email.strip()
+                        member.primary_email = updated_email
+                        logger.debug(f"Updated email for Member ID={member.id}: {member.primary_email}")
+
+                    if name_changed or surname_changed or email_changed:
                         member.save()
-                        logger.debug(f"Successfully updated email for Member ID={member.id}: {member.primary_email}")
 
                     # Handle case 1: Changing institute
                     institute_changed = self.handle_institute_change(member, institute_id, is_author, start_date)
