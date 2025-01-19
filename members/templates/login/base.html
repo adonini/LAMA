@@ -172,15 +172,19 @@
                     }, 500)
                 }, 3500)
             }
-
-        })
-        let alertElement = document.querySelector('.alert')
-        if(alertElement != null){
-            setTimeout(function() {
-                let bsAlert = new bootstrap.Alert(alertElement);
-                bsAlert.close();
-            }, 3000);
         }
+
+        // Remove all messages after a certain duration
+        let alertElement = document.querySelector('.alert')
+        alertElements.forEach(function(alertElement) {
+            // Only auto-close alerts that are not the "authorsMissingDetailsAlert"
+            if (alertElement.id !== 'authorsMissingDetailsAlert') {
+                setTimeout(function() {
+                    let bsAlert = new bootstrap.Alert(alertElement);
+                    bsAlert.close();
+                }, 4500); // Close other alerts after 4.5 seconds
+            }
+        });
     </script>
 
     <script>
