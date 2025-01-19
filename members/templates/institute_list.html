@@ -42,16 +42,10 @@
                         <td class="align-center text-center light-text">{{ forloop.counter }}</td>
                         <td class="align-center text-center light-text">{{ institute.name|default:"-" }}</td>
                         <td class="align-center text-center light-text">{{ institute.long_name|default:"-" }}</td>
-                        <td class="align-center text-center light-text">
-                            {% if institute.group_name %}
-                                {{ institute.group_name }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
+                        <td class="align-center text-center light-text">{{ institute.group_name|default:"-" }}</td>
                         <td class="align-center text-center light-text">{{ institute.country_name }}</td>
                         <td class="align-center text-center light-text">
-                            {% if institute.is_lst %}
+                            {% if institute.is_lst == "Yes" %}
                                 Yes
                             {% else %}
                                 No
