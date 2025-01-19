@@ -206,11 +206,19 @@ def get_missing_authors(valid_authors):
     """
     missing_authors = []
 
-    # Step 3: Identify authors without AuthorDetails
+    # Step 3: Identify authors without AuthorDetails or missing info
     for member in valid_authors:
-        if not AuthorDetails.objects.filter(member=member).exists():
-            missing_authors.append(f"{member.name} {member.surname}")
+        try:
+            author_details = AuthorDetails.objects.get(member=member)
+            # Check if the author has a full name and at least one affiliation
+            has_full_name = bool(author_details.author_name)
+            has_affiliation = author_details.institute_affiliations.exists()
 
+            if not has_full_name or not has_affiliation:
+                missing_authors.append(f"{member.name} {member.surname}")
+        except AuthorDetails.DoesNotExist:
+            # If AuthorDetails doesn't exist for the member, they are considered missing
+            missing_authors.append(f"{member.name} {member.surname}")
     return missing_authors
 
 
@@ -1257,11 +1265,14 @@ def generate_aa_email(request):
     # Add warning at the top if there are missing authors
     missing_authors = get_missing_authors(valid_authors)
     if missing_authors:
-        latex_content.append("% WARNING: The following members are listed as authors, but no AuthorDetails are available for them:\n")
+        latex_content.append("% WARNING: The following members were skipped. They are listed as authors, but no AuthorDetails are available for them, or they are incomplete:\n")
         latex_content.append("% " + ", ".join(missing_authors) + "\n\n")
 
     # Build institute dictionary and LaTeX content for valid authors
     for author in authors:
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
         for affiliation in author.institute_affiliations.all():
             institute = affiliation.institute
             if institute.name not in institute_dict:
@@ -1273,6 +1284,8 @@ def generate_aa_email(request):
     latex_content.append(f"% AA format\n% Generated on {selected_date.strftime('%Y-%m-%d')}\n")
     latex_content.append("\\author{\n")
     for author in authors:
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
         institute_indices = sorted(
             [institute_dict[aff.institute.name] for aff in author.institute_affiliations.all()]
         )
@@ -1308,11 +1321,14 @@ def generate_aa(request):
     # Add warning at the top if there are missing authors
     missing_authors = get_missing_authors(valid_authors)
     if missing_authors:
-        latex_content.append("% WARNING: The following members are listed as authors, but no AuthorDetails are available for them:\n")
+        latex_content.append("% WARNING: The following members were skipped. They are listed as authors, but no AuthorDetails are available for them, or they are incomplete:\n")
         latex_content.append("% " + ", ".join(missing_authors) + "\n\n")
 
     # Build institute dictionary
     for author in authors:
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
         for affiliation in author.institute_affiliations.all():
             institute = affiliation.institute
             if institute.name not in institute_dict:
@@ -1324,6 +1340,8 @@ def generate_aa(request):
     latex_content.append(f"% AA format\n% Generated on {selected_date.strftime('%Y-%m-%d')}\n")
     latex_content.append("\\author{\n")
     for author in authors:
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
         institute_indices = sorted(
             [institute_dict[aff.institute.name] for aff in author.institute_affiliations.all()]
         )
@@ -1356,7 +1374,7 @@ def generate_apj(request):
     # Add warning at the top if there are missing authors
     missing_authors = get_missing_authors(valid_authors)
     if missing_authors:
-        latex_content.append("% WARNING: The following members are listed as authors, but no AuthorDetails are available for them:\n")
+        latex_content.append("% WARNING: The following members were skipped. They are listed as authors, but no AuthorDetails are available for them, or they are incomplete:\n")
         latex_content.append("% " + ", ".join(missing_authors) + "\n\n")
 
     latex_content.append("% ApJ format\n")
@@ -1365,13 +1383,11 @@ def generate_apj(request):
 
     # Generate LaTeX for authors
     for author in authors:
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
         # Get affiliations sorted by the 'order' field
         affiliations = author.institute_affiliations.all().order_by('order')
-        number_of_affiliations = len(affiliations)
-
-        if number_of_affiliations == 0:
-            print(f"Author {author.author_name} has no affiliation!")
-            return JsonResponse({'error': f"Author {author.author_name} has no affiliation!"}, status=400)
 
         # Build author string
         author_name = author.author_name.replace("  ", " ").replace(" ", "~")
@@ -1411,7 +1427,7 @@ def generate_arxiv(request):
     # Add a warning for missing authors
     missing_authors = get_missing_authors(valid_authors)
     if missing_authors:
-        latex_content.append("% WARNING: The following members are listed as authors, but no AuthorDetails are available for them:\n")
+        latex_content.append("% WARNING: The following members were skipped. They are listed as authors, but no AuthorDetails are available for them, or they are incomplete:\n")
         latex_content.append("% " + ", ".join(missing_authors) + "\n\n")
 
     # Add LaTeX header
@@ -1421,6 +1437,9 @@ def generate_arxiv(request):
 
     # Build and sort institute dictionary
     for author in authors:
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
         affiliations = sorted(
             author.institute_affiliations.all(),
             key=lambda aff: aff.order  # Sort by the 'order' field
@@ -1435,6 +1454,9 @@ def generate_arxiv(request):
     # Generate author strings
     author_strings = []
     for author in authors:
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
         affiliations = sorted(
             author.institute_affiliations.all(),
             key=lambda aff: aff.order  # Sort by the 'order' field
@@ -1473,7 +1495,7 @@ def generate_mnras(request):
     # Add warning for missing authors
     missing_authors = get_missing_authors(valid_authors)
     if missing_authors:
-        latex_content.append("% WARNING: Missing authors:\n")
+        latex_content.append("% WARNING: The following members were skipped. They are listed as authors, but no AuthorDetails are available for them, or they are incomplete:\n")
         latex_content.append("% " + ", ".join(missing_authors) + "\n\n")
 
     # Start LaTeX document
@@ -1483,6 +1505,9 @@ def generate_mnras(request):
     # Build and sort institutes for each author
     all_institutes = {}
     for author in authors:
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
         affiliations = sorted(
             author.institute_affiliations.all(),
             key=lambda aff: aff.order  # Sort by 'order'
@@ -1500,6 +1525,9 @@ def generate_mnras(request):
     # Generate author strings
     author_lines = []
     for author in authors:
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
         affiliations = sorted(
             author.institute_affiliations.all(),
             key=lambda aff: aff.order  # Sort by 'order'
@@ -1543,7 +1571,7 @@ def generate_pos(request):
     # Add warning at the top if there are missing authors
     missing_authors = get_missing_authors(valid_authors)
     if missing_authors:
-        latex_content.append("% WARNING: The following members are listed as authors, but no AuthorDetails are available for them:\n")
+        latex_content.append("% WARNING: The following members were skipped. They are listed as authors, but no AuthorDetails are available for them, or they are incomplete:\n")
         latex_content.append("% " + ", ".join(missing_authors) + "\n\n")
 
     latex_content.append("% POS format\n")
@@ -1551,6 +1579,9 @@ def generate_pos(request):
 
     # Build institute dictionary with corrected formatting
     for author in authors:
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
         affiliations = author.institute_affiliations.order_by('order')  # Ensure affiliations are in the correct order
         for affiliation in affiliations:
             institute = affiliation.institute
@@ -1563,6 +1594,9 @@ def generate_pos(request):
     # Write author details
     latex_content.append("\\tiny{\\noindent\n")
     for i, author in enumerate(authors):
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
         affiliations = author.institute_affiliations.order_by('order')  # Ensure affiliations are in the correct order
         if not affiliations:
             print(f"Author {author.author_name} has no affiliation!")
@@ -1610,7 +1644,7 @@ def generate_nature(request):
     # Add warning at the top if there are missing authors
     missing_authors = get_missing_authors(valid_authors)
     if missing_authors:
-        latex_content.append("% WARNING: The following members are listed as authors, but no AuthorDetails are available for them:\n")
+        latex_content.append("% WARNING: The following members were skipped. They are listed as authors, but no AuthorDetails are available for them, or they are incomplete:\n")
         latex_content.append("% " + ", ".join(missing_authors) + "\n\n")
 
     latex_content.append("% Nature format\n")
@@ -1618,6 +1652,9 @@ def generate_nature(request):
 
     # Build institute dictionary
     for author in authors:
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
         for affiliation in author.institute_affiliations.all():
             institute = affiliation.institute
             if institute.name not in institute_dict:
@@ -1627,6 +1664,9 @@ def generate_nature(request):
 
     # Write author details
     for index, author in enumerate(authors):
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
         author_name = author.author_name.replace("  ", " ").replace(" ", "~")
         number_of_affiliations = len(author.institute_affiliations.all())
 
@@ -1674,7 +1714,7 @@ def generate_science(request):
     # Add warning at the top if there are missing authors
     missing_authors = get_missing_authors(valid_authors)
     if missing_authors:
-        latex_content.append("% WARNING: The following members are listed as authors, but no AuthorDetails are available for them:\n")
+        latex_content.append("% WARNING: The following members were skipped. They are listed as authors, but no AuthorDetails are available for them, or they are incomplete:\n")
         latex_content.append("% " + ", ".join(missing_authors) + "\n\n")
 
     latex_content.append("% Science format\n")
@@ -1682,6 +1722,9 @@ def generate_science(request):
 
     # Build institute dictionary
     for author in authors:
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
         for affiliation in author.institute_affiliations.all():
             institute = affiliation.institute
             if institute.name not in institute_dict:
@@ -1691,6 +1734,9 @@ def generate_science(request):
 
     # Write author details
     for index, author in enumerate(authors):
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
         author_name = author.author_name.replace("  ", " ").replace(" ", "~")
         number_of_affiliations = len(author.institute_affiliations.all())
 
