@@ -72,10 +72,14 @@
                 </tbody>
             </table>
         {% elif authorship_periods %}
-            <p class="text-dark">
-                No active authorship period, but a future authorship period exists and will start on
-                {{ authorship_periods.0.start_date|date:"Y-m-d" }}.
-            </p>
+            {% if authorship_period_status == "future" %}
+                <p class="text-dark">
+                    No active authorship period, but a future authorship period exists and will start on
+                    {{ authorship_periods.0.start_date|date:"Y-m-d" }}.
+                </p>
+            {% else %}
+                <p class="text-dark">No authorship period</p>
+            {% endif %}
         {% else %}
             <p class="text-dark">No authorship period</p>
         {% endif %}

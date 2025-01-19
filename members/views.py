@@ -430,6 +430,16 @@ class MemberRecord(LoginRequiredMixin, View):
             membership_periods = member.membership_periods.order_by('-start_date')
             authorship_periods = member.authorship_periods.order_by('-start_date')
 
+            # Check the last authorship period to determine the status
+            authorship_period_status = "none"  # Default to "none"
+            if authorship_periods:
+                last_authorship = authorship_periods[0]  # The latest authorship period
+                today = datetime.today().date()
+                if last_authorship.start_date <= today:
+                    authorship_period_status = "active"
+                elif last_authorship.start_date > today:
+                    authorship_period_status = "future"
+
             context.update({
                 'member': member,
                 'current_membership': current_membership,
@@ -443,6 +453,7 @@ class MemberRecord(LoginRequiredMixin, View):
                 'institutes': Institute.objects.all(),
                 'membership_periods': membership_periods,
                 'authorship_periods': authorship_periods,
+                'authorship_period_status': authorship_period_status,
             })
             return render(request, 'member_record.html', context)
 
