@@ -664,10 +664,10 @@ class AddMember(LoginRequiredMixin, View):
                 # If form has errors, include them in the response
                 logger.error(f"Form is invalid. Errors: {form.errors}")
                 resp['status'] = 'failed'
-                resp['msg'] = '<br>'.join([
-                    f"{form[field_name].label if field_name in form.fields else field_name}: {', '.join(errors)}"
+                resp['msg'] = '<br>'.join(
+                    f"{form[field_name].label if field_name in form.fields else field_name}: {', '.join(set(errors))}"
                     for field_name, errors in form.errors.items()
-                ])
+                )
         else:
             resp['msg'] = 'No data has been sent.'
         return HttpResponse(json.dumps(resp), content_type='application/json')
@@ -1230,7 +1230,8 @@ class AddAuthor(LoginRequiredMixin, View):
                 logger.error(f"Form is invalid. Errors: {form.errors}")
                 logger.error(f"Form is invalid. Errors: {form.errors.as_json()}")
                 resp['msg'] = '<br>'.join(
-                    [f"{field.label}: {', '.join(errors)}" for field, errors in form.errors.items()]
+                    f"{form[field_name].label if field_name in form.fields else field_name}: {', '.join(set(errors))}"
+                    for field_name, errors in form.errors.items()
                 )
         else:
             resp['msg'] = 'No data has been sent.'
@@ -1859,7 +1860,6 @@ class AddInstitute(LoginRequiredMixin, View):
             if form.is_valid():
                 logger.info(f"Form is valid. Data: {form.cleaned_data}")
                 new_inst = form.save(commit=False)
-                #logger.debug(f"Institute saved: {new_inst}")
                 # Extract form data
                 name = form.cleaned_data['name']
                 long_name = form.cleaned_data['long_name']
@@ -1882,21 +1882,8 @@ class AddInstitute(LoginRequiredMixin, View):
                     resp = {'status': 'success'}
                     messages.success(request, "Institute updated successfully.")
                 else:
-                    # new_inst.name = form.cleaned_data['name']
-                    # new_inst.long_name = form.cleaned_data['long_name']
-                    # new_inst.long_description = form.cleaned_data['long_description']
-                    # new_inst.is_lst = form.cleaned_data['is_lst']
-                    # new_inst.group = form.cleaned_data['group']
-                    # new_inst.country = form.cleaned_data['country']
                     new_inst.save()  # Save the new_institute instance
-                    # Create a new institute
-                    logger.debug(f"Creating new institute: {new_inst.id}, {new_inst.name}")
-                    # inst = Institute.objects.create(name=name,
-                    #                          long_name=long_name,
-                    #                          long_description=long_description,
-                    #                          group=group,
-                    #                          is_lst=is_lst)
-                    # inst.save()
+                    logger.debug(f"New institute saved: {new_inst.id}, {new_inst.name}")
                     resp = {'status': 'success'}
                     messages.success(request, "Institute added successfully.")
             else:
@@ -1904,7 +1891,7 @@ class AddInstitute(LoginRequiredMixin, View):
                 logger.error(f"Form is invalid. Errors: {form.errors}")
                 resp['status'] = 'failed'
                 resp['msg'] = '<br>'.join([
-                    f"{form[field_name].label if field_name in form.fields else field_name}: {', '.join(errors)}"
+                    f"{form[field_name].label if field_name in form.fields else field_name}: {', '.join(set(errors))}"
                     for field_name, errors in form.errors.items()
                 ])
         else:
