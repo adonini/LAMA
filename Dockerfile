@@ -7,6 +7,14 @@ ENV PYTHONBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV LDAPTLS_CACERTDIR=/etc/ssl/certs/
 
+USER root
+
+ARG UID
+ARG GID
+RUN echo "HOST_UID is ${UID}, HOST_GID is ${GID}"
+
+# Create a non-root user and set permissions
+RUN groupadd -g ${GID} appmgr && useradd -m -u ${UID} -g ${GID} -s /bin/bash appmgr
 
 # install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -36,6 +44,12 @@ RUN mkdir -p /code/staticfiles
 # copy project
 COPY . /code/
 
+# Change ownership of the work directory where the code is to the new user
+RUN chown -R appmgr:appmgr /code
+
+# # Switch to the new user
+USER appmgr
+WORKDIR /code
 
 # Make the script executable
 RUN chmod +x /code/run.sh

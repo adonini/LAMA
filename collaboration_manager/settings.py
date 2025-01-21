@@ -12,23 +12,29 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+import ldap
+from django_auth_ldap.config import LDAPSearch, GroupOfNamesType
+
+
+# Load environment variables from .env file
+load_dotenv('/code/.env')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-i$o!8fdn1yo$3^f4w!rwu%5%ov)+005&9yr%y(d8rnn5n-vpyl'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-i$o!8fdn1yo$3^f4w!rwu%5%ov)+005&9yr%y(d8rnn5n-vpyl')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DJANGO_DEBUG', 'False')
 
-ALLOWED_HOSTS = ['localhost']
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',')
 
-CSRF_TRUSTED_ORIGINS = ['http://localhost:8083']
+#CSRF_TRUSTED_ORIGINS = ['http://localhost:8083']
 
 # Application definition
 
@@ -109,10 +115,37 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# LDAP Configuration
+AUTH_LDAP_SERVER_URI = os.getenv('LDAP_SERVER_URI')
+AUTH_LDAP_BIND_DN = os.getenv('LDAP_BIND_DN')
+AUTH_LDAP_BIND_PASSWORD = os.getenv('LDAP_BIND_PASSWORD')
+AUTH_LDAP_USER_SEARCH = LDAPSearch(
+    os.getenv('LDAP_USER_SEARCH_BASE'),
+    ldap.SCOPE_SUBTREE,
+    '(& (msDS-AzureADMailNickname=%(user)s) (memberOf=cn=lst-members,ou=AADDC Users,dc=cta-observatory,dc=org))'
+)
+AUTH_LDAP_GROUP_SEARCH = LDAPSearch(
+    os.getenv('LDAP_USER_SEARCH_BASE'),
+    ldap.SCOPE_SUBTREE,
+)
 
-SESSION_COOKIE_AGE = 1800  # 5 minutes
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_SAVE_EVERY_REQUEST = True
+AUTH_LDAP_GROUP_TYPE = GroupOfNamesType()
+
+# Populate the Django user from the LDAP directory
+AUTH_LDAP_USER_ATTR_MAP = {
+    "username": "msDS-AzureADMailNickname",
+    "first_name": "givenName",
+    "last_name": "sn",
+    "email": "mail",
+}
+
+AUTH_LDAP_ALWAYS_UPDATE_USER = True
+
+# Authentication Backends
+AUTHENTICATION_BACKENDS = [
+    'members.backends.ldap_backend.CustomLDAPBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
@@ -125,12 +158,18 @@ USE_I18N = True
 
 USE_TZ = True
 
+SESSION_COOKIE_AGE = 1800  # 30 minutes
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_SAVE_EVERY_REQUEST = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [
+    BASE_DIR / 'members' / 'static',
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -143,8 +182,8 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login'
 
-log_dir = '/Users/alicedonini/Lavoro/LST/Members_manager/collaboration_manager/logs'
-os.makedirs(log_dir, exist_ok=True)
+# replace default admin url
+ADMIN_URL = os.getenv('DJANGO_ADMIN_URL')
 
 LOGGING = {
     'version': 1,
@@ -164,36 +203,40 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
-        'file': {
-            'class': 'logging.FileHandler',
-            'filename': '/Users/alicedonini/Lavoro/LST/Members_manager/collaboration_manager/logs/lama_logs.log',
-            'formatter': 'simple',
-        },
     },
     'root': {
-        'handlers': ['console', 'file'],  # Log to both console and file
+        'handlers': ['console'],
         'level': 'DEBUG',
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': 'INFO',
-            'propagate': False,
+            'propagate': True,
         },
-        'lama': {
-            'handlers': ['console', 'file'],
+        'members': {
+            'handlers': ['console'],
             'level': 'DEBUG',
-            'propagate': False,
+            'propagate': True,
         },
         "django_auth_ldap": {
             "level": 'DEBUG',
-            'handlers': ['console', 'file'],
-            'propagate': False,
+            "handlers": ['console'],
+            'propagate': True,
         },
         'ldap': {
             'level': 'DEBUG',  # Capture logs from python-ldap
-            'handlers': ['console', 'file'],
-            'propagate': False,
+            'handlers': ['console'],
+            'propagate': True,
         },
     },
 }
+
+# Production security settings
+ENVIRONMENT = os.getenv('DJANGO_ENVIRONMENT', 'development')
+
+if ENVIRONMENT == 'production':
+    CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+    # Secure cookies
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
