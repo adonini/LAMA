@@ -29,6 +29,17 @@ class AddMemberForm(forms.ModelForm):
         model = Member
         fields = ['name', 'surname', 'primary_email', 'start_date', 'end_date', 'role', 'institute', 'group', 'country', 'duty']
 
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+
+        # Validate that the end date is later than the start date
+        if end_date and end_date <= start_date:
+            raise forms.ValidationError("End date must be later than the start date.")
+
+        return cleaned_data
+
     def clean_role(self):
         role_input = self.cleaned_data['role']
         if role_input:

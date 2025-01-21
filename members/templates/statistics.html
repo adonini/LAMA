@@ -608,7 +608,6 @@
             $.ajax({
                 url: '/api/get-years/',
                 success: function (data) {
-                    //console.log("Years Data: ", data);
                     const yearSelector = $('#monthlyYearSelector');
                     yearSelector.empty(); // Clear any existing options
                     if (data && data.years) {
@@ -617,9 +616,16 @@
                         data.years.forEach(year => {
                             const isSelected = year === currentYear;
                             yearSelector.append(new Option(year, year, isSelected, isSelected));
-                            if (isSelected) defaultYearSet = true;
+                            if (isSelected) {
+                                defaultYearSet = true;
+                            }
                         });
-                        updateMonthlyChart(); // Update chart after setting default year
+                        // Ensure default year is selected
+                        if (!defaultYearSet) {
+                            yearSelector.val(currentYear); // Set the current year if not already selected
+                        }
+                        // Only call updateMonthlyChart if the year dropdown is populated
+                        updateMonthlyChart();
                     } else {
                         console.log("No years available.");
                     }
@@ -637,7 +643,9 @@
         }
 
         // Event Listeners for Dropdowns
-        $('#monthlyYearSelector').change(updateMonthlyChart);
+        $('#monthlyYearSelector').change(function () {
+            updateMonthlyChart(); // Update chart on year change
+        });
         $('#monthlyCountrySelector').change(function () {
             const selectedCountry = $(this).val();
             resetGroupAndInstituteDropdowns(); // Reset Group and Institute selectors
@@ -658,7 +666,7 @@
         $(document).ready(function () {
             resetMonthlySelectors(); // Reset all dropdowns on page load
             populateYearDropdown(); // Load years dynamically
-            updateMonthlyChart(); // Load default data for all filters
+            //updateMonthlyChart(); // // Do not call updateMonthlyChart here, as it will be called in populateYearDropdown
         });
     });
 </script>
