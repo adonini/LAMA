@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set the base path to your Django project directory
-DJANGO_BASE_PATH="/Users/alicedonini/Lavoro/LST/Members_manager/collaboration_manager"
+DJANGO_BASE_PATH="..."
 
 # Load environment variables from .env
 set -a

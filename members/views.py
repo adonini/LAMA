@@ -614,6 +614,7 @@ class AddMember(LoginRequiredMixin, View):
                 current_email = member.primary_email.strip()
                 current_name = member.name.strip()
                 current_surname = member.surname.strip()
+
             form = AddMemberForm(request.POST, instance=member)
 
             if form.is_valid():
@@ -634,6 +635,7 @@ class AddMember(LoginRequiredMixin, View):
                     # Check for changes in start and end dates
                     if authorship_start != (current_authorship.start_date if current_authorship else None) or authorship_end != (current_authorship.end_date if current_authorship else None):
                         authorship_changed = True
+
                     # Check for changes in `name`, `surname`, and `email`
                     updated_name = form.cleaned_data.get('name').strip()
                     updated_surname = form.cleaned_data.get('surname').strip()

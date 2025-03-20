@@ -20,6 +20,7 @@ class AuthorDetailsAdmin(admin.ModelAdmin):
     list_filter = ['member']  # Filter by related member
 
 
+
 # Register your models here.
 admin.site.register(Country)
 admin.site.register(Group)
@@ -30,3 +31,4 @@ admin.site.register(MemberDuty)
 admin.site.register(MembershipPeriod)
 admin.site.register(AuthorshipPeriod)
 admin.site.register(AuthorDetails, AuthorDetailsAdmin)
+
