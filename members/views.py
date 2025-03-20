@@ -380,8 +380,8 @@ class MemberList(LoginRequiredMixin, View):
         context = {
             'page_title': 'Member List',
             'members': member_list,
-            'member_data': json.dumps(member_list),
-            'duties': list(Duty.objects.order_by('name').values('id', 'name')),
+            #'member_data': json.dumps(member_list),
+            #'duties': list(Duty.objects.order_by('name').values('id', 'name')),
             'institutes': list(Institute.objects.filter(is_lst=True).order_by('name').values('id', 'name')),
             'groups': list(Group.objects.order_by('name').values('id', 'name')),
             'countries': list(Country.objects.order_by('name').values('id', 'name')),
@@ -1137,7 +1137,7 @@ class AuthorList(LoginRequiredMixin, View):
         context = {
             'page_title': 'Author List',
             'authors': author_list,
-            'author_data': json.dumps(author_list),
+            #'author_data': json.dumps(author_list),
             'institutes': list(Institute.objects.order_by('name').values('id', 'name')),
             'groups': list(Group.objects.order_by('name').values('id', 'name')),
             'countries': list(Country.objects.order_by('name').values('id', 'name')),

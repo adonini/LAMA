@@ -51,6 +51,9 @@ class Duty(models.Model):
     name = models.CharField(max_length=100, unique=True)  # Duty names must be unique
     description = models.TextField(blank=True)  # Optional description for the duty
 
+    class Meta:
+        verbose_name_plural = 'Duties'
+
     def __str__(self):
         return self.name
 
@@ -186,6 +189,7 @@ class Member(models.Model):
         super().save(*args, **kwargs)
 
 
+
 class AuthorDetails(models.Model):
     member = models.OneToOneField(Member, on_delete=models.CASCADE, related_name='author_details',
                                   help_text="The member associated with this author information.")
@@ -241,6 +245,7 @@ class MemberDuty(models.Model):
 
     class Meta:
         unique_together = ('member', 'duty', 'start_date')  # Prevent duplicate assignments for the same start date
+        verbose_name_plural = 'Member Duties'
 
     def __str__(self):
         return f"{self.duty.name} for {self.member.name} {self.member.surname}"

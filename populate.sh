@@ -9,4 +9,4 @@ source "${DJANGO_BASE_PATH}/.env"
 set +a
 
 # Run Django management command to import members
-docker-compose exec web python manage.py import_members
+docker-compose exec web python manage.py create_author_details

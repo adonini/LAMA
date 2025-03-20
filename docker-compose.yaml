@@ -50,6 +50,7 @@ services:
       - static:/usr/share/nginx/html/static
     depends_on:
       - web
+    restart: always
 
 volumes:
   static:
