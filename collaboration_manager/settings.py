@@ -222,12 +222,14 @@ LOGGING = {
         "django_auth_ldap": {
             "level": 'DEBUG',
             "handlers": ['console'],
-            'propagate': True,
+            'propagate': False,
+
         },
         'ldap': {
             'level': 'DEBUG',  # Capture logs from python-ldap
             'handlers': ['console'],
-            'propagate': True,
+            'propagate': False,
+
         },
     },
 }

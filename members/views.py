@@ -1,8 +1,10 @@
 import json
 import logging
 from datetime import date, datetime, timedelta
-from .forms import LoginForm, AddMemberForm
-from .models import Member, Institute, Group, Duty, Country, MemberDuty, MembershipPeriod, AuthorshipPeriod
+from .forms import LoginForm, AddMemberForm, AddAuthorDetailsForm, AddInstituteForm
+from .models import (Member, Institute, Group, Duty, Country, MemberDuty,
+                     MembershipPeriod, AuthorshipPeriod, AuthorDetails,
+                     AuthorInstituteAffiliation)
 from dateutil.relativedelta import relativedelta
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -13,7 +15,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from django.db.models import Q
-from django.utils.timezone import now
+from django.utils.timezone import now, make_aware
+from django.db.models import Prefetch
+from pytz import UTC
 
 
 logger = logging.getLogger('lama')
@@ -107,8 +111,7 @@ def calculate_averages(queryset, date_field, year, current_year, current_month):
     for month in months:
         count = queryset.filter(**{f"{date_field}__lte": datetime(year, month, 15)}) \
             .filter(
-                Q(membership_periods__end_date__isnull=True) | 
-                Q(membership_periods__end_date__gt=datetime(year, month, 15))
+                Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=datetime(year, month, 15))
             ).distinct().count()
 
         #logger.debug(f"Year: {year}, Month: {month}, Active Members Count: {count}")
@@ -170,6 +173,55 @@ def get_active_periods_count(queryset, period_field, year, month):
     return active_count
 
 
+def get_valid_authors_for_date(selected_date_str):
+    """
+    Returns a list of authors and their affiliations that are valid on the given date.
+    The function ensures that the authorship periods overlap with the selected date.
+    """
+    try:
+        # Parse the date string and convert it to a UTC-aware datetime object at midnight
+        selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
+        selected_date = make_aware(datetime.combine(selected_date, datetime.min.time()), timezone=UTC)
+    except ValueError:
+        return None, "Invalid date format"
+
+    # Step 1: Find all members with valid authorship periods on the selected date
+    valid_authors = Member.objects.filter(
+        Q(authorship_periods__start_date__lte=selected_date) &
+        (Q(authorship_periods__end_date__gte=selected_date) | Q(authorship_periods__end_date__isnull=True))
+    ).distinct()
+
+    # Step 2: Fetch AuthorDetails for those members, prefetching related institute affiliations
+    authors = AuthorDetails.objects.filter(member__in=valid_authors).prefetch_related(
+        Prefetch('institute_affiliations', queryset=AuthorInstituteAffiliation.objects.select_related('institute'))
+    ).order_by('author_name_family', 'author_name_given')  # Order by surname and given name
+
+    return authors, selected_date, valid_authors
+
+
+def get_missing_authors(valid_authors):
+    """
+    Takes a list of valid authors and returns a list of authors who don't have AuthorDetails.
+    It also appends a warning message if there are missing authors.
+    """
+    missing_authors = []
+
+    # Step 3: Identify authors without AuthorDetails or missing info
+    for member in valid_authors:
+        try:
+            author_details = AuthorDetails.objects.get(member=member)
+            # Check if the author has a full name and at least one affiliation
+            has_full_name = bool(author_details.author_name)
+            has_affiliation = author_details.institute_affiliations.exists()
+
+            if not has_full_name or not has_affiliation:
+                missing_authors.append(f"{member.name} {member.surname}")
+        except AuthorDetails.DoesNotExist:
+            # If AuthorDetails doesn't exist for the member, they are considered missing
+            missing_authors.append(f"{member.name} {member.surname}")
+    return missing_authors
+
+
 class Index(TemplateView):
     template_name = 'login/index.html'
 
@@ -212,14 +264,18 @@ class Index(TemplateView):
         ).filter(Q(end_date__isnull=True) | Q(end_date__gt=six_months_future)).values('member').distinct().count()
 
         # Count institutes and groups per country
-        total_institutes = Institute.objects.count()
+        #total_institutes = Institute.objects.count()
+        total_institutes = Institute.objects.filter(is_lst=True).count()
         total_groups = Group.objects.count()
         total_countries = Country.objects.count()
 
         institutes_per_country = {}
         groups_per_country = {}
         for country in Country.objects.all():
-            institutes_per_country[country.name] = Institute.objects.filter(group__country=country).count()
+            lst_institutes = Institute.objects.filter(group__country=country, is_lst=True)
+            institutes_per_country[country.name] = lst_institutes.count()
+
+            #institutes_per_country[country.name] = Institute.objects.filter(group__country=country).count()
             groups_per_country[country.name] = Group.objects.filter(country=country).count()
 
         # Prepare the context to pass to the template
@@ -287,10 +343,7 @@ class MemberList(LoginRequiredMixin, View):
             )
 
             # Adjusted logic for CF contribution
-            is_cf = (
-                is_author
-                or will_become_author  # Consider members who will become authors in the next 6 months
-            ) and (
+            is_cf = (is_author or will_become_author) and (  # Consider members who will become authors in the next 6 months
                 authorship_period.start_date <= six_months_future
                 and (authorship_period.end_date is None or authorship_period.end_date > six_months_future)
             )
@@ -317,7 +370,7 @@ class MemberList(LoginRequiredMixin, View):
         filters_data = {
             country.name: {
                 "groups": {
-                    group.name: list(group.institutes.values_list('name', flat=True))
+                    group.name: list(group.institutes.filter(is_lst=True).values_list('name', flat=True))
                     for group in country.groups.all()
                 }
             }
@@ -327,9 +380,9 @@ class MemberList(LoginRequiredMixin, View):
         context = {
             'page_title': 'Member List',
             'members': member_list,
-            'member_data': json.dumps(member_list),
-            'duties': list(Duty.objects.order_by('name').values('id', 'name')),
-            'institutes': list(Institute.objects.order_by('name').values('id', 'name')),
+            #'member_data': json.dumps(member_list),
+            #'duties': list(Duty.objects.order_by('name').values('id', 'name')),
+            'institutes': list(Institute.objects.filter(is_lst=True).order_by('name').values('id', 'name')),
             'groups': list(Group.objects.order_by('name').values('id', 'name')),
             'countries': list(Country.objects.order_by('name').values('id', 'name')),
             'userGroups': list(request.user.groups.values_list('name', flat=True)),
@@ -377,6 +430,16 @@ class MemberRecord(LoginRequiredMixin, View):
             membership_periods = member.membership_periods.order_by('-start_date')
             authorship_periods = member.authorship_periods.order_by('-start_date')
 
+            # Check the last authorship period to determine the status
+            authorship_period_status = "none"  # Default to "none"
+            if authorship_periods:
+                last_authorship = authorship_periods[0]  # The latest authorship period
+                today = datetime.today().date()
+                if last_authorship.start_date <= today:
+                    authorship_period_status = "active"
+                elif last_authorship.start_date > today:
+                    authorship_period_status = "future"
+
             context.update({
                 'member': member,
                 'current_membership': current_membership,
@@ -390,6 +453,7 @@ class MemberRecord(LoginRequiredMixin, View):
                 'institutes': Institute.objects.all(),
                 'membership_periods': membership_periods,
                 'authorship_periods': authorship_periods,
+                'authorship_period_status': authorship_period_status,
             })
             return render(request, 'member_record.html', context)
 
@@ -472,8 +536,8 @@ class AddMember(LoginRequiredMixin, View):
 
     def handle_membership_change(self, member, is_stopping_membership, is_author, end_date, start_date, institute_id):
         """Handle stopping or restarting membership."""
+        current_membership = member.current_membership(include_inactive=False)
         if is_stopping_membership:
-            current_membership = member.current_membership(include_inactive=False)
             if current_membership:
                 # Step 1: End the current membership
                 current_membership.end_date = end_date
@@ -491,9 +555,16 @@ class AddMember(LoginRequiredMixin, View):
                 if future_authorship:
                     future_authorship.end_date = end_date + relativedelta(months=6)
                     future_authorship.save()
-        else:  # Restart membership
+        else:  # Restart or adjust membership
+            if current_membership:
+                logger.debug(f"Current membership exists for Member ID={member.id}")
+                # Check if the start_date has changed
+                if current_membership.start_date != start_date:
+                    current_membership.start_date = start_date
+                    logger.debug(f"Updated start date {current_membership.start_date}")
+                    current_membership.save()
             # Step 1: Create a new membership if no active one exists
-            if not member.current_membership(include_inactive=False):
+            else:
                 new_membership = MembershipPeriod.objects.create(
                     member=member,
                     start_date=start_date,
@@ -503,6 +574,11 @@ class AddMember(LoginRequiredMixin, View):
 
             # Step 2: Handle authorship if `is_author` is checked
             if is_author and not member.is_active_author():
+                # Ensure AuthorDetails is created if it doesn't exist
+                author_details, created = AuthorDetails.objects.get_or_create(member=member)
+                if created:
+                    logger.debug(f"Created new AuthorDetails for Member ID={member.id}")
+
                 authorship_period = AuthorshipPeriod.objects.create(
                     member=member,
                     start_date=new_membership.start_date + relativedelta(months=6)
@@ -512,6 +588,11 @@ class AddMember(LoginRequiredMixin, View):
     def handle_authorship_change(self, member, is_author, auth_start, auth_end):
         """Handle starting or stopping authorship."""
         if is_author and not member.is_active_author():
+            # Ensure AuthorDetails is created if it doesn't exist
+            author_details, created = AuthorDetails.objects.get_or_create(member=member)
+            if created:
+                logger.debug(f"Created new AuthorDetails for Member ID={member.id}")
+
             authorship_period = AuthorshipPeriod.objects.create(
                 member=member,
                 start_date=auth_start + relativedelta(months=6)
@@ -531,6 +612,9 @@ class AddMember(LoginRequiredMixin, View):
             member = self.get_member(request.POST.get('id'))  # Fetch the existing member if ID is provided
             if member:
                 current_email = member.primary_email.strip()
+                current_name = member.name.strip()
+                current_surname = member.surname.strip()
+
             form = AddMemberForm(request.POST, instance=member)
 
             if form.is_valid():
@@ -551,21 +635,40 @@ class AddMember(LoginRequiredMixin, View):
                     # Check for changes in start and end dates
                     if authorship_start != (current_authorship.start_date if current_authorship else None) or authorship_end != (current_authorship.end_date if current_authorship else None):
                         authorship_changed = True
-                    # Check for email update
+
+                    # Check for changes in `name`, `surname`, and `email`
+                    updated_name = form.cleaned_data.get('name').strip()
+                    updated_surname = form.cleaned_data.get('surname').strip()
                     updated_email = form.cleaned_data.get('primary_email').strip()
+
+                    name_changed = current_name != updated_name
+                    surname_changed = current_surname != updated_surname
                     email_changed = current_email != updated_email
 
+                    # Update fields if changed
+                    if name_changed:
+                        member.name = updated_name
+                        logger.debug(f"Updated name for Member ID={member.id}: {member.name}")
+
+                    if surname_changed:
+                        member.surname = updated_surname
+                        logger.debug(f"Updated surname for Member ID={member.id}: {member.surname}")
+
                     if email_changed:
-                        member.primary_email = updated_email.strip()
+                        member.primary_email = updated_email
+                        logger.debug(f"Updated email for Member ID={member.id}: {member.primary_email}")
+
+                    if name_changed or surname_changed or email_changed:
                         member.save()
-                        logger.debug(f"Successfully updated email for Member ID={member.id}: {member.primary_email}")
 
                     # Handle case 1: Changing institute
                     institute_changed = self.handle_institute_change(member, institute_id, is_author, start_date)
                     # Handle case 2: Stopping membership
                     # Check if membership has changed
+                    current_membership = member.current_membership(include_inactive=False)
                     is_stopping_membership = end_date is not None and member.is_active_member()
-                    membership_changed = not institute_changed and is_stopping_membership
+                    start_date_changed = (current_membership and current_membership.start_date != start_date)
+                    membership_changed = not institute_changed and (is_stopping_membership or start_date_changed)
                     if membership_changed:
                         self.handle_membership_change(member, is_stopping_membership, is_author, end_date, start_date, institute_id)
                     # Handle case 3: Stopping or starting authorship
@@ -586,6 +689,11 @@ class AddMember(LoginRequiredMixin, View):
                                 start_date=start_date + relativedelta(months=6)
                             )
                             authorship_period.save()
+                            # Ensure AuthorDetails is created if it doesn't exist
+                            author_details, created = AuthorDetails.objects.get_or_create(member=new_member)
+                            if created:
+                                logger.debug(f"Created new AuthorDetails for Member ID={new_member.id}")
+
                             #logger.debug(f"AuthorshipPeriod successfully created for Member ID={new_member.id}")
                         except Exception as e:
                             logger.error(f"Failed to create AuthorshipPeriod for Member ID={new_member.id}: {e}")
@@ -595,7 +703,10 @@ class AddMember(LoginRequiredMixin, View):
                 # If form has errors, include them in the response
                 logger.error(f"Form is invalid. Errors: {form.errors}")
                 resp['status'] = 'failed'
-                resp['msg'] = '<br>'.join([f"{field.label}: {', '.join(errors)}" for field, errors in form.errors.items()])
+                resp['msg'] = '<br>'.join(
+                    f"{form[field_name].label if field_name in form.fields else field_name}: {', '.join(set(errors))}"
+                    for field_name, errors in form.errors.items()
+                )
         else:
             resp['msg'] = 'No data has been sent.'
         return HttpResponse(json.dumps(resp), content_type='application/json')
@@ -682,8 +793,7 @@ class Statistics(TemplateView):
         #####################################################
         # Filter members whose membership is currently active as of today (used in table and cards)
         total_members = Member.objects.filter(
-            Q(membership_periods__end_date__isnull=True) |
-            Q(membership_periods__end_date__gt=today),
+            Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=today),
             membership_periods__start_date__lte=today
         ).distinct().count()
 
@@ -940,3 +1050,947 @@ def get_countries(request):
     countries = Country.objects.all()
     countries_data = [{'id': country.id, 'name': country.name} for country in countries]
     return JsonResponse({'countries': countries_data})
+
+
+class AuthorList(LoginRequiredMixin, View):
+    def get(self, request):
+        today = now().date()
+
+        # Fetch members with active authorships
+        authors = Member.objects.prefetch_related(
+            'membership_periods__institute__group__country',
+            'authorship_periods'
+        ).distinct().filter(
+            Q(authorship_periods__start_date__lte=today) & (
+                Q(authorship_periods__end_date__isnull=True) | Q(authorship_periods__end_date__gte=today)
+            )
+        )
+
+        author_list = []
+        authors_missing_details = []  # To track authors without details
+        authors_missing_full_name = []  # To track authors missing full name
+        authors_missing_affiliation = []  # To track authors missing affiliation
+
+        for author in authors:
+            # Determine active membership
+            membership = author.current_membership(include_inactive=True)
+            current_institute = membership.institute if membership else None
+
+            # Active authorship period
+            authorship_period = author.current_authorship()
+            is_author = (
+                authorship_period
+                and authorship_period.start_date <= today
+                and (authorship_period.end_date is None or authorship_period.end_date >= today)
+            )
+
+            if is_author:
+                main_affiliation = None
+                full_name_missing = False
+                affiliation_missing = False
+                try:
+                    # Attempt to fetch author details
+                    author_details = author.author_details
+                    if author_details:
+                        institutes = author_details.ordered_institutes()
+                        if institutes:
+                            main_affiliation = institutes[0].name  # Get the first institute name
+                        else:
+                            affiliation_missing = True  # No affiliation found
+                        # Check if full name is missing
+                        if not author_details.author_name:
+                            full_name_missing = True
+                except Member.author_details.RelatedObjectDoesNotExist:
+                    # Handle the case where there are no author details
+                    authors_missing_details.append(author)
+                    main_affiliation = 'No Affiliation'
+
+                # Track authors missing full name or affiliation
+                if full_name_missing:
+                    authors_missing_full_name.append(author)
+                if affiliation_missing:
+                    authors_missing_affiliation.append(author)
+
+                author_list.append({
+                    'pk': author.pk,
+                    'name': author.name,
+                    'surname': author.surname,
+                    'primary_email': author.primary_email,
+                    'authorship_start': authorship_period.start_date.strftime('%Y-%m-%d') if authorship_period else None,
+                    'authorship_end': authorship_period.end_date.strftime('%Y-%m-%d') if authorship_period and authorship_period.end_date else None,
+                    'group_name': current_institute.group.name if current_institute and current_institute.group else 'No Group',
+                    'country_name': current_institute.group.country.name if current_institute and current_institute.group and current_institute.group.country else 'No Country',
+                    'institute_name': current_institute.name if current_institute else 'No Institute',
+                    'main_affiliation': main_affiliation or 'No Affiliation',
+                })
+
+        # Data for the filters
+        countries = Country.objects.prefetch_related('groups__institutes').order_by('name')
+        filters_data = {
+            country.name: {
+                "groups": {
+                    group.name: list(group.institutes.values_list('name', flat=True))
+                    for group in country.groups.all()
+                }
+            }
+            for country in countries
+        }
+
+        context = {
+            'page_title': 'Author List',
+            'authors': author_list,
+            #'author_data': json.dumps(author_list),
+            'institutes': list(Institute.objects.order_by('name').values('id', 'name')),
+            'groups': list(Group.objects.order_by('name').values('id', 'name')),
+            'countries': list(Country.objects.order_by('name').values('id', 'name')),
+            'userGroups': list(request.user.groups.values_list('name', flat=True)),
+            'filters': filters_data,
+            'current_date': now().strftime('%B %d, %Y'),
+            'authors_missing_details': authors_missing_details,
+            'authors_missing_full_name': authors_missing_full_name,
+            'authors_missing_affiliation': authors_missing_affiliation,
+        }
+        return render(request, 'author_list.html', context)
+
+
+class AuthorRecord(LoginRequiredMixin, View):
+    def get(self, request, pk=None):
+        context = {}
+        context['page_title'] = 'Author Information'
+        if pk is None:
+            messages.error(request, "Author ID is not recognized")
+            return redirect('author_list')
+        else:
+            try:
+                author = Member.objects.get(id=pk)
+            except Member.DoesNotExist:
+                messages.error(request, "Author not found")
+                return redirect('author_list')
+
+            # Fetch author details
+            author_details = getattr(author, 'author_details', None)
+
+            # Fetch current institute, group, and country
+            institute = author.current_institute() if author.current_institute() else None
+            group = institute.group if institute else None
+            country = group.country if group else None
+
+            # Fetch authorship periods
+            authorship_periods = author.authorship_periods.order_by('-start_date') if hasattr(author, 'authorship_periods') else []
+
+            context.update({
+                'member': author,
+                'author_details': author_details,
+                'institute': institute,
+                'group': group,
+                'country': country,
+                'authorship_periods': authorship_periods,
+            })
+            return render(request, 'author_record.html', context)
+
+
+class ManageAuthor(LoginRequiredMixin, View):
+    def get(self, request, pk=None):
+        """Fetch and display existing author details."""
+        context = {
+            'page_title': "Manage Author",
+            'today': date.today(),
+            #'countries': Country.objects.all(),
+        }
+        institute_list = Institute.objects.all()
+        context['institute_list'] = sorted(institute_list, key=lambda x: x.name)
+        if pk:
+            # Retrieve and display a specific member if pk is provided
+            logger.debug(f"Received pk: {pk}")
+            try:
+                # Fetch the author details and affiliations
+                author_details = AuthorDetails.objects.get(member__id=pk)
+                #logger.debug(f"AuthorDetails found: {author_details}")
+
+                context['author_details'] = author_details
+                context['member'] = author_details.member
+
+                affiliations = AuthorInstituteAffiliation.objects.filter(author_details=author_details).order_by('order')
+                context['affiliations'] = affiliations
+
+                # Set the edit flag
+                context['is_edit'] = True
+
+                return render(request, 'manage_author.html', context)
+            except AuthorDetails.DoesNotExist:
+                # Handle case where author details are not found
+                logger.error(f"AuthorDetails with pk {pk} not found.")
+                messages.error(request, "Author not found.")
+                return redirect('author_list')
+            except Exception as e:
+                # Log any unexpected exceptions
+                logger.exception(f"Error occurred while fetching AuthorDetails: {e}")
+                messages.error(request, "An unexpected error occurred.")
+                return redirect('author_list')
+        else:
+            # No pk, setting up for creating a new member
+            context['author_details'] = {}
+            context['is_edit'] = False  # Flag to indicate adding a new author
+            context['institute_list'] = Institute.objects.all()
+        return render(request, 'manage_author.html', context)
+
+
+class AddAuthor(LoginRequiredMixin, View):
+    def get(self, request):
+        """Render the form for editing an author's details."""
+        context = {
+            'page_title': "Add Author",
+            'today': date.today(),
+        }
+        return render(request, 'manage_author.html', context)
+
+    def post(self, request, pk=None):
+        """Handle the submission of the form."""
+        resp = {'status': 'failed', 'msg': ''}
+        if request.method == 'POST':
+            member_id = request.POST.get('id')
+            member = Member.objects.get(id=member_id)
+            author_details = AuthorDetails.objects.get(member=member)
+            form = AddAuthorDetailsForm(request.POST, instance=author_details)
+            #logger.debug(f"POST data: {request.POST}")
+            if form.is_valid():
+                logger.info(f"Form is valid. Data: {form.cleaned_data}")
+
+                # Save the AuthorDetails instance first
+                author_details = form.save()
+
+                # Handle updating affiliations if provided
+                affiliations = request.POST.getlist('affiliations[]', [])
+                logger.debug(f"Affiliations to be updated: {affiliations}")
+
+                if affiliations:
+                    # Clear existing affiliations
+                    author_details.institute_affiliations.all().delete()  # Deletes all related AuthorInstituteAffiliation objects
+
+                    for i, affiliation_id in enumerate(affiliations):
+                        institute = Institute.objects.filter(id=affiliation_id.strip()).first()  # Use ID for lookup
+                        if institute:
+                            # Create or update the affiliation
+                            affiliation, created = AuthorInstituteAffiliation.objects.get_or_create(
+                                author_details=author_details,
+                                institute=institute,
+                                defaults={'order': i + 1}
+                            )
+                            if not created:
+                                affiliation.order = i + 1
+                                affiliation.save()
+
+                author_details.save()
+                resp = {'status': 'success'}
+                messages.success(request, "Author details updated successfully.")
+                #return redirect('author_list')
+            else:
+                # Log and return form errors
+                logger.error(f"Form is invalid. Errors: {form.errors}")
+                logger.error(f"Form is invalid. Errors: {form.errors.as_json()}")
+                resp['msg'] = '<br>'.join(
+                    f"{form[field_name].label if field_name in form.fields else field_name}: {', '.join(set(errors))}"
+                    for field_name, errors in form.errors.items()
+                )
+        else:
+            resp['msg'] = 'No data has been sent.'
+        return HttpResponse(json.dumps(resp), content_type='application/json')
+
+
+def generate_aa_email(request):
+    """Generates LaTeX for A&A with emails, filtering by authorship validity on a specified date in UTC."""
+    selected_date_str = request.GET.get('date')  # Get the selected date from query parameters
+    if not selected_date_str:
+        return JsonResponse({'error': 'No date provided'}, status=400)
+
+    authors, selected_date, valid_authors = get_valid_authors_for_date(selected_date_str)
+    if authors is None:
+        return JsonResponse({'error': selected_date}, status=400)
+
+    latex_content = []
+    institute_dict = {}
+    institute_counter = 1
+    institute_lines = []
+    missing_authors = []
+
+    # Add warning at the top if there are missing authors
+    missing_authors = get_missing_authors(valid_authors)
+    if missing_authors:
+        latex_content.append("% WARNING: The following members were skipped. They are listed as authors, but no AuthorDetails are available for them, or they are incomplete:\n")
+        latex_content.append("% " + ", ".join(missing_authors) + "\n\n")
+
+    # Build institute dictionary and LaTeX content for valid authors
+    for author in authors:
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
+        for affiliation in author.institute_affiliations.all():
+            institute = affiliation.institute
+            if institute.name not in institute_dict:
+                institute_dict[institute.name] = institute_counter
+                prefix = "\\and " if institute_counter > 1 else ""
+                institute_lines.append(f"{prefix}{institute.long_description}")
+                institute_counter += 1
+
+    latex_content.append(f"% AA format\n% Generated on {selected_date.strftime('%Y-%m-%d')}\n")
+    latex_content.append("\\author{\n")
+    for author in authors:
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
+        institute_indices = sorted(
+            [institute_dict[aff.institute.name] for aff in author.institute_affiliations.all()]
+        )
+        indices_str = ",".join(map(str, institute_indices))
+        latex_content.append(f"{author.author_name.replace(' ', '~')}\\inst{{{indices_str}}}\\email{{{author.author_email}}} \\and\n")
+
+    latex_content.append("}\n")
+    latex_content.append("\\institute{\n")
+    latex_content.append("\n".join(institute_lines))
+    latex_content.append("}\n")
+
+    # Join the LaTeX content and return as response
+    response = HttpResponse("".join(latex_content), content_type="application/x-tex")
+    response['Content-Disposition'] = 'attachment; filename=LST_authors_AA_w_emails.tex'
+    return response
+
+
+def generate_aa(request):
+    """Generates LaTeX for A&A without emails, filtering by authorship validity on a specified date in UTC."""
+    selected_date_str = request.GET.get('date')  # Get the selected date from query parameters
+    if not selected_date_str:
+        return JsonResponse({'error': 'No date provided'}, status=400)
+
+    authors, selected_date, valid_authors = get_valid_authors_for_date(selected_date_str)
+    if authors is None:
+        return JsonResponse({'error': selected_date}, status=400)
+
+    latex_content = []
+    institute_dict = {}
+    institute_counter = 1
+    institute_lines = []
+
+    # Add warning at the top if there are missing authors
+    missing_authors = get_missing_authors(valid_authors)
+    if missing_authors:
+        latex_content.append("% WARNING: The following members were skipped. They are listed as authors, but no AuthorDetails are available for them, or they are incomplete:\n")
+        latex_content.append("% " + ", ".join(missing_authors) + "\n\n")
+
+    # Build institute dictionary
+    for author in authors:
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
+        for affiliation in author.institute_affiliations.all():
+            institute = affiliation.institute
+            if institute.name not in institute_dict:
+                institute_dict[institute.name] = institute_counter
+                prefix = "\\and " if institute_counter > 1 else ""
+                institute_lines.append(f"{prefix}{institute.long_description}")
+                institute_counter += 1
+
+    latex_content.append(f"% AA format\n% Generated on {selected_date.strftime('%Y-%m-%d')}\n")
+    latex_content.append("\\author{\n")
+    for author in authors:
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
+        institute_indices = sorted(
+            [institute_dict[aff.institute.name] for aff in author.institute_affiliations.all()]
+        )
+        indices_str = ",".join(map(str, institute_indices))
+        latex_content.append(f"{author.author_name.replace(' ', '~')}\\inst{{{indices_str}}} \\and\n")
+
+    latex_content.append("}\n")
+    latex_content.append("\\institute{\n")
+    latex_content.append("\n".join(institute_lines))
+    latex_content.append("}\n")
+
+    # Join the LaTeX content and return as response
+    response = HttpResponse("".join(latex_content), content_type="application/x-tex")
+    response['Content-Disposition'] = 'attachment; filename=LST_authors_AA.tex'
+    return response
+
+
+def generate_apj(request):
+    """Generates LaTeX for The Astrophysical Journal (ApJ) without emails, filtering by authorship validity on a specified date in UTC."""
+    selected_date_str = request.GET.get('date')  # Get the selected date from query parameters
+    if not selected_date_str:
+        return JsonResponse({'error': 'No date provided'}, status=400)
+
+    authors, selected_date, valid_authors = get_valid_authors_for_date(selected_date_str)
+    if authors is None:
+        return JsonResponse({'error': selected_date}, status=400)
+
+    latex_content = []
+
+    # Add warning at the top if there are missing authors
+    missing_authors = get_missing_authors(valid_authors)
+    if missing_authors:
+        latex_content.append("% WARNING: The following members were skipped. They are listed as authors, but no AuthorDetails are available for them, or they are incomplete:\n")
+        latex_content.append("% " + ", ".join(missing_authors) + "\n\n")
+
+    latex_content.append("% ApJ format\n")
+    latex_content.append(f"% Generated on {selected_date.strftime('%Y-%m-%d')}\n")
+    latex_content.append("\\usepackage[T1]{fontenc}\n")
+
+    # Generate LaTeX for authors
+    for author in authors:
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
+        # Get affiliations sorted by the 'order' field
+        affiliations = author.institute_affiliations.all().order_by('order')
+
+        # Build author string
+        author_name = author.author_name.replace("  ", " ").replace(" ", "~")
+        orcid = getattr(author, 'orcid', None)  # Assuming `orcid` is a field in the author model
+        if orcid:
+            author_string = f"\\author[{orcid}]{{{author_name}}}\n"
+        else:
+            author_string = f"\\author{{{author_name}}}\n"
+
+        # Add affiliations in the correct order
+        for affiliation in affiliations:
+            author_string += f"\\affiliation{{{affiliation.institute.long_description}}}\n"
+
+        latex_content.append(author_string)
+
+    # Join and finalize the LaTeX document
+    response = HttpResponse("".join(latex_content), content_type="application/x-tex")
+    response['Content-Disposition'] = 'attachment; filename=LST_authors_ApJ.tex'
+    return response
+
+
+def generate_arxiv(request):
+    """Generates LaTeX for ArXiv without emails, filtering by authorship validity on a specified date in UTC."""
+    selected_date_str = request.GET.get('date')  # Get the selected date from query parameters
+    if not selected_date_str:
+        return JsonResponse({'error': 'No date provided'}, status=400)
+
+    authors, selected_date, valid_authors = get_valid_authors_for_date(selected_date_str)
+    if authors is None:
+        return JsonResponse({'error': selected_date}, status=400)
+
+    latex_content = []
+    institute_dict = {}
+    institute_counter = 1
+    institute_lines = []
+
+    # Add a warning for missing authors
+    missing_authors = get_missing_authors(valid_authors)
+    if missing_authors:
+        latex_content.append("% WARNING: The following members were skipped. They are listed as authors, but no AuthorDetails are available for them, or they are incomplete:\n")
+        latex_content.append("% " + ", ".join(missing_authors) + "\n\n")
+
+    # Add LaTeX header
+    latex_content.append("% ArXiv format\n")
+    latex_content.append(f"% Generated on {selected_date.strftime('%Y-%m-%d')}\n")
+    latex_content.append("CTA-LST Project: ")
+
+    # Build and sort institute dictionary
+    for author in authors:
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
+        affiliations = sorted(
+            author.institute_affiliations.all(),
+            key=lambda aff: aff.order  # Sort by the 'order' field
+        )
+        for affiliation in affiliations:
+            institute = affiliation.institute
+            if institute.name not in institute_dict:
+                institute_dict[institute.name] = institute_counter
+                institute_lines.append(f"({institute_counter}) {institute.long_description}")
+                institute_counter += 1
+
+    # Generate author strings
+    author_strings = []
+    for author in authors:
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
+        affiliations = sorted(
+            author.institute_affiliations.all(),
+            key=lambda aff: aff.order  # Sort by the 'order' field
+        )
+        institute_indices = sorted([institute_dict[aff.institute.name] for aff in affiliations])
+        indices_str = ",".join(map(str, institute_indices))
+        author_strings.append(f"{author.author_name} ({indices_str})")
+
+    # Combine authors into a single line
+    latex_content.append(", ".join(author_strings))
+    latex_content.append("\n")
+
+    # Append institute details
+    latex_content.append(" ".join(institute_lines))
+
+    # Finalize LaTeX content and return as a response
+    response = HttpResponse("".join(latex_content), content_type="application/x-tex")
+    response['Content-Disposition'] = 'attachment; filename=LST_authors_ArXiv.tex'
+    return response
+
+
+def generate_mnras(request):
+    """Generates LaTeX for The Monthly Notices of the Royal Astronomy Society (MNRAS) without emails, filtering by authorship validity on a specified date in UTC."""
+    selected_date_str = request.GET.get('date')
+    if not selected_date_str:
+        return JsonResponse({'error': 'No date provided'}, status=400)
+
+    authors, selected_date, valid_authors = get_valid_authors_for_date(selected_date_str)
+    if authors is None:
+        return JsonResponse({'error': selected_date}, status=400)
+
+    institute_dict = {}
+    latex_content = []
+    institute_lines = []
+
+    # Add warning for missing authors
+    missing_authors = get_missing_authors(valid_authors)
+    if missing_authors:
+        latex_content.append("% WARNING: The following members were skipped. They are listed as authors, but no AuthorDetails are available for them, or they are incomplete:\n")
+        latex_content.append("% " + ", ".join(missing_authors) + "\n\n")
+
+    # Start LaTeX document
+    latex_content.append("% MNRAS format\n")
+    latex_content.append(f"% Generated on {selected_date.strftime('%Y-%m-%d')}\n")
+
+    # Build and sort institutes for each author
+    all_institutes = {}
+    for author in authors:
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
+        affiliations = sorted(
+            author.institute_affiliations.all(),
+            key=lambda aff: aff.order  # Sort by 'order'
+        )
+        for affiliation in affiliations:
+            institute = affiliation.institute
+            if institute.name not in all_institutes:
+                all_institutes[institute.name] = institute
+
+    # Assign unique indices to institutes
+    for idx, institute in enumerate(all_institutes.values(), start=1):
+        institute_dict[institute.name] = idx
+        institute_lines.append(f"$^{{{idx}}}$ {{ {institute.long_description} }}\\\\")
+
+    # Generate author strings
+    author_lines = []
+    for author in authors:
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
+        affiliations = sorted(
+            author.institute_affiliations.all(),
+            key=lambda aff: aff.order  # Sort by 'order'
+        )
+        institute_indices = [institute_dict[aff.institute.name] for aff in affiliations]
+        indices_str = ",".join(map(str, institute_indices))
+        author_name = author.author_name.replace("  ", " ").replace(" ", "~")
+        author_lines.append(f"{author_name} $^{{{indices_str}}}$")
+
+    # Combine authors into the LaTeX structure
+    first_author = authors[0].author_name.replace("  ", " ").replace(" ", "~")
+    latex_content.append(f"\\author[{first_author}~et.~al.]{{\\parbox{{\\textwidth}}{{\\Large{{\n")
+    latex_content.append(",\n".join(author_lines))
+    latex_content.append("}}\\\\\n")
+
+    # Add sorted institutes
+    latex_content.append("\n".join(institute_lines))
+    latex_content.append("}")
+
+    # Finalize LaTeX document
+    response = HttpResponse("".join(latex_content), content_type="application/x-tex")
+    response['Content-Disposition'] = 'attachment; filename=LST_authors_MNRAS.tex'
+    return response
+
+
+def generate_pos(request):
+    """Generates LaTeX for The POS format without emails, ensuring affiliations are in the correct order and formatting institutes properly."""
+    selected_date_str = request.GET.get('date')  # Get the selected date from query parameters
+    if not selected_date_str:
+        return JsonResponse({'error': 'No date provided'}, status=400)
+
+    authors, selected_date, valid_authors = get_valid_authors_for_date(selected_date_str)
+    if authors is None:
+        return JsonResponse({'error': selected_date}, status=400)
+
+    latex_content = []
+    institute_dict = {}
+    institute_counter = 1
+    institute_lines = []
+
+    # Add warning at the top if there are missing authors
+    missing_authors = get_missing_authors(valid_authors)
+    if missing_authors:
+        latex_content.append("% WARNING: The following members were skipped. They are listed as authors, but no AuthorDetails are available for them, or they are incomplete:\n")
+        latex_content.append("% " + ", ".join(missing_authors) + "\n\n")
+
+    latex_content.append("% POS format\n")
+    latex_content.append(f"% Generated on {selected_date.strftime('%Y-%m-%d')}\n")
+
+    # Build institute dictionary with corrected formatting
+    for author in authors:
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
+        affiliations = author.institute_affiliations.order_by('order')  # Ensure affiliations are in the correct order
+        for affiliation in affiliations:
+            institute = affiliation.institute
+            if institute.name not in institute_dict:
+                institute_dict[institute.name] = institute_counter
+                # Correct formatting for institute, keeping {} for the descriptions
+                institute_lines.append(f"$^{{{institute_counter}}}${{{institute.long_description}}}.\n")
+                institute_counter += 1
+
+    # Write author details
+    latex_content.append("\\tiny{\\noindent\n")
+    for i, author in enumerate(authors):
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
+        affiliations = author.institute_affiliations.order_by('order')  # Ensure affiliations are in the correct order
+        if not affiliations:
+            print(f"Author {author.author_name} has no affiliation!")
+            continue
+
+        # Generate indices in the correct order (only one set of curly braces for the indices)
+        institute_indices = [institute_dict[aff.institute.name] for aff in affiliations]
+        indices_str = ",".join(map(str, institute_indices))
+        author_string = f"{author.author_name.replace(' ', '~')}$^{{{indices_str}}}$"  # Correct LaTeX format
+
+        # Add comma if not the last author
+        if i < len(authors) - 1:
+            author_string += ",\n"
+        else:
+            author_string += "\n"
+
+        latex_content.append(author_string)
+
+    latex_content.append("}\\\\\n\n")
+    latex_content.append("\\tiny{\\noindent")
+    latex_content.append("".join(institute_lines))
+    latex_content.append("}")
+
+    # Join the LaTeX content and return as response
+    response = HttpResponse("".join(latex_content), content_type="application/x-tex")
+    response['Content-Disposition'] = 'attachment; filename=LST_authors_POS.tex'
+    return response
+
+
+def generate_nature(request):
+    """Generates LaTeX for the Nature format, filtering by authorship validity on a specified date in UTC."""
+    selected_date_str = request.GET.get('date')  # Get the selected date from query parameters
+    if not selected_date_str:
+        return JsonResponse({'error': 'No date provided'}, status=400)
+
+    authors, selected_date, valid_authors = get_valid_authors_for_date(selected_date_str)
+    if authors is None:
+        return JsonResponse({'error': selected_date}, status=400)
+
+    latex_content = []
+    institute_dict = {}
+    institute_counter = 1
+    institute_lines = []
+
+    # Add warning at the top if there are missing authors
+    missing_authors = get_missing_authors(valid_authors)
+    if missing_authors:
+        latex_content.append("% WARNING: The following members were skipped. They are listed as authors, but no AuthorDetails are available for them, or they are incomplete:\n")
+        latex_content.append("% " + ", ".join(missing_authors) + "\n\n")
+
+    latex_content.append("% Nature format\n")
+    latex_content.append(f"% Generated on {selected_date.strftime('%Y-%m-%d')}\n")
+
+    # Build institute dictionary
+    for author in authors:
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
+        for affiliation in author.institute_affiliations.all():
+            institute = affiliation.institute
+            if institute.name not in institute_dict:
+                institute_dict[institute.name] = institute_counter
+                institute_lines.append(f"\\normalsize{{$^{{{institute_counter}}}$ {{{institute.long_description}}},}}\\\\\n")
+                institute_counter += 1
+
+    # Write author details
+    for index, author in enumerate(authors):
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
+        author_name = author.author_name.replace("  ", " ").replace(" ", "~")
+        number_of_affiliations = len(author.institute_affiliations.all())
+
+        if number_of_affiliations == 0:
+            print(f"Author {author_name} has no affiliation!")
+            continue  # Or handle this case more explicitly
+
+        author_string = f"{author_name} $^{{"
+        institute_indices = sorted(
+            [institute_dict[aff.institute.name] for aff in author.institute_affiliations.all()]
+        )
+        author_string += ",".join(str(idx) for idx in institute_indices) + "}$"
+
+        if index != len(authors) - 1:
+            author_string += ",\n"
+        else:
+            author_string += "\n\\\\\n"
+
+        latex_content.append(author_string)
+
+    # Add institute details
+    latex_content.append("".join(institute_lines))
+
+    # Join the LaTeX content and return as response
+    response = HttpResponse("".join(latex_content), content_type="application/x-tex")
+    response['Content-Disposition'] = 'attachment; filename=LST_authors_Nature.tex'
+    return response
+
+
+def generate_science(request):
+    """Generates LaTeX for the Science format, filtering by authorship validity on a specified date in UTC."""
+    selected_date_str = request.GET.get('date')  # Get the selected date from query parameters
+    if not selected_date_str:
+        return JsonResponse({'error': 'No date provided'}, status=400)
+
+    authors, selected_date, valid_authors = get_valid_authors_for_date(selected_date_str)
+    if authors is None:
+        return JsonResponse({'error': selected_date}, status=400)
+
+    latex_content = []
+    institute_dict = {}
+    institute_counter = 1
+    institute_lines = []
+
+    # Add warning at the top if there are missing authors
+    missing_authors = get_missing_authors(valid_authors)
+    if missing_authors:
+        latex_content.append("% WARNING: The following members were skipped. They are listed as authors, but no AuthorDetails are available for them, or they are incomplete:\n")
+        latex_content.append("% " + ", ".join(missing_authors) + "\n\n")
+
+    latex_content.append("% Science format\n")
+    latex_content.append(f"% Generated on {selected_date.strftime('%Y-%m-%d')}\n")
+
+    # Build institute dictionary
+    for author in authors:
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
+        for affiliation in author.institute_affiliations.all():
+            institute = affiliation.institute
+            if institute.name not in institute_dict:
+                institute_dict[institute.name] = institute_counter
+                institute_lines.append(f"\\normalsize{{${{{institute_counter}}}$ {{{institute.long_description}}},}}\\\\\n")
+                institute_counter += 1
+
+    # Write author details
+    for index, author in enumerate(authors):
+        # Skip authors without affiliations or valid names
+        if not author.institute_affiliations.exists() or not author.author_name:
+            continue
+        author_name = author.author_name.replace("  ", " ").replace(" ", "~")
+        number_of_affiliations = len(author.institute_affiliations.all())
+
+        if number_of_affiliations == 0:
+            print(f"Author {author_name} has no affiliation!")
+            continue  # Or handle this case more explicitly
+
+        author_string = f"{author_name} $^{{"
+        institute_indices = sorted(
+            [institute_dict[aff.institute.name] for aff in author.institute_affiliations.all()]
+        )
+        author_string += ",".join(str(idx) for idx in institute_indices) + "}$"
+
+        if index != len(authors) - 1:
+            author_string += ",\n"
+        else:
+            author_string += "\n\\\\\n"
+
+        latex_content.append(author_string)
+
+    # Add institute details
+    latex_content.append("".join(institute_lines))
+
+    # Join the LaTeX content and return as response
+    response = HttpResponse("".join(latex_content), content_type="application/x-tex")
+    response['Content-Disposition'] = 'attachment; filename=LST_authors_Science.tex'
+    return response
+
+
+class InstituteList(LoginRequiredMixin, View):
+    def get(self, request):
+        # Fetch institutes with related group and country
+        institutes = Institute.objects.select_related('group__country').all()
+
+        # Optional filtering based on the LST flag
+        show_all = request.GET.get('show_all', 'false').lower() == 'true'
+        # Filter out non-LST institutes if show_all is False
+        if not show_all:
+            institutes = institutes.filter(is_lst=True)
+
+        institute_list = []
+
+        for institute in institutes:
+            # Extract related data (group and country)
+            group_name = institute.group.name if institute.group else 'No Group'
+            country_name = institute.group.country.name if institute.group and institute.group.country else 'No Country'
+
+            # Add the institute details to the list
+            institute_list.append({
+                'pk': institute.pk,
+                'name': institute.name,
+                'long_name': institute.long_name,
+                'group_name': group_name,
+                'country_name': country_name,
+                'long_description': institute.long_description,
+                'is_lst': "Yes" if institute.is_lst else "No",
+            })
+
+        # Data for the filters (countries, groups, institutes)
+        countries = Country.objects.prefetch_related('groups__institutes').order_by('name')
+        filters_data = {
+            country.name: {
+                "groups": {
+                    group.name: list(
+                        group.institutes.values_list('name', flat=True)
+                        if show_all else
+                        group.institutes.filter(is_lst=True).values_list('name', flat=True)
+                    )
+                    for group in country.groups.all()
+                }
+            }
+            for country in countries
+        }
+
+        context = {
+            'page_title': 'Institute List',
+            'institutes': institute_list,
+            'institute_data': json.dumps(institute_list),
+            'groups': list(Group.objects.order_by('name').values('id', 'name')),
+            'countries': list(Country.objects.order_by('name').values('id', 'name')),
+            'filters': filters_data,
+            'current_date': timezone.now().strftime('%B %d, %Y'),
+            'show_all': show_all,
+        }
+        return render(request, 'institute_list.html', context)
+
+
+class InstituteRecord(LoginRequiredMixin, View):
+    def get(self, request, pk=None):
+        context = {}
+        context['page_title'] = 'Institute Information'
+
+        if pk is None:
+            messages.error(request, "Institute ID is not recognized")
+            return redirect('institute_list')  # Adjust 'institute_list' to your relevant URL name
+
+        try:
+            institute = Institute.objects.get(id=pk)
+        except Institute.DoesNotExist:
+            messages.error(request, "Institute not found")
+            return redirect('institute_list')  # Adjust 'institute_list' to your relevant URL name
+
+        # Get the related group and country information
+        group = institute.group if institute.group else None
+        country = group.country if group else None
+
+        # Add to context the institute details along with the group and country information
+        context.update({
+            'institute': institute,
+            'group': group,
+            'country': country,
+        })
+        return render(request, 'institute_record.html', context)
+
+
+class ManageInstitute(LoginRequiredMixin, View):
+    def get(self, request, pk=None):
+        context = {
+            'page_title': "Manage Institute",
+            'countries': Country.objects.all(),
+            'groups': Group.objects.all(),
+            'today': date.today(),
+        }
+
+        if pk:
+            # Retrieve and display a specific ember institute
+            try:
+                institute = Institute.objects.get(id=pk)
+                context['institute'] = institute
+                context['is_edit'] = True  # Flag to indicate editing
+                # Set the selected group and its associated country
+                context['selected_group_country'] = institute.group.country if institute.group else None
+            except Institute.DoesNotExist:
+                messages.error(request, "Institute not found.")
+                return redirect('institute_list')
+        else:
+            context['institute'] = {}
+            context['is_edit'] = False  # Flag to indicate adding a new institute
+            context['selected_group_country'] = None
+        return render(request, 'manage_institute.html', context)
+
+
+class AddInstitute(LoginRequiredMixin, View):
+    def get_inst(self, institute_id):
+        """Retrieve an existing institute or return None if ID is not provided or invalid."""
+        if institute_id and institute_id.isnumeric():
+            return Institute.objects.filter(pk=institute_id).first()
+        return None
+
+    def get(self, request):
+        context = {
+            'page_title': "Add Institute",
+            'today': date.today(),
+            'countries': Country.objects.all(),
+            'groups': Group.objects.all(),  # For the group dropdown
+        }
+        return render(request, 'manage_institute.html', context)
+
+    def post(self, request, pk=None):
+        resp = {'status': 'failed', 'msg': ''}
+        if request.method == 'POST':
+            institute_id = request.POST.get('id')
+            institute = self.get_inst(institute_id)
+            logger.debug(f"Received institute ID: {institute_id}")
+            form = AddInstituteForm(request.POST, instance=institute)
+
+            if form.is_valid():
+                logger.info(f"Form is valid. Data: {form.cleaned_data}")
+                new_inst = form.save(commit=False)
+                # Extract form data
+                name = form.cleaned_data['name']
+                long_name = form.cleaned_data['long_name']
+                long_description = form.cleaned_data['long_description']
+                group = form.cleaned_data['group']
+                #group = Group.objects.filter(id=group_id).first() if group_id else None
+                # If no group is selected, set to None
+                if not group:
+                    group = None
+                is_lst = request.POST.get('is_lst') == 'on'
+
+                if institute:
+                    # Update the existing institute
+                    institute.name = name
+                    institute.long_name = long_name
+                    institute.long_description = long_description
+                    institute.group = group
+                    institute.is_lst = is_lst
+                    institute.save()
+                    resp = {'status': 'success'}
+                    messages.success(request, "Institute updated successfully.")
+                else:
+                    new_inst.save()  # Save the new_institute instance
+                    logger.debug(f"New institute saved: {new_inst.id}, {new_inst.name}")
+                    resp = {'status': 'success'}
+                    messages.success(request, "Institute added successfully.")
+            else:
+                # If form has errors, include them in the response
+                logger.error(f"Form is invalid. Errors: {form.errors}")
+                resp['status'] = 'failed'
+                resp['msg'] = '<br>'.join([
+                    f"{form[field_name].label if field_name in form.fields else field_name}: {', '.join(set(errors))}"
+                    for field_name, errors in form.errors.items()
+                ])
+        else:
+            resp['msg'] = 'No data has been sent.'
+        return HttpResponse(json.dumps(resp), content_type='application/json')

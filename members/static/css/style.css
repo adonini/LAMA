@@ -615,3 +615,75 @@ button>p{
     text-align: center;
     margin-bottom: 15px;
 }
+
+#journalDropdown {
+    width: auto; /* Allow it to expand based on content */
+    min-width: 150px; /* Set a minimum width to avoid it being too small */
+    max-width: 100%; /* Ensure it doesn't exceed the parent container's width */
+}
+
+/* Highlighted style for date selectors and dropdown */
+#journalDropdown,
+#Date {
+    background-color: #ffffff; /* Light yellow background for better visibility */
+    border: 1px solid black;
+    color: #3D4357;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    min-width: 10rem;
+    font-size: 0.875rem;
+    /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); */
+}
+
+#journalDropdown:hover,
+#Date:hover {
+    background-color: #f9f9f9;
+    border-color: #0B0C38;
+}
+
+/* Focus state for accessibility */
+#journalDropdown:focus,
+#Date:focus {
+    outline: none;
+    box-shadow: 0 0 5px #FF6F61;
+}
+
+#exportList {
+    white-space: nowrap;
+    padding: 0.45rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 6px; /* Rounded corners */
+    background-color: black;
+    border: 1px solid black;
+    color: white;
+    transition: all 0.3s ease; /* Smooth transition for hover effect */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+}
+
+#exportList:hover {
+    background-color: white;
+    color: black;
+    border: 1px solid black;
+}
+
+.dropdown-wrapper {
+    position: relative;
+}
+
+.dropdown-input {
+    appearance: none; /* Removes default dropdown styling */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding-right: 2rem; /* Ensures space for the caret */
+}
+
+.dropdown-caret {
+    pointer-events: none;
+    font-size: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d; /* Gray color for the caret */
+}

@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
-from .models import Member, Institute, Group, Duty, Country
+from .models import Member, Institute, Group, Duty, Country, AuthorDetails
 
 
 class LoginForm(AuthenticationForm):
@@ -54,6 +54,122 @@ class AddMemberForm(forms.ModelForm):
 
     def save(self, commit=True):
         instance = super(AddMemberForm, self).save(commit=False)
+        if commit:
+            instance.save()
+        return instance
+
+
+class AddAuthorDetailsForm(forms.ModelForm):
+    """
+    Form for managing author details, including optional fields for ORCID, email, and affiliations.
+    """
+    # Match the "name" attributes in the template
+    author_name = forms.CharField(
+        required=False,
+        max_length=150,
+        help_text="Full author name as it appears in publications.",
+        label="Full Name"  # Matches the label in the template
+    )
+    author_name_given = forms.CharField(
+        required=False,
+        max_length=80,
+        help_text="Given name as it appears in publications.",
+        label="Given Name"
+    )
+    author_name_family = forms.CharField(
+        required=False,
+        max_length=80,
+        help_text="Family name as it appears in publications.",
+        label="Family Name"
+    )
+    author_email = forms.EmailField(
+        required=False,
+        help_text="Email used for publications. Leave blank if not applicable.",
+        label="Email"
+    )
+    orcid = forms.CharField(
+        required=False,
+        max_length=25,
+        help_text="Enter the ORCID (19 characters including hyphens). Leave blank if not applicable.",
+        label="ORCID"
+    )
+
+    class Meta:
+        model = AuthorDetails
+        fields = ['author_name', 'author_name_given', 'author_name_family', 'author_email', 'orcid']
+
+    def save(self, commit=True):
+        """
+        Save the form instance, including any custom logic for related models.
+        """
+        instance = super().save(commit=False)
+        if commit:
+            instance.save()
+        return instance
+
+
+class AddInstituteForm(forms.ModelForm):
+    country = forms.ModelChoiceField(
+        queryset=Country.objects.all(),
+        initial=0,
+        required=False,
+        label="Country",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    group = forms.ModelChoiceField(
+        queryset=Group.objects.all(),
+        initial=0,
+        required=False,
+        label="Group",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    name = forms.CharField(
+        required=True,
+        label="Short Name",
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter institute name'})
+    )
+    long_name = forms.CharField(
+        required=False,
+        label="Full Institute Name",
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter full institute name'})
+    )
+    long_description = forms.CharField(
+        required=False,
+        label="Address",
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Enter a detailed description'})
+    )
+    is_lst = forms.BooleanField(
+        required=False,
+        label="Is official LST?",
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+
+    class Meta:
+        model = Institute
+        fields = ['name', 'long_name', 'long_description', 'is_lst', 'group', 'country']
+
+    def clean_name(self):
+        name = self.cleaned_data.get('name')
+        if self.instance.pk:  # Editing an existing institute
+            if Institute.objects.exclude(pk=self.instance.pk).filter(name=name).exists():
+                raise forms.ValidationError("This short name is already in use.")
+        else:  # Adding a new institute
+            if Institute.objects.filter(name=name).exists():
+                raise forms.ValidationError("This short name is already in use.")
+        return name
+
+    def clean_long_name(self):
+        long_name = self.cleaned_data.get('long_name')
+        if self.instance.pk:  # Editing an existing institute
+            if Institute.objects.exclude(pk=self.instance.pk).filter(long_name=long_name).exists():
+                raise forms.ValidationError("This full institute name is already in use.")
+        else:  # Adding a new institute
+            if Institute.objects.filter(long_name=long_name).exists():
+                raise forms.ValidationError("This full institute name is already in use.")
+        return long_name
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
         if commit:
             instance.save()
         return instance

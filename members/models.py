@@ -1,10 +1,8 @@
 from django.db import models
 from django.utils import timezone
-from datetime import timedelta
-from django.core.exceptions import ValidationError
-from dateutil.relativedelta import relativedelta
 from django.utils.timezone import now
 from django.db.models import Q
+#from django.core.exceptions import ValidationError
 
 
 class Country(models.Model):
@@ -23,11 +21,27 @@ class Group(models.Model):
 
 
 class Institute(models.Model):
-    name = models.CharField(max_length=150)
-    group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='institutes')
+    name = models.CharField(max_length=100, unique=True, help_text="A unique short name (abbreviation) for the institute, to be used in the app.")
+    long_name = models.CharField(max_length=200, unique=True, help_text="The full name for the institute. Must be unique.")
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='institutes', null=True, blank=True)
+    long_description = models.TextField(blank=True)
+    is_lst = models.BooleanField(default=True)  # Flag to indicate LST-specific institutes
 
     def __str__(self):
         return self.name
+
+    # def clean(self):
+    #     # Validate short_name uniqueness
+    #     if Institute.objects.exclude(pk=self.pk).filter(name=self.name).exists():
+    #         raise ValidationError({'name': "This short name is already in use."})
+
+    #     # Validate long_name uniqueness
+    #     if Institute.objects.exclude(pk=self.pk).filter(long_name=self.long_name).exists():
+    #         raise ValidationError({'long_name': "This long name is already in use."})
+
+    def save(self, *args, **kwargs):
+        self.clean()  # Call clean to ensure validation
+        super().save(*args, **kwargs)
 
 
 class Duty(models.Model):
@@ -36,6 +50,9 @@ class Duty(models.Model):
     """
     name = models.CharField(max_length=100, unique=True)  # Duty names must be unique
     description = models.TextField(blank=True)  # Optional description for the duty
+
+    class Meta:
+        verbose_name_plural = 'Duties'
 
     def __str__(self):
         return self.name
@@ -172,6 +189,51 @@ class Member(models.Model):
         super().save(*args, **kwargs)
 
 
+
+class AuthorDetails(models.Model):
+    member = models.OneToOneField(Member, on_delete=models.CASCADE, related_name='author_details',
+                                  help_text="The member associated with this author information.")
+    author_name = models.CharField(max_length=150, blank=True,
+                                   help_text="Full author name as it appears in publications.")
+    author_name_given = models.CharField(max_length=80, blank=True,
+                                         help_text="Given name as it appears in publications.")
+    author_name_family = models.CharField(max_length=80, blank=True,
+                                          help_text="Family name as it appears in publications.")
+    author_email = models.EmailField(blank=True,
+                                     help_text="Email used for publications.")
+    orcid = models.CharField(max_length=25, blank=True)  # ORCID has 19 characters including hyphens
+
+    def __str__(self):
+        return f"Author Info: {self.member.name} {self.member.surname}"
+
+    def ordered_institutes(self):
+        """
+        Return the institutes in the specified order.
+        """
+        return [affiliation.institute for affiliation in self.institute_affiliations.all()]
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+
+class AuthorInstituteAffiliation(models.Model):
+    author_details = models.ForeignKey('AuthorDetails', on_delete=models.CASCADE, related_name='institute_affiliations',
+                                       help_text="The author details associated with this institute.")
+    institute = models.ForeignKey('Institute', on_delete=models.CASCADE,
+                                  help_text="Institute affiliated with this author.")
+    order = models.PositiveIntegerField(help_text="The order in which the institute appears for the author.")
+
+    class Meta:
+        unique_together = ('author_details', 'institute')  # Prevent duplicates
+        ordering = ['order']  # Always return institutes in the specified order
+
+    def __str__(self):
+        return f"{self.institute.name} ({self.order})"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+
 class MemberDuty(models.Model):
     """
     Tracks the assignment of duties to members.
@@ -183,6 +245,7 @@ class MemberDuty(models.Model):
 
     class Meta:
         unique_together = ('member', 'duty', 'start_date')  # Prevent duplicate assignments for the same start date
+        verbose_name_plural = 'Member Duties'
 
     def __str__(self):
         return f"{self.duty.name} for {self.member.name} {self.member.surname}"

@@ -4,66 +4,91 @@
 {% load custom_filter %}
 {% load humanize %}
 <div class="container-fluid">
+    {% if authors_missing_details %}
+        <div class="alert alert-warning alert-dismissible" role="alert">
+            <strong>Attention:</strong> There are authors missing author details. Please update them.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
+    {% if authors_missing_full_name %}
+    <div class="alert alert-warning alert-dismissible">
+        <strong>Warning:</strong> The following authors are missing full names: {{ authors_missing_full_name|join:", " }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+    {% if authors_missing_affiliation%}
+        <div class="alert alert-warning alert-dismissible">
+            <strong>Warning:</strong> The following authors are missing affiliation information: {{ authors_missing_affiliation|join:", " }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
     <div class="header position-relative d-flex align-items-center">
         <div class="d-flex align-items-center w-100 mt-0 mb-2">
-            {% if user|has_group:"admin" %}
-            <div class="tools">
-                <button type="button" class="btn-new-member" id='add_new'><i class="fa fa-plus"></i> New Member</button>
-            </div>
-            {% endif %}
-            <!-- Switch for Show Active Members/Show All Members -->
-            <div class="d-flex align-items-center ms-3">
-                <div class="custom-switch d-flex align-items-center">
-                    <input type="checkbox" id="toggleShowAll" class="custom-control-input" {% if show_all %}checked{% endif %}>
-                    <label class="custom-control-label mb-0" for="toggleShowAll"></label>
+            <div class="tools d-flex align-items-center">
+                <!-- Dropdown for selecting journal -->
+                <div class="dropdown me-2">
+                    <select class="form-select form-select-sm" id="journalDropdown">
+                        <option selected disabled>Select Journal</option>
+                        <option value="aa">AA</option>
+                        <option value="aa_w_e">AA with email</option>
+                        <option value="apj">ApJ</option>
+                        <option value="arxiv">ArXiv</option>
+                        <option value="mnras">MNRAS</option>
+                        <option value="pos">POS</option>
+                        <option value="nature">Nature</option>
+                        <option value="science">Science</option>
+                    </select>
                 </div>
-                <span class="ml-2 switch-text">Include Former Members</span>
+
+                <!-- Date selectors -->
+                <input type="date" class="form-control form-control-sm me-2" id="Date" placeholder="Select Date">
+
+                <!-- Export Button -->
+                <button type="button" class="btn btn-primary btn-sm" id="exportList">
+                    <i class="fa fa-download me-2"></i> Export List
+                </button>
             </div>
         </div>
     </div>
     <div class="body">
         <div class="table-wrapper">
-            <table class="table table-sm table-hover" id="member-list">
-                <thead class="">
-                    <tr class="">
+            <table class="table table-sm table-hover" id="author-list">
+                <thead>
+                    <tr>
                         <th class="text-center dark-text">#</th>
                         <th class="text-center dark-text">First Name</th>
                         <th class="text-center dark-text">Last Name</th>
                         <th class="text-center dark-text">Institute</th>
                         <th class="text-center dark-text">Group</th>
                         <th class="text-center dark-text">Country</th>
-                        <th class="text-center dark-text">Membership Start</th>
-                        <th class="text-center dark-text">Membership End</th>
-                        <th class="text-center dark-text">CF</th>
-                        <th class="text-center dark-text">Author</th>
                         <th class="text-center dark-text">Authorship Start</th>
                         <th class="text-center dark-text">Authorship End</th>
-                        <th class="text-center dark-text">{% if user|has_group:"admin" %} Actions {% else %} Details {% endif %}</th>
+                        <th class="text-center dark-text">Main Affiliation</th>
+                        <th class="text-center dark-text">{% if user|has_group:"admin" or user|has_group:"sapo" %}
+                            Actions {% else %} Details {% endif %}</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for member in members %}
+                    {% for author in authors %}
                     <tr>
                         <td class="align-center text-center light-text">{{ forloop.counter }}</td>
-                        <td class="align-center text-center light-text">{{ member.name|default:"-"  }}</td>
-                        <td class="align-center text-center light-text">{{ member.surname|default:"-"  }}</td>
-                        <td class="align-center text-center light-text">{{ member.institute_name|default:"-"  }}</td>
-                        <td class="align-center text-center light-text">{{ member.group_name|default:"-"  }}</td>
-                        <td class="align-center text-center light-text">{{ member.country_name|default:"-"  }}</td>
-                        <td class="align-center text-center light-text">{{ member.start_date|default:"-"  }}</td>
-                        <td class="align-center text-center light-text">{{ member.end_date|default:"-"  }}</td>
-                        <td class="align-center text-center light-text">{{ member.is_cf|yesno:"Yes,No" }}</td>
-                        <td class="align-center text-center light-text">{{ member.is_author|yesno:"Yes,No" }}</td>
-                        <td class="align-center text-center light-text">{{ member.authorship_start|default:"-"  }}</td>
-                        <td class="align-center text-center light-text">{{ member.authorship_end|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ author.name|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ author.surname|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ author.institute_name|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ author.group_name|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ author.country_name|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ author.authorship_start|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ author.authorship_end|default:"-"  }}</td>
+                        <td class="align-center text-center light-text">{{ author.main_affiliation|default:"-" }}</td>
                         <td class="align-center text-center light-text d-flex flex-wrap justify-content-around">
                             <div class="d-flex">
-                                {% if user|has_group:"admin" %}
-                                    <button class="btn btn-sm selected edit-data" data-id="{{ member.pk }}" title="Edit member">
+                                {% if user|has_group:"admin" or user|has_group:"sapo" %}
+                                    <button class="btn btn-sm selected edit-data" data-id="{{ author.pk }}" title="Edit author">
                                         <i class="fa-solid fa-edit fa-2xl"></i>
                                     </button>
                                 {% endif %}
-                                <button type="button" class="btn btn-bg-dark btn-sm item-data {% if user|has_group:'admin' %}ms-1 {% endif %}" data-id="{{ member.pk }}" title="Member information">
+                                <button type="button" class="btn btn-bg-dark btn-sm item-data {% if user|has_group:'admin' or user|has_group:"sapo" %}
+                                    ms-1 {% endif %}" data-id="{{ author.pk }}" title="Author information">
                                     <i class="fa-solid fa-info-circle fa-2xl"></i>
                                 </button>
                             </div>
@@ -83,96 +108,15 @@
     let groups = {{ groups|safe }};
     let countries = {{ countries|safe }};
     let filters = {{ filters|safe }};
-    //console.log(institutes);
     $(function() {
-        document.getElementById('toggleShowAll').addEventListener('change', function() {
-            // Get the current state of the checkbox (checked or not)
-            const showAll = this.checked;
-            // Update the URL with the show_all query parameter
-            const url = new URL(window.location.href);
-            url.searchParams.set('show_all', showAll ? 'true' : 'false'); // 'true' if checked, 'false' if unchecked
-            // Reload the page with the new URL
-            window.location.href = url.toString();
-        });
-
-        $('#add_new').click(function() {
-            // Create the header for the modal
-            const headerDiv = document.createElement('div');
-            headerDiv.classList.add("modal-header", "d-flex", "align-items-center", "justify-content-between", "border-0");
-
-            // Title of the modal with icon
-            const titleDiv = document.createElement('div');
-            titleDiv.classList.add('d-flex', 'align-items-center');
-            const addIcon = document.createElement('i');
-            addIcon.classList.add('fa', 'fa-plus', 'me-2');
-            const title = document.createElement('h5');
-            title.classList.add('modal-title', 'dark-text', 'm-0');
-            title.innerText = "New Member";
-            titleDiv.appendChild(addIcon);
-            titleDiv.appendChild(title);
-
-            // Close button for the modal header
-            const closeButton = document.createElement('button');
-            closeButton.classList.add('btn-close', 'btn-close1');
-            closeButton.setAttribute('data-bs-dismiss', 'modal');
-            closeButton.setAttribute('aria-label', 'Close');
-            headerDiv.appendChild(titleDiv);
-            headerDiv.appendChild(closeButton);
-
-            // Open the modal with the header content
-            uni_modal(headerDiv, '{% url "add-member" %}', 'modal-md');
-
-            // Event listener to ensure the modal is shown before accessing the dropdown
-            $('#uni_modal').on('shown.bs.modal', function () {
-                // Ensure the footer is cleared and prepared
-                const modalFooter = document.querySelector('.modal-footer');
-                if (modalFooter) {
-                    modalFooter.innerHTML = ''; // Clear the footer
-
-                    // Create and append the "Save" button to the footer
-                    const saveButton = document.createElement('button');
-                    saveButton.classList.add('btn', 'selected', 'edit');
-
-                    const saveIcon = document.createElement('i');
-                    saveIcon.classList.add('fa-solid', 'fa-check', 'me-2');
-
-                    const saveText = document.createTextNode('Save');
-                    saveButton.appendChild(saveIcon);
-                    saveButton.appendChild(saveText);
-
-                    // Handle form submission when Save is clicked
-                    saveButton.addEventListener('click', function () {
-                        $('#uni_modal form').submit();
-                    });
-
-                    // Append the Save button to the modal footer
-                    modalFooter.appendChild(saveButton);
-                } else {
-                    console.error('Modal footer not found.');
-                }
-                // Select the institute dropdown in the modal
-                const instituteSelect = document.getElementById('institute');
-                if (instituteSelect) {
-                    // Populate the institute dropdown
-                    institutes.forEach(institute => {
-                        let option = document.createElement('option');
-                        option.value = institute.id;
-                        option.innerText = institute.name;
-                        instituteSelect.appendChild(option);
-                    });
-                } else {
-                    console.error('Institute select element not found.');
-                }
-            });
-        });
-
         //remove the default 'Search' text for all DataTable search boxes
         $.extend(true, $.fn.dataTable.defaults, {
             language: {
                 search: ""
             }
         });
-        let table = $('#member-list').DataTable({
+
+        let table = $('#author-list').DataTable({
             responsive: true,
             scrollX: true, // Only the table itself will scroll horizontally
             dom: '<"top1"<"top1Start"f><"top1End"B>>t<"bottom"<"bottomStart"i><"bottomCenter"l><"bottomEnd"p>>',
@@ -186,7 +130,7 @@
                 }
             ],
             columnDefs: [
-                { orderable: false, targets: [0, 3, 4, 5, 8, 9, 12] }, // Disable ordering for specific columns
+                { orderable: false, targets: [0, 9] }, // Disable ordering for specific columns
                 {targets: 0, searchable: false,
                     render: function(data, type, row, meta) {
                         return meta.row + meta.settings._iDisplayStart + 1; // Row numbering
@@ -203,16 +147,13 @@
 
         // Define custom filter elements and behavior
         let data = table.data().toArray()
-        let filterLabels = ['Country: ', 'Group: ', 'Institute: ', 'Author: ', 'CF: '];
+        let filterLabels = ['Country: ', 'Group: ', 'Institute: '];
         let mainDiv = document.querySelector('.top1Start');
         let generalDiv = document.createElement('div');
         generalDiv.classList.add('d-flex', 'flex-wrap');
         mainDiv.classList.add('filters');
         let countryDropdown, groupDropdown, instituteDropdown; // Variables to store dropdowns
 
-        // Create a container for Author and CF filters
-        let authorCFContainer = document.createElement('div');
-        authorCFContainer.classList.add('d-flex', 'flex-wrap');
         // Create a container for Country, Group, and Institute filters
         let filtersContainer = document.createElement('div');
         filtersContainer.classList.add('d-flex', 'flex-wrap');
@@ -220,7 +161,6 @@
         // Helper function to update options dynamically
         function updateDropdown(dropdown, options, selectedValue) {
             dropdown.innerHTML = ''; // Clear existing options
-          
             // Sort options alphabetically
             options.sort((a, b) => a.localeCompare(b));
             // If there's only one option, select it automatically
@@ -342,44 +282,6 @@
                 filtersContainer.appendChild(divInput);
             }
 
-            // Filter by Author
-            if (label.toLowerCase().includes('author')) {
-                divInput.style.marginTop = '3px';
-                input.addEventListener('change', function (e) {
-                    if (e.target.value !== 'All') {
-                        table.column(9).search(e.target.value).draw();
-                    } else {
-                        table.column(9).search('').draw();
-                    }
-                });
-                ['Yes', 'No'].forEach(authorStatus => {
-                    let option = document.createElement('option');
-                    option.value = authorStatus;
-                    option.appendChild(document.createTextNode(authorStatus));
-                    input.appendChild(option);
-                });
-                authorCFContainer.appendChild(divInput);
-            }
-
-            // Filter by CF
-            if (label.toLowerCase().includes('cf')) {
-                divInput.style.marginTop = '5px';
-                input.addEventListener('change', function (e) {
-                    if (e.target.value !== 'All') {
-                        table.column(8).search(e.target.value).draw();
-                    } else {
-                        table.column(8).search('').draw();
-                    }
-                });
-                ['Yes', 'No'].forEach(cfStatus => {
-                    let option = document.createElement('option');
-                    option.value = cfStatus;
-                    option.appendChild(document.createTextNode(cfStatus));
-                    input.appendChild(option);
-                });
-                authorCFContainer.appendChild(divInput);
-            }
-
             // Set up the label and input for each filter
             let inputLabel = document.createElement('label');
             inputLabel.appendChild(document.createTextNode(label));
@@ -387,9 +289,6 @@
             divInput.appendChild(inputLabel);
             divInput.appendChild(input);
         }
-
-        // Append the Author and CF filters above the others
-        mainDiv.appendChild(authorCFContainer);
 
         // Append the other filters container
         mainDiv.appendChild(filtersContainer);
@@ -422,6 +321,7 @@
             // Clear any custom searches on the table
             table.search('').draw();
         });
+
         top1End.appendChild(clearFilterButton);
 
         // Custom Search placeholders and Clear Filter button
@@ -432,13 +332,14 @@
         });
 
         $(document).on('click', '.item-data', function(e) {
-            let id = e.target.dataset.id
-            let baseUrl = "{% url 'member-record' 0 %}";
+            // Handle event target for button or icon click
+            let id = e.target.dataset.id;  // Corrected: use e.target
+            let baseUrl = "{% url 'author-record' 0 %}";
             let finalUrl = baseUrl.replace('0', id);
 
             // Create header for the modal
-            let headerDiv = document.createElement('div')
-            headerDiv.classList.add("modal-header", "d-flex", "align-items-center", "justify-content-between", "border-0")
+            let headerDiv = document.createElement('div');
+            headerDiv.classList.add("modal-header", "d-flex", "align-items-center", "justify-content-between", "border-0");
 
             // Title of the modal with icon
             let titleDiv = document.createElement('div');
@@ -447,7 +348,7 @@
             addIcon.classList.add('fa-solid', 'fa-circle-info', 'me-2');
             let title = document.createElement('h5');
             title.classList.add('modal-title', 'dark-text', 'm-0');
-            title.innerText = "Member Information";
+            title.innerText = "Author Information";
             titleDiv.appendChild(addIcon);
             titleDiv.appendChild(title);
 
@@ -460,86 +361,128 @@
             headerDiv.appendChild(closeButton);
 
             // Open the modal
-            uni_modal(headerDiv, finalUrl, 'modal-md')
+            uni_modal(headerDiv, finalUrl, 'modal-md');
 
             // Completely remove the footer from the modal
             let modalFooter = document.querySelector('.modal-footer');
             if (modalFooter) {
                 modalFooter.remove();  // This will completely remove the footer
             }
+        });
+
+        $(document).on('click', '#exportList', function () {
+            const journal = $('#journalDropdown').val();
+            const selectedDate = $('#Date').val();
+
+            if (!selectedDate) {
+                alert('Please select a date.');
+                return;
+            }
+
+            // Format the date in YYYY-MM-DD format
+            const formattedDate = new Date(selectedDate).toISOString().split('T')[0];
+
+            if (journal === 'aa') {
+                window.location.href = `/export-aa/?date=${formattedDate}`;
+            } else if (journal === 'aa_w_e') {
+                window.location.href = `/export-aa-with-emails/?date=${formattedDate}`;
+            } else if (journal === 'apj') {
+                window.location.href = `/export-apj/?date=${formattedDate}`;
+            } else if (journal === 'arxiv') {
+                window.location.href = `/export-arxiv/?date=${formattedDate}`;
+            } else if (journal === 'mnras') {
+                window.location.href = `/export-mnras/?date=${formattedDate}`;
+            } else if (journal === 'pos') {
+                window.location.href = `/export-pos/?date=${formattedDate}`;
+            } else if (journal === 'nature') {
+                window.location.href = `/export-nature/?date=${formattedDate}`;
+            } else if (journal === 'science') {
+                window.location.href = `/export-science/?date=${formattedDate}`;
+            } else {
+                alert('Selected journal is not yet implemented.');
+            }
         })
 
-        $(document).on('click', '.edit-data', function (e) {
+    document.addEventListener('click', function (e) {
+        if (e.target.classList.contains('edit-data')) {
+            // Get the author ID from the data attribute
             const id = e.target.dataset.id;
-            const baseUrl = "{% url 'manage-member-pk' 0 %}";
+            const baseUrl = "{% url 'manage-author-pk' 0 %}";
             const finalUrl = baseUrl.replace('0', id);
             const modalFooter = document.querySelector('#uni_modal .modal-footer');
 
             // Call the edit function
-            editItem(id, modalFooter, finalUrl);
-        });
-
-        const editItem = (id, modalFooter, finalUrl, small = false) => {
-            // Hide any existing modal
-            $('#uni_modal').modal('hide');
-
-            // Create modal header
-            const headerDiv = document.createElement('div');
-            headerDiv.classList.add('modal-header', 'd-flex', 'align-items-center', 'justify-content-between', 'border-0');
-
-            const titleDiv = document.createElement('div');
-            titleDiv.classList.add('d-flex', 'align-items-center');
-            const editIcon = document.createElement('i');
-            editIcon.classList.add('fa-solid', 'fa-edit', 'me-2');
-            const title = document.createElement('h5');
-            title.classList.add('modal-title', 'dark-text', 'm-0');
-            title.innerHTML = 'Edit Member';
-
-            titleDiv.appendChild(editIcon);
-            titleDiv.appendChild(title);
-
-            // Close button for the modal header
-            const closeButton = document.createElement('button');
-            closeButton.classList.add('btn-close', 'btn-close1');
-            closeButton.setAttribute('data-bs-dismiss', 'modal'); // Bootstrap dismiss
-            closeButton.setAttribute('aria-label', 'Close'); // Accessibility
-
-            headerDiv.appendChild(titleDiv);
-            headerDiv.appendChild(closeButton);
-
-            // Open the modal with content
-            setTimeout(() => {
-                uni_modal(headerDiv, finalUrl, small ? 'modal-sm' : 'modal-md');
-
-                const checkFooter = setInterval(() => {
-                    let modalFooter = document.querySelector('#uni_modal .modal-footer');
-                    if (!modalFooter) {
-                        console.warn('Modal footer not found, creating one...');
-                        modalFooter = document.createElement('div');
-                        modalFooter.classList.add('modal-footer');
-                        document.querySelector('#uni_modal .modal-content').appendChild(modalFooter);
-                    }
-
-                    if (modalFooter) {
-                        clearInterval(checkFooter); // Stop checking once footer exists
-                        modalFooter.innerHTML = ''; // Clear existing content
-
-                        // Create save button
-                        const saveButton = document.createElement('button');
-                        saveButton.classList.add('btn', 'selected', 'edit');
-                        saveButton.innerHTML = '<i class="fa-solid fa-check me-2"></i> Save';
-
-                        // Add event listener to the save button
-                        saveButton.addEventListener('click', () => {
-                            $('#uni_modal form').submit();
-                        });
-
-                        // Append save button to the modal footer
-                        modalFooter.appendChild(saveButton);
-                    }
-                }, 50); // Check every 50ms
-            }, 300);
-        };
+            editAuthor(id, modalFooter, finalUrl);
+        }
     });
+
+    const editAuthor = (id, modalFooter, finalUrl, small = false) => {
+        // Hide any existing modal using Bootstrap's modal API
+        const modalElement = document.getElementById('uni_modal');
+        const modal = new bootstrap.Modal(modalElement);
+        modal.hide();
+
+        // Create modal header
+        const headerDiv = document.createElement('div');
+        headerDiv.classList.add('modal-header', 'd-flex', 'align-items-center', 'justify-content-between', 'border-0');
+
+        const titleDiv = document.createElement('div');
+        titleDiv.classList.add('d-flex', 'align-items-center');
+        const editIcon = document.createElement('i');
+        editIcon.classList.add('fa-solid', 'fa-edit', 'me-2');
+        const title = document.createElement('h5');
+        title.classList.add('modal-title', 'dark-text', 'm-0');
+        title.innerHTML = 'Edit Author';
+
+        titleDiv.appendChild(editIcon);
+        titleDiv.appendChild(title);
+
+        // Close button for the modal header
+        const closeButton = document.createElement('button');
+        closeButton.classList.add('btn-close', 'btn-close1');
+        closeButton.setAttribute('data-bs-dismiss', 'modal'); // Bootstrap dismiss
+        closeButton.setAttribute('aria-label', 'Close'); // Accessibility
+
+        headerDiv.appendChild(titleDiv);
+        headerDiv.appendChild(closeButton);
+
+        // Open the modal with content
+        setTimeout(() => {
+            // Use Bootstrap's modal API to show the modal
+            uni_modal(headerDiv, finalUrl, small ? 'modal-sm' : 'modal-md');
+
+            const checkFooter = setInterval(() => {
+                let modalFooter = document.querySelector('#uni_modal .modal-footer');
+                if (!modalFooter) {
+                    console.warn('Modal footer not found, creating one...');
+                    modalFooter = document.createElement('div');
+                    modalFooter.classList.add('modal-footer');
+                    document.querySelector('#uni_modal .modal-content').appendChild(modalFooter);
+                }
+
+                if (modalFooter) {
+                    clearInterval(checkFooter); // Stop checking once footer exists
+                    modalFooter.innerHTML = ''; // Clear existing content
+
+                    // Create save button
+                    const saveButton = document.createElement('button');
+                    saveButton.classList.add('btn', 'selected', 'edit');
+                    saveButton.innerHTML = '<i class="fa-solid fa-check me-2"></i> Save';
+
+                    // Add event listener to the save button
+                    //saveButton.addEventListener('click', () => {
+                    //    const form = document.querySelector('#uni_modal form');
+                    //    if (form) form.submit();
+                    //});
+                    saveButton.addEventListener('click', () => {
+                        $('#uni_modal form').submit();
+                    });
+                    // Append save button to the modal footer
+                    modalFooter.appendChild(saveButton);
+                }
+            }, 50); // Check every 50ms
+        }, 300);
+    };
+});
 </script>
 {% endblock ScriptBlock %}

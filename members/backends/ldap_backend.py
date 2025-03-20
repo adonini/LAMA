@@ -21,9 +21,11 @@ class CustomLDAPBackend(LDAPBackend):
             admin_group = Group.objects.get(name='admin')
             user.groups.add(admin_group)
             user.is_staff = True
-            user.save()
+            user.is_superuser = True
+        elif 'lst-sapo' in ldap_groups:
+            user_group = Group.objects.get(name='sapo')
+            user.groups.add(user_group)
         elif 'lst-members' in ldap_groups:
             user_group = Group.objects.get(name='user')
             user.groups.add(user_group)
-
         user.save()
