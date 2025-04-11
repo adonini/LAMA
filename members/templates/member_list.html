@@ -41,36 +41,6 @@
                         <th class="text-center dark-text">{% if user|has_group:"admin" %} Actions {% else %} Details {% endif %}</th>
                     </tr>
                 </thead>
-                <tbody>
-                    {% for member in members %}
-                    <tr>
-                        <td class="align-center text-center light-text">{{ forloop.counter }}</td>
-                        <td class="align-center text-center light-text">{{ member.name|default:"-"  }}</td>
-                        <td class="align-center text-center light-text">{{ member.surname|default:"-"  }}</td>
-                        <td class="align-center text-center light-text">{{ member.institute_name|default:"-"  }}</td>
-                        <td class="align-center text-center light-text">{{ member.group_name|default:"-"  }}</td>
-                        <td class="align-center text-center light-text">{{ member.country_name|default:"-"  }}</td>
-                        <td class="align-center text-center light-text">{{ member.start_date|default:"-"  }}</td>
-                        <td class="align-center text-center light-text">{{ member.end_date|default:"-"  }}</td>
-                        <td class="align-center text-center light-text">{{ member.is_cf|yesno:"Yes,No" }}</td>
-                        <td class="align-center text-center light-text">{{ member.is_author|yesno:"Yes,No" }}</td>
-                        <td class="align-center text-center light-text">{{ member.authorship_start|default:"-"  }}</td>
-                        <td class="align-center text-center light-text">{{ member.authorship_end|default:"-"  }}</td>
-                        <td class="align-center text-center light-text d-flex flex-wrap justify-content-around">
-                            <div class="d-flex">
-                                {% if user|has_group:"admin" %}
-                                    <button class="btn btn-sm selected edit-data" data-id="{{ member.pk }}" title="Edit member">
-                                        <i class="fa-solid fa-edit fa-2xl"></i>
-                                    </button>
-                                {% endif %}
-                                <button type="button" class="btn btn-bg-dark btn-sm item-data {% if user|has_group:'admin' %}ms-1 {% endif %}" data-id="{{ member.pk }}" title="Member information">
-                                    <i class="fa-solid fa-info-circle fa-2xl"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
             </table>
         </div>
     </div>
@@ -173,6 +143,36 @@
             }
         });
         let table = $('#member-list').DataTable({
+            serverSide: true,
+            ajax: {
+                url: '/api/members/',
+                type: 'GET',
+                data: function(d) {
+                    d.country = $('#Country').val();
+                    d.group = $('#Group').val();
+                    d.institute = $('#Institute').val();
+                    d.author = $('#Author').val();
+                    d.cf = $('#CF').val();
+                    d.showAll = $('#toggleShowAll').prop('checked')
+                }
+            },
+            // Assign values to each row
+            columns: [
+                { data: null },
+                { data: 'name' },
+                { data: 'surname' },
+                { data: 'institute_name' },
+                { data: 'group_name' },
+                { data: 'country_name' },
+                { data: 'start_date' },
+                { data: 'end_date' },
+                { data: 'is_cf' },
+                { data: 'is_author' },
+                { data: 'authorship_start' },
+                { data: 'authorship_end' },
+                { data: 'actions' },
+
+            ],
             responsive: true,
             scrollX: true, // Only the table itself will scroll horizontally
             dom: '<"top1"<"top1Start"f><"top1End"B>>t<"bottom"<"bottomStart"i><"bottomCenter"l><"bottomEnd"p>>',
@@ -194,9 +194,11 @@
                 },
             ],
             drawCallback: function(settings) {
-                let api = this.api();
-                api.rows({ page: 'current' }).every(function(rowIdx, tableLoop, rowLoop) {
-                    $('td:eq(0)', this.node()).html(rowLoop + 1); // Update row numbers
+                var api = this.api()
+                var info = api.page.info()
+                api.rows({ page: 'current' }).every(function (rowIdx, tableLoop, rowLoop) {
+                    $('td:eq(0)', this.node()).html(info.start + rowLoop + 1)
+                    $('td:eq(0)', this.node()).addClass('text-center')
                 });
             }
         });
@@ -311,6 +313,7 @@
             let defaultOption = document.createElement('option');
             defaultOption.appendChild(document.createTextNode('All'));
             input.appendChild(defaultOption);
+            input.setAttribute('id', label.replace(": ", ""));
 
             // Filter by Country
             if (label.toLowerCase().includes('country')) {
@@ -431,115 +434,6 @@
             $(this).before('<span class="fa fa-search"></span>');
         });
 
-        $(document).on('click', '.item-data', function(e) {
-            let id = e.target.dataset.id
-            let baseUrl = "{% url 'member-record' 0 %}";
-            let finalUrl = baseUrl.replace('0', id);
-
-            // Create header for the modal
-            let headerDiv = document.createElement('div')
-            headerDiv.classList.add("modal-header", "d-flex", "align-items-center", "justify-content-between", "border-0")
-
-            // Title of the modal with icon
-            let titleDiv = document.createElement('div');
-            titleDiv.classList.add('d-flex', 'align-items-center');
-            let addIcon = document.createElement('i');
-            addIcon.classList.add('fa-solid', 'fa-circle-info', 'me-2');
-            let title = document.createElement('h5');
-            title.classList.add('modal-title', 'dark-text', 'm-0');
-            title.innerText = "Member Information";
-            titleDiv.appendChild(addIcon);
-            titleDiv.appendChild(title);
-
-            // Close button for the modal header
-            let closeButton = document.createElement('button');
-            closeButton.classList.add('btn-close', 'btn-close1');
-            closeButton.setAttribute('data-bs-dismiss', 'modal');
-            closeButton.setAttribute('aria-label', 'Close');
-            headerDiv.appendChild(titleDiv);
-            headerDiv.appendChild(closeButton);
-
-            // Open the modal
-            uni_modal(headerDiv, finalUrl, 'modal-md')
-
-            // Completely remove the footer from the modal
-            let modalFooter = document.querySelector('.modal-footer');
-            if (modalFooter) {
-                modalFooter.remove();  // This will completely remove the footer
-            }
-        })
-
-        $(document).on('click', '.edit-data', function (e) {
-            const id = e.target.dataset.id;
-            const baseUrl = "{% url 'manage-member-pk' 0 %}";
-            const finalUrl = baseUrl.replace('0', id);
-            const modalFooter = document.querySelector('#uni_modal .modal-footer');
-
-            // Call the edit function
-            editItem(id, modalFooter, finalUrl);
-        });
-
-        const editItem = (id, modalFooter, finalUrl, small = false) => {
-            // Hide any existing modal
-            $('#uni_modal').modal('hide');
-
-            // Create modal header
-            const headerDiv = document.createElement('div');
-            headerDiv.classList.add('modal-header', 'd-flex', 'align-items-center', 'justify-content-between', 'border-0');
-
-            const titleDiv = document.createElement('div');
-            titleDiv.classList.add('d-flex', 'align-items-center');
-            const editIcon = document.createElement('i');
-            editIcon.classList.add('fa-solid', 'fa-edit', 'me-2');
-            const title = document.createElement('h5');
-            title.classList.add('modal-title', 'dark-text', 'm-0');
-            title.innerHTML = 'Edit Member';
-
-            titleDiv.appendChild(editIcon);
-            titleDiv.appendChild(title);
-
-            // Close button for the modal header
-            const closeButton = document.createElement('button');
-            closeButton.classList.add('btn-close', 'btn-close1');
-            closeButton.setAttribute('data-bs-dismiss', 'modal'); // Bootstrap dismiss
-            closeButton.setAttribute('aria-label', 'Close'); // Accessibility
-
-            headerDiv.appendChild(titleDiv);
-            headerDiv.appendChild(closeButton);
-
-            // Open the modal with content
-            setTimeout(() => {
-                uni_modal(headerDiv, finalUrl, small ? 'modal-sm' : 'modal-md');
-
-                const checkFooter = setInterval(() => {
-                    let modalFooter = document.querySelector('#uni_modal .modal-footer');
-                    if (!modalFooter) {
-                        console.warn('Modal footer not found, creating one...');
-                        modalFooter = document.createElement('div');
-                        modalFooter.classList.add('modal-footer');
-                        document.querySelector('#uni_modal .modal-content').appendChild(modalFooter);
-                    }
-
-                    if (modalFooter) {
-                        clearInterval(checkFooter); // Stop checking once footer exists
-                        modalFooter.innerHTML = ''; // Clear existing content
-
-                        // Create save button
-                        const saveButton = document.createElement('button');
-                        saveButton.classList.add('btn', 'selected', 'edit');
-                        saveButton.innerHTML = '<i class="fa-solid fa-check me-2"></i> Save';
-
-                        // Add event listener to the save button
-                        saveButton.addEventListener('click', () => {
-                            $('#uni_modal form').submit();
-                        });
-
-                        // Append save button to the modal footer
-                        modalFooter.appendChild(saveButton);
-                    }
-                }, 50); // Check every 50ms
-            }, 300);
-        };
     });
 </script>
 {% endblock ScriptBlock %}

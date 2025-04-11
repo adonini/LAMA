@@ -5,6 +5,7 @@ from .forms import LoginForm, AddMemberForm, AddAuthorDetailsForm, AddInstituteF
 from .models import (Member, Institute, Group, Duty, Country, MemberDuty,
                      MembershipPeriod, AuthorshipPeriod, AuthorDetails,
                      AuthorInstituteAffiliation)
+from django.template.loader import render_to_string
 from dateutil.relativedelta import relativedelta
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -18,7 +19,7 @@ from django.db.models import Q
 from django.utils.timezone import now, make_aware
 from django.db.models import Prefetch
 from pytz import UTC
-
+from django.core.paginator import Paginator
 
 logger = logging.getLogger('lama')
 
@@ -39,6 +40,7 @@ def logout_user(request):
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request, data=request.POST)
+        logger.info(form)
         if form.is_valid():
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
@@ -298,73 +300,7 @@ class Index(TemplateView):
 
 class MemberList(LoginRequiredMixin, View):
     def get(self, request):
-        today = timezone.now().date()
-        six_months_future = today + relativedelta(months=6)
-
-        # Determine whether to show all members
         show_all = request.GET.get('show_all', 'false').lower() == 'true'
-
-        # Prefetch related data
-        members = Member.objects.prefetch_related(
-            'membership_periods__institute__group__country',
-            'authorship_periods'
-        ).distinct()
-
-        # Filter out inactive members when show_all is False
-        if not show_all:
-            members = members.filter(
-                Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gte=today)
-            )
-
-        member_list = []
-
-        for member in members:
-            # Determine current institute and membership
-            active_membership = member.current_membership(include_inactive=show_all)
-            future_membership = member.future_membership()
-            membership = active_membership or future_membership  # Use future membership if no active membership
-
-            current_institute = membership.institute if membership else None
-
-            authorship_period = member.current_authorship(include_inactive=show_all) or member.future_authorship()
-            # logger.debug(f"Authorship period for member {member.pk}, {member.name}: {authorship_period}")
-            # logger.debug(f"{authorship_period.start_date.strftime('%Y-%m-%d') if authorship_period else None}")
-            # Determine authorship and contribution status
-            is_author = (
-                authorship_period
-                and authorship_period.start_date <= today
-                and (authorship_period.end_date is None or authorship_period.end_date >= today)
-            )
-            # Determine if the member will be an author within the next 6 months
-            will_become_author = (
-                authorship_period
-                and authorship_period.start_date > today
-                and authorship_period.start_date <= six_months_future
-            )
-
-            # Adjusted logic for CF contribution
-            is_cf = (is_author or will_become_author) and (  # Consider members who will become authors in the next 6 months
-                authorship_period.start_date <= six_months_future
-                and (authorship_period.end_date is None or authorship_period.end_date > six_months_future)
-            )
-            # Prepare the dictionary for JSON serialization
-            member_list.append({
-                'pk': member.pk,
-                'name': member.name,
-                'surname': member.surname,
-                'primary_email': member.primary_email,
-                'start_date': str(membership.start_date) if membership else None,
-                'end_date': str(membership.end_date) if membership and membership.end_date else None,
-                'role': member.role,
-                'is_author': is_author,
-                'is_cf': is_cf,
-                'authorship_start': authorship_period.start_date.strftime('%Y-%m-%d') if authorship_period else None,
-                'authorship_end': authorship_period.end_date.strftime('%Y-%m-%d') if authorship_period and authorship_period.end_date else None,
-                'group_name': current_institute.group.name if current_institute and current_institute.group else 'No Group',
-                'country_name': current_institute.group.country.name if current_institute and current_institute.group and current_institute.group.country else 'No Country',
-                'institute_name': current_institute.name if current_institute else 'No Institute',
-            })
-
         # Data for the filters
         countries = Country.objects.prefetch_related('groups__institutes').order_by('name')
         filters_data = {
@@ -379,7 +315,6 @@ class MemberList(LoginRequiredMixin, View):
 
         context = {
             'page_title': 'Member List',
-            'members': member_list,
             #'member_data': json.dumps(member_list),
             #'duties': list(Duty.objects.order_by('name').values('id', 'name')),
             'institutes': list(Institute.objects.filter(is_lst=True).order_by('name').values('id', 'name')),
@@ -392,6 +327,148 @@ class MemberList(LoginRequiredMixin, View):
         }
         return render(request, 'member_list.html', context)
 
+def api_member(request): # Finish this ! Here you have a issue with the filters... and also with the information sent on the data...
+    country = request.GET.get('country', None)
+    group = request.GET.get('group', None)
+    institute = request.GET.get('institute', None)
+    author = request.GET.get('author', None)
+    cf = request.GET.get('cf', None)
+    show_all = request.GET.get('showAll', 'false').lower() == 'true'
+    draw = int(request.GET.get('draw', 1))  # DataTable Index
+    start = int(request.GET.get('start', 0))  # Start of the data
+    length = int(request.GET.get('length', 10))  # Rows per page
+    search_value = request.GET.get('search[value]', '').strip() 
+    today = timezone.now().date()
+    six_months_future = today + relativedelta(months=6)
+    # First fetch
+    members = Member.objects.order_by('name', 'surname')
+    # Apply filters
+    if not show_all:
+        members = members.filter(
+            Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gte=today)
+        )
+    if country and country != 'All':
+        groups = Group.objects.filter(country__name = country)
+        institutes = Institute.objects.filter(group__in=groups)
+        member_ids = MembershipPeriod.objects.filter(end_date=None, institute__in=institutes).values_list('member', flat=True)
+        members = members.filter(id__in=member_ids)
+    if group and group != 'All':
+        groups = Group.objects.filter(name = group)
+        institutes = Institute.objects.filter(group__in=groups)
+        member_ids = MembershipPeriod.objects.filter(end_date=None, institute__in=institutes).values_list('member', flat=True)
+        members = members.filter(id__in=member_ids)
+    if institute and institute != 'All':
+        institutes = Institute.objects.filter(name=institute)
+        member_ids = MembershipPeriod.objects.filter(end_date=None, institute__in=institutes).values_list('member', flat=True)
+        members = members.filter(id__in=member_ids)
+    if author and author != 'All':
+        authorships = AuthorshipPeriod.objects.filter(Q(start_date__lte=today) & (Q(end_date__isnull=True) | Q(end_date__gte=today))).order_by('-start_date')
+        if not authorships.exists():
+            authorships = AuthorshipPeriod.objects.filter(start_date__gt=today).order_by('start_date')
+        member_ids = authorships.values_list('member', flat=True)
+        if author == 'Yes':
+            members = members.filter(id__in=member_ids)
+        else:
+            members = members.exclude(id__in=member_ids)
+    if cf and cf != 'All':
+        authorships = AuthorshipPeriod.objects.filter(Q(start_date__lte=today) & (Q(end_date__isnull=True) | Q(end_date__gte=today))).order_by('-start_date')
+        if not authorships.exists():
+            authorships = AuthorshipPeriod.objects.filter(start_date__gt=today).order_by('start_date')
+        author_member_ids = authorships.values_list('member', flat=True)
+
+        future_authorships = AuthorshipPeriod.objects.filter(Q(start_date__gt=today) & (Q(start_date__lte=six_months_future))).order_by('-start_date')
+        future_author_member_ids = future_authorships.values_list('member', flat=True)
+
+        member_ids = list(set(author_member_ids) | set(future_author_member_ids))
+        
+        if cf == 'Yes':
+            members = members.filter(id__in=member_ids)
+        else:
+            members = members.exclude(id__in=member_ids)
+        
+    # Search logic
+    if search_value:
+        query = Q(
+            name__icontains=search_value
+        ) | Q(
+            surname__icontains=search_value
+        )
+        members = members.filter(query)
+
+    # Total of entries
+    total_records = members.count()
+
+    # Pagination
+    paginator = Paginator(members, length)
+    page_number = start // length + 1
+    current_page = paginator.get_page(page_number)
+
+    # User groups retrieval
+    user = request.user
+    user_groups = user.groups.all()
+
+    # Set the item information
+    data = []
+
+    # User groups retrieval
+    user = request.user
+    user_groups = user.groups.all()
+
+    for member in current_page:
+        # Determine current institute and membership
+        active_membership = member.current_membership(include_inactive=show_all)
+        future_membership = member.future_membership()
+        membership = active_membership or future_membership  # Use future membership if no active membership
+        current_institute = membership.institute if membership else None
+        authorship_period = member.current_authorship(include_inactive=show_all) or member.future_authorship()
+        # Set permissions
+        is_admin = user_groups.filter(name='admin').exists()
+        is_sapo = user_groups.filter(name='sapo').exists()
+        # logger.debug(f"Authorship period for member {member.pk}, {member.name}: {authorship_period}")
+        # logger.debug(f"{authorship_period.start_date.strftime('%Y-%m-%d') if authorship_period else None}")
+        # Determine authorship and contribution status
+        is_author = (
+            authorship_period
+            and authorship_period.start_date <= today
+            and (authorship_period.end_date is None or authorship_period.end_date >= today)
+        )
+        # Determine if the member will be an author within the next 6 months
+        will_become_author = (
+            authorship_period
+            and authorship_period.start_date > today
+            and authorship_period.start_date <= six_months_future
+        )
+        # Adjusted logic for CF contribution
+        is_cf = (is_author or will_become_author) and (  # Consider members who will become authors in the next 6 months
+            authorship_period.start_date <= six_months_future
+            and (authorship_period.end_date is None or authorship_period.end_date > six_months_future)
+        )
+        logger.info(member)
+        data.append({
+            'pk': member.pk,
+            'name': member.name,
+            'surname': member.surname,
+            'start_date': str(membership.start_date) if membership else '-',
+            'end_date': str(membership.end_date) if membership and membership.end_date else '-',
+            'is_author': "Yes" if is_author else "No",
+            'is_cf': "Yes" if is_cf else "No",
+            'authorship_start': authorship_period.start_date.strftime('%Y-%m-%d') if authorship_period else '-',
+            'authorship_end': authorship_period.end_date.strftime('%Y-%m-%d') if authorship_period and authorship_period.end_date else '-',
+            'group_name': current_institute.group.name if current_institute and current_institute.group else 'No Group',
+            'country_name': current_institute.group.country.name if current_institute and current_institute.group and current_institute.group.country else 'No Country',
+            'institute_name': current_institute.name if current_institute else 'No Institute',
+            'actions': render_to_string('actions.html', {'author': member, 'is_admin': is_admin, 'is_sapo': is_sapo}),
+        })
+
+    # JSON Response for the DataTable
+    response = {
+        'draw': draw,
+        'recordsTotal': total_records,
+        'recordsFiltered': total_records,
+        'start': start,
+        'data': data,
+    }
+    return JsonResponse(response)
 
 class MemberRecord(LoginRequiredMixin, View):
     def get(self, request, pk=None):
@@ -1056,73 +1133,55 @@ class AuthorList(LoginRequiredMixin, View):
     def get(self, request):
         today = now().date()
 
+        author_details_qs = AuthorDetails.objects.prefetch_related(
+            Prefetch('author_institute_affiliations', queryset=AuthorInstituteAffiliation.objects.all())
+        )
         # Fetch members with active authorships
         authors = Member.objects.prefetch_related(
             'membership_periods__institute__group__country',
             'authorship_periods'
-        ).distinct().filter(
-            Q(authorship_periods__start_date__lte=today) & (
-                Q(authorship_periods__end_date__isnull=True) | Q(authorship_periods__end_date__gte=today)
-            )
-        )
+        ).select_related(
+            'author_details'
+        ).filter(
+            Q(authorship_periods__start_date__lte=today) &
+            (Q(authorship_periods__end_date__isnull=True) | Q(authorship_periods__end_date__gte=today))
+        ).distinct()
 
-        author_list = []
-        authors_missing_details = []  # To track authors without details
-        authors_missing_full_name = []  # To track authors missing full name
-        authors_missing_affiliation = []  # To track authors missing affiliation
+        authors_missing_details = []
+        authors_missing_full_name = []
+        authors_missing_affiliation = []
 
         for author in authors:
-            # Determine active membership
+            # Active membership
             membership = author.current_membership(include_inactive=True)
             current_institute = membership.institute if membership else None
 
             # Active authorship period
             authorship_period = author.current_authorship()
             is_author = (
-                authorship_period
-                and authorship_period.start_date <= today
-                and (authorship_period.end_date is None or authorship_period.end_date >= today)
+                authorship_period and
+                authorship_period.start_date <= today and
+                (authorship_period.end_date is None or authorship_period.end_date >= today)
             )
 
-            if is_author:
-                main_affiliation = None
-                full_name_missing = False
-                affiliation_missing = False
-                try:
-                    # Attempt to fetch author details
-                    author_details = author.author_details
-                    if author_details:
-                        institutes = author_details.ordered_institutes()
-                        if institutes:
-                            main_affiliation = institutes[0].name  # Get the first institute name
-                        else:
-                            affiliation_missing = True  # No affiliation found
-                        # Check if full name is missing
-                        if not author_details.author_name:
-                            full_name_missing = True
-                except Member.author_details.RelatedObjectDoesNotExist:
-                    # Handle the case where there are no author details
-                    authors_missing_details.append(author)
-                    main_affiliation = 'No Affiliation'
+            if not is_author:
+                continue
 
-                # Track authors missing full name or affiliation
-                if full_name_missing:
-                    authors_missing_full_name.append(author)
-                if affiliation_missing:
-                    authors_missing_affiliation.append(author)
+            # Author detail verification
+            try:
+                author_details = author.author_details
+            except AuthorDetails.DoesNotExist:
+                authors_missing_details.append(author)
+                continue
 
-                author_list.append({
-                    'pk': author.pk,
-                    'name': author.name,
-                    'surname': author.surname,
-                    'primary_email': author.primary_email,
-                    'authorship_start': authorship_period.start_date.strftime('%Y-%m-%d') if authorship_period else None,
-                    'authorship_end': authorship_period.end_date.strftime('%Y-%m-%d') if authorship_period and authorship_period.end_date else None,
-                    'group_name': current_institute.group.name if current_institute and current_institute.group else 'No Group',
-                    'country_name': current_institute.group.country.name if current_institute and current_institute.group and current_institute.group.country else 'No Country',
-                    'institute_name': current_institute.name if current_institute else 'No Institute',
-                    'main_affiliation': main_affiliation or 'No Affiliation',
-                })
+            # Author full name verification
+            if not author_details.author_name:
+                authors_missing_full_name.append(author)
+
+            # Author affiliation verification
+            has_affiliation = AuthorInstituteAffiliation.objects.filter(author_details=author_details).exists()
+            if not has_affiliation:
+                authors_missing_affiliation.append(author)
 
         # Data for the filters
         countries = Country.objects.prefetch_related('groups__institutes').order_by('name')
@@ -1138,7 +1197,6 @@ class AuthorList(LoginRequiredMixin, View):
 
         context = {
             'page_title': 'Author List',
-            'authors': author_list,
             #'author_data': json.dumps(author_list),
             'institutes': list(Institute.objects.order_by('name').values('id', 'name')),
             'groups': list(Group.objects.order_by('name').values('id', 'name')),
@@ -1152,6 +1210,113 @@ class AuthorList(LoginRequiredMixin, View):
         }
         return render(request, 'author_list.html', context)
 
+def api_author(request):
+    country = request.GET.get('country', None)
+    group = request.GET.get('group', None)
+    institute = request.GET.get('institute', None)
+    draw = int(request.GET.get('draw', 1))  # DataTable Index
+    start = int(request.GET.get('start', 0))  # Start of the data
+    length = int(request.GET.get('length', 10))  # Rows per page
+    search_value = request.GET.get('search[value]', '').strip() 
+    today = timezone.now().date()
+    # First fetch
+    authors = Member.objects.order_by('name', 'surname').distinct()
+    authorships = AuthorshipPeriod.objects.filter(Q(start_date__lte=today) & (Q(end_date__isnull=True) | Q(end_date__gte=today))).order_by('-start_date')
+    member_ids = authorships.values_list('member', flat=True)
+    authors = authors.filter(id__in=member_ids)
+    # Apply filters
+    if country and country != 'All':
+        groups = Group.objects.filter(country__name = country)
+        institutes = Institute.objects.filter(group__in=groups)
+        member_ids = MembershipPeriod.objects.filter(end_date=None, institute__in=institutes).values_list('member', flat=True)
+        authors = authors.filter(id__in=member_ids)
+    if group and group != 'All':
+        groups = Group.objects.filter(name = group)
+        institutes = Institute.objects.filter(group__in=groups)
+        member_ids = MembershipPeriod.objects.filter(end_date=None, institute__in=institutes).values_list('member', flat=True)
+        authors = authors.filter(id__in=member_ids)
+    if institute and institute != 'All':
+        institutes = Institute.objects.filter(name=institute)
+        member_ids = MembershipPeriod.objects.filter(end_date=None, institute__in=institutes).values_list('member', flat=True)
+        authors = authors.filter(id__in=member_ids)
+        
+    # Search logic
+    if search_value:
+        query = Q(
+            name__icontains=search_value
+        ) | Q(
+            surname__icontains=search_value
+        )
+        authors = authors.filter(query)
+
+    # Total of entries
+    total_records = authors.count()
+
+    # Pagination
+    paginator = Paginator(authors, length)
+    page_number = start // length + 1
+    current_page = paginator.get_page(page_number)
+
+    # User groups retrieval
+    user = request.user
+    user_groups = user.groups.all()
+
+    # Set the item information
+    author_list = []
+    
+    for author in current_page:
+        # Set permissions
+        is_admin = user_groups.filter(name='admin').exists()
+        is_sapo = user_groups.filter(name='sapo').exists()
+
+        # Determine active membership
+        membership = author.current_membership(include_inactive=True)
+        current_institute = membership.institute if membership else None
+
+        # Active authorship period
+        authorship_period = author.current_authorship()
+        is_author = (
+            authorship_period
+            and authorship_period.start_date <= today
+            and (authorship_period.end_date is None or authorship_period.end_date >= today)
+        )
+
+        if is_author:
+            main_affiliation = None
+            try:
+                # Attempt to fetch author details
+                author_details = author.author_details
+                if author_details:
+                    institutes = author_details.ordered_institutes()
+                    if institutes:
+                        main_affiliation = institutes[0].name  # Get the first institute name
+            except Member.author_details.RelatedObjectDoesNotExist:
+                # Handle the case where there are no author details
+                main_affiliation = 'No Affiliation'
+
+            author_list.append({
+                'pk': author.pk,
+                'name': author.name,
+                'surname': author.surname,
+                'primary_email': author.primary_email,
+                'authorship_start': authorship_period.start_date.strftime('%Y-%m-%d') if authorship_period else '-',
+                'authorship_end': authorship_period.end_date.strftime('%Y-%m-%d') if authorship_period and authorship_period.end_date else '-',
+                'group_name': current_institute.group.name if current_institute and current_institute.group else 'No Group',
+                'country_name': current_institute.group.country.name if current_institute and current_institute.group and current_institute.group.country else 'No Country',
+                'institute_name': current_institute.name if current_institute else 'No Institute',
+                'main_affiliation': main_affiliation or 'No Affiliation',
+                'actions': render_to_string('actions.html', {'author': author, 'is_admin': is_admin, 'is_sapo': is_sapo}),
+            })
+
+    # JSON Response for the DataTable
+    response = {
+        'draw': draw,
+        'recordsTotal': total_records,
+        'recordsFiltered': total_records,
+        'start': start,  
+        'data': author_list,
+    }
+    return JsonResponse(response)
 
 class AuthorRecord(LoginRequiredMixin, View):
     def get(self, request, pk=None):
@@ -1819,32 +1984,8 @@ def generate_science(request):
 
 class InstituteList(LoginRequiredMixin, View):
     def get(self, request):
-        # Fetch institutes with related group and country
-        institutes = Institute.objects.select_related('group__country').all()
-
         # Optional filtering based on the LST flag
         show_all = request.GET.get('show_all', 'false').lower() == 'true'
-        # Filter out non-LST institutes if show_all is False
-        if not show_all:
-            institutes = institutes.filter(is_lst=True)
-
-        institute_list = []
-
-        for institute in institutes:
-            # Extract related data (group and country)
-            group_name = institute.group.name if institute.group else 'No Group'
-            country_name = institute.group.country.name if institute.group and institute.group.country else 'No Country'
-
-            # Add the institute details to the list
-            institute_list.append({
-                'pk': institute.pk,
-                'name': institute.name,
-                'long_name': institute.long_name,
-                'group_name': group_name,
-                'country_name': country_name,
-                'long_description': institute.long_description,
-                'is_lst': "Yes" if institute.is_lst else "No",
-            })
 
         # Data for the filters (countries, groups, institutes)
         countries = Country.objects.prefetch_related('groups__institutes').order_by('name')
@@ -1864,8 +2005,6 @@ class InstituteList(LoginRequiredMixin, View):
 
         context = {
             'page_title': 'Institute List',
-            'institutes': institute_list,
-            'institute_data': json.dumps(institute_list),
             'groups': list(Group.objects.order_by('name').values('id', 'name')),
             'countries': list(Country.objects.order_by('name').values('id', 'name')),
             'filters': filters_data,
@@ -1874,6 +2013,91 @@ class InstituteList(LoginRequiredMixin, View):
         }
         return render(request, 'institute_list.html', context)
 
+def api_institute(request):
+    country = request.GET.get('country', None)
+    group = request.GET.get('group', None)
+    institute = request.GET.get('institute', None)
+    official = request.GET.get('official', None)
+    show_all = request.GET.get('showAll', 'false').lower() == 'true'
+    draw = int(request.GET.get('draw', 1))  # DataTable Index
+    start = int(request.GET.get('start', 0))  # Start of the data
+    length = int(request.GET.get('length', 10))  # Rows per page
+    search_value = request.GET.get('search[value]', '').strip() 
+    # First fetch
+    institutes = Institute.objects.order_by('name').all()
+    # Filter out non-LST institutes if show_all is False
+    logger.info(show_all)
+    if not show_all:
+        institutes = institutes.filter(is_lst=True)
+
+    # Apply filters
+    if country and country != 'All':
+        groups = Group.objects.filter(country__name = country)
+        institutes = institutes.filter(group__in=groups)
+    if group and group != 'All':
+        groups = Group.objects.filter(name = group)
+        institutes = institutes.filter(group__in=groups)
+    if institute and institute != 'All':
+        institutes = institutes.filter(name=institute)
+    if official and official != 'All':
+        institutes = institutes.filter(is_lst=official.lower() == 'yes')
+        
+    # Search logic
+    if search_value:
+        query = Q(
+            name__icontains=search_value
+        ) | Q(
+            long_name__icontains=search_value
+        ) | Q(
+            group__name__icontains=search_value
+        ) | Q(
+            long_description__icontains=search_value
+        )
+        institutes = institutes.filter(query)
+
+    # Total of entries
+    total_records = institutes.count()
+
+    # Pagination
+    paginator = Paginator(institutes, length)
+    page_number = start // length + 1
+    current_page = paginator.get_page(page_number)
+
+    # User groups retrieval
+    user = request.user
+    user_groups = user.groups.all()
+
+    # Set the item information
+    institute_list = []
+
+    for institute in current_page:
+        # Extract related data (group and country)
+        group_name = institute.group.name if institute.group else 'No Group'
+        country_name = institute.group.country.name if institute.group and institute.group.country else 'No Country'
+        is_admin = user_groups.filter(name='admin').exists()
+        is_sapo = user_groups.filter(name='sapo').exists()
+
+        # Add the institute details to the list
+        institute_list.append({
+            'pk': institute.pk,
+            'name': institute.name,
+            'long_name': institute.long_name,
+            'group_name': group_name,
+            'country_name': country_name,
+            'long_description': institute.long_description,
+            'is_lst': "Yes" if institute.is_lst else "No",
+            'actions': render_to_string('actions.html', {'author': institute, 'is_admin': is_admin, 'is_sapo': is_sapo}),
+        })
+    
+    # JSON Response for the DataTable
+    response = {
+        'draw': draw,
+        'recordsTotal': total_records,
+        'recordsFiltered': total_records,
+        'start': start,  
+        'data': institute_list,
+    }
+    return JsonResponse(response)
 
 class InstituteRecord(LoginRequiredMixin, View):
     def get(self, request, pk=None):

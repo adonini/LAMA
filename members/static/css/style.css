@@ -158,6 +158,11 @@ body{
 table, td, tr, th{
     border: none;
     border-bottom: none !important;
+    text-align: center;
+}
+table td{
+    text-align: center !important;
+    vertical-align: middle;
 }
 td>div{
     min-width: 100%;

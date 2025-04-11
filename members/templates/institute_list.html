@@ -37,38 +37,6 @@
                             Actions {% else %} Details {% endif %}</th>
                     </tr>
                 </thead>
-                <tbody>
-                    {% for institute in institutes %}
-                    <tr>
-                        <td class="align-center text-center light-text">{{ forloop.counter }}</td>
-                        <td class="align-center text-center light-text">{{ institute.name|default:"-" }}</td>
-                        <td class="align-center text-center light-text">{{ institute.long_name|default:"-" }}</td>
-                        <td class="align-center text-center light-text">{{ institute.group_name|default:"-" }}</td>
-                        <td class="align-center text-center light-text">{{ institute.country_name }}</td>
-                        <td class="align-center text-center light-text">
-                            {% if institute.is_lst == "Yes" %}
-                                Yes
-                            {% else %}
-                                No
-                            {% endif %}
-                        </td>
-                        <td class="align-center text-center light-text">{{ institute.long_description|default:"-" }}</td>
-                        <td class="align-center text-center light-text d-flex flex-wrap justify-content-around">
-                            <div class="d-flex">
-                                {% if user|has_group:"admin" or user|has_group:"sapo" %}
-                                    <button class="btn btn-sm selected edit-data" data-id="{{ institute.pk }}" title="Edit Institute">
-                                        <i class="fa-solid fa-edit fa-2xl"></i>
-                                    </button>
-                                {% endif %}
-                                <button type="button" class="btn btn-bg-dark btn-sm item-data {% if user|has_group:'admin' or user|has_group:"sapo" %}
-                                    ms-1 {% endif %}" data-id="{{ institute.pk }}" title="Institute information">
-                                    <i class="fa-solid fa-info-circle fa-2xl"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
             </table>
         </div>
     </div>
@@ -76,7 +44,6 @@
 {% endblock content %}
 {% block ScriptBlock %}
 <script>
-    let institutes = {{ institutes|safe }};
     let groups = {{ groups|safe }};
     let countries = {{ countries|safe }};
     let filters = {{ filters|safe }};
@@ -98,6 +65,29 @@
             }
         });
         let table = $('#institute-list').DataTable({
+            serverSide: true,
+            ajax: {
+                url: '/api/institutes/',
+                type: 'GET',
+                data: function(d) {
+                    d.country = $('#Country').val();
+                    d.group = $('#Group').val();
+                    d.institute = $('#Institute').val();
+                    d.official = $('#Official').val();
+                    d.showAll = $('#toggleShowAll').prop('checked')
+                }
+            },
+            // Assign values to each row
+            columns: [
+                { data: null },
+                { data: 'name' },
+                { data: 'long_name' },
+                { data: 'group_name' },
+                { data: 'country_name' },
+                { data: 'is_lst' },
+                { data: 'long_description' },
+                { data: 'actions' },
+            ],
             responsive: true,
             scrollX: true, // Only the table itself will scroll horizontally
             dom: '<"top1"<"top1Start"f><"top1End"B>>t<"bottom"<"bottomStart"i><"bottomCenter"l><"bottomEnd"p>>',
@@ -247,12 +237,14 @@
                     option.value = country;
                     option.appendChild(document.createTextNode(country));
                     input.appendChild(option);
+                    input.setAttribute('id', label.replace(": ", ""));
                 }
                 filtersContainer.appendChild(divInput);
             }
 
             // Filter by Group
             if (label.toLowerCase().includes('group')) {
+                input.setAttribute('id', label.replace(": ", ""));
                 groupDropdown = input;
                 input.addEventListener('change', () => updateFilters('group'));
                 // Initially empty; will be populated dynamically
@@ -261,6 +253,7 @@
 
             // Filter by Institute
             if (label.toLowerCase().includes('institute')) {
+                input.setAttribute('id', label.replace(": ", ""));
                 instituteDropdown = input;
                 input.addEventListener('change', () => updateFilters('institute'));
                 // Initially empty; will be populated dynamically
@@ -284,6 +277,7 @@
                     option.value = lstStatus;
                     option.appendChild(document.createTextNode(lstStatus));
                     input.appendChild(option);
+                    input.setAttribute('id', label.split(" ")[1].replace(":", ""))
                 });
                 lstOfficialContainer.appendChild(divInput); // Append to container
             }
@@ -339,44 +333,6 @@
             $(this).attr("autocomplete", "off");
             $(this).before('<span class="fa fa-search"></span>');
         });
-        $(document).on('click', '.item-data', function(e) {
-            let id = e.target.dataset.id
-            let baseUrl = "{% url 'institute-record' 0 %}";
-            let finalUrl = baseUrl.replace('0', id);
-
-            // Create header for the modal
-            let headerDiv = document.createElement('div')
-            headerDiv.classList.add("modal-header", "d-flex", "align-items-center", "justify-content-between", "border-0")
-
-            // Title of the modal with icon
-            let titleDiv = document.createElement('div');
-            titleDiv.classList.add('d-flex', 'align-items-center');
-            let addIcon = document.createElement('i');
-            addIcon.classList.add('fa-solid', 'fa-circle-info', 'me-2');
-            let title = document.createElement('h5');
-            title.classList.add('modal-title', 'dark-text', 'm-0');
-            title.innerText = "Institute Information";
-            titleDiv.appendChild(addIcon);
-            titleDiv.appendChild(title);
-
-            // Close button for the modal header
-            let closeButton = document.createElement('button');
-            closeButton.classList.add('btn-close', 'btn-close1');
-            closeButton.setAttribute('data-bs-dismiss', 'modal');
-            closeButton.setAttribute('aria-label', 'Close');
-            headerDiv.appendChild(titleDiv);
-            headerDiv.appendChild(closeButton);
-
-            // Open the modal
-            uni_modal(headerDiv, finalUrl, 'modal-md')
-
-            // Completely remove the footer from the modal
-            let modalFooter = document.querySelector('.modal-footer');
-            if (modalFooter) {
-                modalFooter.remove();  // This will completely remove the footer
-            }
-        })
-
         $('#add_inst').click(function() {
             // Create the header for the modal
             const headerDiv = document.createElement('div');
@@ -434,78 +390,6 @@
                 }
             });
         });
-
-        $(document).on('click', '.edit-data', function (e) {
-            const id = e.target.dataset.id;
-            const baseUrl = "{% url 'manage-institute-pk' 0 %}";
-            const finalUrl = baseUrl.replace('0', id);
-            const modalFooter = document.querySelector('#uni_modal .modal-footer');
-
-            // Call the edit function
-            editItem(id, modalFooter, finalUrl);
-        });
-
-        const editItem = (id, modalFooter, finalUrl, small = false) => {
-            // Hide any existing modal
-            $('#uni_modal').modal('hide');
-
-            // Create modal header
-            const headerDiv = document.createElement('div');
-            headerDiv.classList.add('modal-header', 'd-flex', 'align-items-center', 'justify-content-between', 'border-0');
-
-            const titleDiv = document.createElement('div');
-            titleDiv.classList.add('d-flex', 'align-items-center');
-            const editIcon = document.createElement('i');
-            editIcon.classList.add('fa-solid', 'fa-edit', 'me-2');
-            const title = document.createElement('h5');
-            title.classList.add('modal-title', 'dark-text', 'm-0');
-            title.innerHTML = 'Edit Institute';
-
-            titleDiv.appendChild(editIcon);
-            titleDiv.appendChild(title);
-
-            // Close button for the modal header
-            const closeButton = document.createElement('button');
-            closeButton.classList.add('btn-close', 'btn-close1');
-            closeButton.setAttribute('data-bs-dismiss', 'modal'); // Bootstrap dismiss
-            closeButton.setAttribute('aria-label', 'Close'); // Accessibility
-
-            headerDiv.appendChild(titleDiv);
-            headerDiv.appendChild(closeButton);
-
-            // Open the modal with content
-            setTimeout(() => {
-                uni_modal(headerDiv, finalUrl, small ? 'modal-sm' : 'modal-md');
-
-                const checkFooter = setInterval(() => {
-                    let modalFooter = document.querySelector('#uni_modal .modal-footer');
-                    if (!modalFooter) {
-                        console.warn('Modal footer not found, creating one...');
-                        modalFooter = document.createElement('div');
-                        modalFooter.classList.add('modal-footer');
-                        document.querySelector('#uni_modal .modal-content').appendChild(modalFooter);
-                    }
-
-                    if (modalFooter) {
-                        clearInterval(checkFooter); // Stop checking once footer exists
-                        modalFooter.innerHTML = ''; // Clear existing content
-
-                        // Create save button
-                        const saveButton = document.createElement('button');
-                        saveButton.classList.add('btn', 'selected', 'edit');
-                        saveButton.innerHTML = '<i class="fa-solid fa-check me-2"></i> Save';
-
-                        // Add event listener to the save button
-                        saveButton.addEventListener('click', () => {
-                            $('#uni_modal form').submit();
-                        });
-
-                        // Append save button to the modal footer
-                        modalFooter.appendChild(saveButton);
-                    }
-                }, 50); // Check every 50ms
-            }, 300);
-        };
     });
 </script>
 {% endblock ScriptBlock %}

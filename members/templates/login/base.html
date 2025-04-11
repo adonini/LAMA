@@ -175,7 +175,7 @@
         })
 
         // Remove all messages after a certain duration
-        let alertElement = document.querySelector('.alert')
+        let alertElements = document.querySelectorAll('.alert')
         alertElements.forEach(function(alertElement) {
             // Only auto-close alerts that are not the "authorsMissingDetailsAlert"
             if (alertElement.id !== 'authorsMissingDetailsAlert') {

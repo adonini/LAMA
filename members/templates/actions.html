@@ -1,0 +1,131 @@
+{% load custom_filter %}
+<div class="d-flex justify-content-evenly align-items-center">
+    {% if is_admin or is_sapo %}
+        <button class="btn btn-sm selected edit-data" data-id="{{ author.pk }}" title="Edit author">
+            <i class="fa-solid fa-edit fa-2xl"></i>
+        </button>
+    {% endif %}
+    <button type="button" class="btn btn-bg-dark btn-sm item-data {% if is_admin or is_sapo %}
+        ms-1 {% endif %}" data-id="{{ author.pk }}" title="Author information">
+        <i class="fa-solid fa-info-circle fa-2xl"></i>
+    </button>
+</div>
+<script>
+    $(document).on('click', '.item-data', function(e) {
+        // Handle event target for button or icon click
+        let id = e.target.dataset.id;  // Corrected: use e.target
+        let baseUrl = "{% url 'author-record' 0 %}";
+        let finalUrl = baseUrl.replace('0', id);
+
+        // Create header for the modal
+        let headerDiv = document.createElement('div');
+        headerDiv.classList.add("modal-header", "d-flex", "align-items-center", "justify-content-between", "border-0");
+
+        // Title of the modal with icon
+        let titleDiv = document.createElement('div');
+        titleDiv.classList.add('d-flex', 'align-items-center');
+        let addIcon = document.createElement('i');
+        addIcon.classList.add('fa-solid', 'fa-circle-info', 'me-2');
+        let title = document.createElement('h5');
+        title.classList.add('modal-title', 'dark-text', 'm-0');
+        title.innerText = "Author Information";
+        titleDiv.appendChild(addIcon);
+        titleDiv.appendChild(title);
+
+        // Close button for the modal header
+        let closeButton = document.createElement('button');
+        closeButton.classList.add('btn-close', 'btn-close1');
+        closeButton.setAttribute('data-bs-dismiss', 'modal');
+        closeButton.setAttribute('aria-label', 'Close');
+        headerDiv.appendChild(titleDiv);
+        headerDiv.appendChild(closeButton);
+
+        // Open the modal
+        uni_modal(headerDiv, finalUrl, 'modal-md');
+
+        // Completely remove the footer from the modal
+        let modalFooter = document.querySelector('.modal-footer');
+        if (modalFooter) {
+            modalFooter.remove();  // This will completely remove the footer
+        }
+    });
+
+    $(document).on('click', '.edit-data', function (e) {
+        // Get the author ID from the data attribute
+        const id = e.target.dataset.id;
+        const baseUrl = "{% url 'manage-author-pk' 0 %}";
+        const finalUrl = baseUrl.replace('0', id);
+        const modalFooter = document.querySelector('#uni_modal .modal-footer');
+
+        // Call the edit function
+        editAuthor(id, modalFooter, finalUrl);
+    });
+
+    editAuthor = (id, modalFooter, finalUrl, small = false) => {
+        // Hide any existing modal using Bootstrap's modal API
+        const modalElement = document.getElementById('uni_modal');
+        const modal = new bootstrap.Modal(modalElement);
+        modal.hide();
+
+        // Create modal header
+        const headerDiv = document.createElement('div');
+        headerDiv.classList.add('modal-header', 'd-flex', 'align-items-center', 'justify-content-between', 'border-0');
+
+        const titleDiv = document.createElement('div');
+        titleDiv.classList.add('d-flex', 'align-items-center');
+        const editIcon = document.createElement('i');
+        editIcon.classList.add('fa-solid', 'fa-edit', 'me-2');
+        const title = document.createElement('h5');
+        title.classList.add('modal-title', 'dark-text', 'm-0');
+        title.innerHTML = 'Edit Author';
+
+        titleDiv.appendChild(editIcon);
+        titleDiv.appendChild(title);
+
+        // Close button for the modal header
+        const closeButton = document.createElement('button');
+        closeButton.classList.add('btn-close', 'btn-close1');
+        closeButton.setAttribute('data-bs-dismiss', 'modal'); // Bootstrap dismiss
+        closeButton.setAttribute('aria-label', 'Close'); // Accessibility
+
+        headerDiv.appendChild(titleDiv);
+        headerDiv.appendChild(closeButton);
+
+        // Open the modal with content
+        setTimeout(() => {
+            // Use Bootstrap's modal API to show the modal
+            uni_modal(headerDiv, finalUrl, small ? 'modal-sm' : 'modal-md');
+
+            const checkFooter = setInterval(() => {
+                let modalFooter = document.querySelector('#uni_modal .modal-footer');
+                if (!modalFooter) {
+                    console.warn('Modal footer not found, creating one...');
+                    modalFooter = document.createElement('div');
+                    modalFooter.classList.add('modal-footer');
+                    document.querySelector('#uni_modal .modal-content').appendChild(modalFooter);
+                }
+
+                if (modalFooter) {
+                    clearInterval(checkFooter); // Stop checking once footer exists
+                    modalFooter.innerHTML = ''; // Clear existing content
+
+                    // Create save button
+                    const saveButton = document.createElement('button');
+                    saveButton.classList.add('btn', 'selected', 'edit');
+                    saveButton.innerHTML = '<i class="fa-solid fa-check me-2"></i> Save';
+
+                    // Add event listener to the save button
+                    //saveButton.addEventListener('click', () => {
+                    //    const form = document.querySelector('#uni_modal form');
+                    //    if (form) form.submit();
+                    //});
+                    saveButton.addEventListener('click', () => {
+                        $('#uni_modal form').submit();
+                    });
+                    // Append save button to the modal footer
+                    modalFooter.appendChild(saveButton);
+                }
+            }, 50); // Check every 50ms
+        }, 300);
+    };
+</script>
