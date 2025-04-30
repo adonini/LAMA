@@ -457,7 +457,7 @@ def api_member(request): # Finish this ! Here you have a issue with the filters.
             'group_name': current_institute.group.name if current_institute and current_institute.group else 'No Group',
             'country_name': current_institute.group.country.name if current_institute and current_institute.group and current_institute.group.country else 'No Country',
             'institute_name': current_institute.name if current_institute else 'No Institute',
-            'actions': render_to_string('actions.html', {'author': member, 'is_admin': is_admin, 'is_sapo': is_sapo}),
+            'actions': render_to_string('member_actions.html', {'author': member, 'is_admin': is_admin, 'is_sapo': is_sapo}),
         })
 
     # JSON Response for the DataTable
@@ -1305,7 +1305,7 @@ def api_author(request):
                 'country_name': current_institute.group.country.name if current_institute and current_institute.group and current_institute.group.country else 'No Country',
                 'institute_name': current_institute.name if current_institute else 'No Institute',
                 'main_affiliation': main_affiliation or 'No Affiliation',
-                'actions': render_to_string('actions.html', {'author': author, 'is_admin': is_admin, 'is_sapo': is_sapo}),
+                'actions': render_to_string('author_actions.html', {'author': author, 'is_admin': is_admin, 'is_sapo': is_sapo}),
             })
 
     # JSON Response for the DataTable
@@ -2086,7 +2086,7 @@ def api_institute(request):
             'country_name': country_name,
             'long_description': institute.long_description,
             'is_lst': "Yes" if institute.is_lst else "No",
-            'actions': render_to_string('actions.html', {'author': institute, 'is_admin': is_admin, 'is_sapo': is_sapo}),
+            'actions': render_to_string('institute_actions.html', {'author': institute, 'is_admin': is_admin, 'is_sapo': is_sapo}),
         })
     
     # JSON Response for the DataTable

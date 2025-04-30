@@ -188,8 +188,6 @@ class Member(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-
-
 class AuthorDetails(models.Model):
     member = models.OneToOneField(Member, on_delete=models.CASCADE, related_name='author_details',
                                   help_text="The member associated with this author information.")
