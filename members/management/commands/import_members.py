@@ -4,6 +4,8 @@ from members.models import Member, Country, Group, Institute, Duty, MembershipPe
 import pandas as pd
 from datetime import datetime
 import logging
+from django.db.models import Q
+import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +37,21 @@ class Command(BaseCommand):
                     group, _ = Group.objects.get_or_create(name=str(row['Group']).strip(), country=country)
 
                     # Create or get Institute, linking it to the Group
-                    institute, _ = Institute.objects.get_or_create(name=str(row['Institute']).strip(), group=group)
+                    institute_name = str(row['Institute']).strip()
+
+                    institute = Institute.objects.filter(
+                        Q(name=institute_name) | Q(long_name=institute_name)
+                    ).first()
+
+                    print(f"{row['First Name']} {row['Last Name']}")
+                    print(institute)
+
+                    if not institute:
+                        institute = Institute.objects.create(name=institute_name, long_name=institute_name)
+
+                    if institute.group == None:
+                        institute.group = group
+                        institute.save()
 
                     # Handle multiple duties, splitting them by commas
                     duties = [duty.strip() for duty in row['Duty'].split(',')] if pd.notna(row['Duty']) else []
@@ -85,10 +101,12 @@ class Command(BaseCommand):
 
                 except Exception as e:
                     # Log the error to both the logger and stdout
-                    error_message = f"Failed to process {row['First Name']} {row['Last Name']}: {e}"
+                    tb = traceback.format_exc()
+                    error_message = f"Failed to process {row['First Name']} {row['Last Name']}: {e}\n{tb}"
                     logger.error(error_message)
                     self.stdout.write(self.style.ERROR(error_message))  # Immediate output to console
                     failed_rows.append({'first_name': row['First Name'], 'last_name': row['Last Name'], 'error': str(e)})
+                    break
 
         # Summary of any failed rows after the import
         if failed_rows:

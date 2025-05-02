@@ -220,9 +220,9 @@ class AuthorInstituteAffiliation(models.Model):
     institute = models.ForeignKey('Institute', on_delete=models.CASCADE,
                                   help_text="Institute affiliated with this author.")
     order = models.PositiveIntegerField(help_text="The order in which the institute appears for the author.")
-
+    creation_date = models.DateTimeField(auto_now_add=True)
     class Meta:
-        unique_together = ('author_details', 'institute')  # Prevent duplicates
+        unique_together = ('author_details', 'institute', 'order', 'creation_date')  # Prevent duplicates
         ordering = ['order']  # Always return institutes in the specified order
 
     def __str__(self):

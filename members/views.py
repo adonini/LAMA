@@ -1,6 +1,6 @@
 import json
 import logging
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, time
 from .forms import LoginForm, AddMemberForm, AddAuthorDetailsForm, AddInstituteForm
 from .models import (Member, Institute, Group, Duty, Country, MemberDuty,
                      MembershipPeriod, AuthorshipPeriod, AuthorDetails,
@@ -17,9 +17,10 @@ from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from django.db.models import Q
 from django.utils.timezone import now, make_aware
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Subquery, OuterRef, F
 from pytz import UTC
 from django.core.paginator import Paginator
+import pytz
 
 logger = logging.getLogger('lama')
 
@@ -1335,6 +1336,18 @@ class AuthorRecord(LoginRequiredMixin, View):
             # Fetch author details
             author_details = getattr(author, 'author_details', None)
 
+            # Get the latest AuthorInstituteAffiliation for each institute for a given author_details
+            latest_affiliations = AuthorInstituteAffiliation.objects.filter(
+                    author_details=author_details,
+                    institute=OuterRef('institute'),
+                ).order_by('-creation_date').values('id')[:1]
+
+            # Use a Subquery to filter the AuthorInstituteAffiliation objects and order them.
+            affiliations = AuthorInstituteAffiliation.objects.filter(
+                author_details=author_details,
+                id__in=Subquery(latest_affiliations)
+            ).order_by('order', '-creation_date').distinct('order')
+
             # Fetch current institute, group, and country
             institute = author.current_institute() if author.current_institute() else None
             group = institute.group if institute else None
@@ -1346,6 +1359,7 @@ class AuthorRecord(LoginRequiredMixin, View):
             context.update({
                 'member': author,
                 'author_details': author_details,
+                'institute_affiliations': affiliations,
                 'institute': institute,
                 'group': group,
                 'country': country,
@@ -1375,7 +1389,20 @@ class ManageAuthor(LoginRequiredMixin, View):
                 context['author_details'] = author_details
                 context['member'] = author_details.member
 
-                affiliations = AuthorInstituteAffiliation.objects.filter(author_details=author_details).order_by('order')
+                # Get the latest AuthorInstituteAffiliation for each institute for a given author_details
+                latest_affiliations = AuthorInstituteAffiliation.objects.filter(
+                    author_details=author_details,
+                    institute=OuterRef('institute'),
+                ).order_by('-creation_date').values('id')[:1]
+
+                # Use a Subquery to filter the AuthorInstituteAffiliation objects and order them.
+                affiliations = AuthorInstituteAffiliation.objects.filter(
+                    author_details=author_details,
+                    id__in=Subquery(latest_affiliations)
+                ).order_by('order', '-creation_date').distinct('order')
+
+                logger.info(affiliations)
+
                 context['affiliations'] = affiliations
 
                 # Set the edit flag
@@ -1429,8 +1456,6 @@ class AddAuthor(LoginRequiredMixin, View):
                 logger.debug(f"Affiliations to be updated: {affiliations}")
 
                 if affiliations:
-                    # Clear existing affiliations
-                    author_details.institute_affiliations.all().delete()  # Deletes all related AuthorInstituteAffiliation objects
 
                     for i, affiliation_id in enumerate(affiliations):
                         institute = Institute.objects.filter(id=affiliation_id.strip()).first()  # Use ID for lookup
@@ -1439,9 +1464,10 @@ class AddAuthor(LoginRequiredMixin, View):
                             affiliation, created = AuthorInstituteAffiliation.objects.get_or_create(
                                 author_details=author_details,
                                 institute=institute,
-                                defaults={'order': i + 1}
+                                order=i + 1
                             )
                             if not created:
+                                logger.info(affiliation)
                                 affiliation.order = i + 1
                                 affiliation.save()
 
@@ -1489,7 +1515,26 @@ def generate_aa_email(request):
         # Skip authors without affiliations or valid names
         if not author.institute_affiliations.exists() or not author.author_name:
             continue
-        for affiliation in author.institute_affiliations.all():
+
+        parsed_date = date.fromisoformat(selected_date_str)
+        time_midnight = time(23, 59, 59)
+        naive_datetime = datetime.combine(parsed_date, time_midnight)
+        utc_timezone = pytz.utc
+        aware_datetime_utc = naive_datetime.replace(tzinfo=utc_timezone)
+        # Get the latest AuthorInstituteAffiliation for each institute for a given author_details
+        latest_affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            institute=OuterRef('institute'),
+            creation_date__lte=aware_datetime_utc,
+        ).order_by('-creation_date').values('id')[:1]
+
+        # Use a Subquery to filter the AuthorInstituteAffiliation objects and order them.
+        affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            id__in=Subquery(latest_affiliations)
+        ).order_by('order', '-creation_date').distinct('order')
+
+        for affiliation in affiliations:
             institute = affiliation.institute
             if institute.name not in institute_dict:
                 institute_dict[institute.name] = institute_counter
@@ -1502,8 +1547,27 @@ def generate_aa_email(request):
     for author in authors:
         if not author.institute_affiliations.exists() or not author.author_name:
             continue
+
+        parsed_date = date.fromisoformat(selected_date_str)
+        time_midnight = time(23, 59, 59)
+        naive_datetime = datetime.combine(parsed_date, time_midnight)
+        utc_timezone = pytz.utc
+        aware_datetime_utc = naive_datetime.replace(tzinfo=utc_timezone)
+        # Get the latest AuthorInstituteAffiliation for each institute for a given author_details
+        latest_affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            institute=OuterRef('institute'),
+            creation_date__lte=aware_datetime_utc,
+        ).order_by('-creation_date').values('id')[:1]
+
+        # Use a Subquery to filter the AuthorInstituteAffiliation objects and order them.
+        affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            id__in=Subquery(latest_affiliations)
+        ).order_by('order', '-creation_date').distinct('order')
+
         institute_indices = sorted(
-            [institute_dict[aff.institute.name] for aff in author.institute_affiliations.all()]
+            [institute_dict[aff.institute.name] for aff in affiliations if aff.institute.name in institute_dict]
         )
         indices_str = ",".join(map(str, institute_indices))
         latex_content.append(f"{author.author_name.replace(' ', '~')}\\inst{{{indices_str}}}\\email{{{author.author_email}}} \\and\n")
@@ -1545,7 +1609,25 @@ def generate_aa(request):
         # Skip authors without affiliations or valid names
         if not author.institute_affiliations.exists() or not author.author_name:
             continue
-        for affiliation in author.institute_affiliations.all():
+        parsed_date = date.fromisoformat(selected_date_str)
+        time_midnight = time(23, 59, 59)
+        naive_datetime = datetime.combine(parsed_date, time_midnight)
+        utc_timezone = pytz.utc
+        aware_datetime_utc = naive_datetime.replace(tzinfo=utc_timezone)
+        # Get the latest AuthorInstituteAffiliation for each institute for a given author_details
+        latest_affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            institute=OuterRef('institute'),
+            creation_date__lte=aware_datetime_utc,
+        ).order_by('-creation_date').values('id')[:1]
+
+        # Use a Subquery to filter the AuthorInstituteAffiliation objects and order them.
+        affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            id__in=Subquery(latest_affiliations)
+        ).order_by('order', '-creation_date').distinct('order')
+
+        for affiliation in affiliations:
             institute = affiliation.institute
             if institute.name not in institute_dict:
                 institute_dict[institute.name] = institute_counter
@@ -1558,8 +1640,26 @@ def generate_aa(request):
     for author in authors:
         if not author.institute_affiliations.exists() or not author.author_name:
             continue
+
+        parsed_date = date.fromisoformat(selected_date_str)
+        time_midnight = time(23, 59, 59)
+        naive_datetime = datetime.combine(parsed_date, time_midnight)
+        utc_timezone = pytz.utc
+        aware_datetime_utc = naive_datetime.replace(tzinfo=utc_timezone)
+        # Get the latest AuthorInstituteAffiliation for each institute for a given author_details
+        latest_affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            institute=OuterRef('institute'),
+            creation_date__lte=aware_datetime_utc,
+        ).order_by('-creation_date').values('id')[:1]
+
+        # Use a Subquery to filter the AuthorInstituteAffiliation objects and order them.
+        affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            id__in=Subquery(latest_affiliations)
+        ).order_by('order', '-creation_date').distinct('order')
         institute_indices = sorted(
-            [institute_dict[aff.institute.name] for aff in author.institute_affiliations.all()]
+            [institute_dict[aff.institute.name] for aff in affiliations]
         )
         indices_str = ",".join(map(str, institute_indices))
         latex_content.append(f"{author.author_name.replace(' ', '~')}\\inst{{{indices_str}}} \\and\n")
@@ -1602,8 +1702,24 @@ def generate_apj(request):
         # Skip authors without affiliations or valid names
         if not author.institute_affiliations.exists() or not author.author_name:
             continue
-        # Get affiliations sorted by the 'order' field
-        affiliations = author.institute_affiliations.all().order_by('order')
+
+        parsed_date = date.fromisoformat(selected_date_str)
+        time_midnight = time(23, 59, 59)
+        naive_datetime = datetime.combine(parsed_date, time_midnight)
+        utc_timezone = pytz.utc
+        aware_datetime_utc = naive_datetime.replace(tzinfo=utc_timezone)
+        # Get the latest AuthorInstituteAffiliation for each institute for a given author_details
+        latest_affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            institute=OuterRef('institute'),
+            creation_date__lte=aware_datetime_utc,
+        ).order_by('-creation_date').values('id')[:1]
+
+        # Use a Subquery to filter the AuthorInstituteAffiliation objects and order them.
+        affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            id__in=Subquery(latest_affiliations)
+        ).order_by('order', '-creation_date').distinct('order')
 
         # Build author string
         author_name = author.author_name.replace("  ", " ").replace(" ", "~")
@@ -1656,10 +1772,24 @@ def generate_arxiv(request):
         # Skip authors without affiliations or valid names
         if not author.institute_affiliations.exists() or not author.author_name:
             continue
-        affiliations = sorted(
-            author.institute_affiliations.all(),
-            key=lambda aff: aff.order  # Sort by the 'order' field
-        )
+        parsed_date = date.fromisoformat(selected_date_str)
+        time_midnight = time(23, 59, 59)
+        naive_datetime = datetime.combine(parsed_date, time_midnight)
+        utc_timezone = pytz.utc
+        aware_datetime_utc = naive_datetime.replace(tzinfo=utc_timezone)
+        # Get the latest AuthorInstituteAffiliation for each institute for a given author_details
+        latest_affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            institute=OuterRef('institute'),
+            creation_date__lte=aware_datetime_utc,
+        ).order_by('-creation_date').values('id')[:1]
+
+        # Use a Subquery to filter the AuthorInstituteAffiliation objects and order them.
+        affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            id__in=Subquery(latest_affiliations)
+        ).order_by('order', '-creation_date').distinct('order')
+
         for affiliation in affiliations:
             institute = affiliation.institute
             if institute.name not in institute_dict:
@@ -1673,10 +1803,24 @@ def generate_arxiv(request):
         # Skip authors without affiliations or valid names
         if not author.institute_affiliations.exists() or not author.author_name:
             continue
-        affiliations = sorted(
-            author.institute_affiliations.all(),
-            key=lambda aff: aff.order  # Sort by the 'order' field
-        )
+        parsed_date = date.fromisoformat(selected_date_str)
+        time_midnight = time(23, 59, 59)
+        naive_datetime = datetime.combine(parsed_date, time_midnight)
+        utc_timezone = pytz.utc
+        aware_datetime_utc = naive_datetime.replace(tzinfo=utc_timezone)
+        # Get the latest AuthorInstituteAffiliation for each institute for a given author_details
+        latest_affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            institute=OuterRef('institute'),
+            creation_date__lte=aware_datetime_utc,
+        ).order_by('-creation_date').values('id')[:1]
+
+        # Use a Subquery to filter the AuthorInstituteAffiliation objects and order them.
+        affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            id__in=Subquery(latest_affiliations)
+        ).order_by('order', '-creation_date').distinct('order')
+
         institute_indices = sorted([institute_dict[aff.institute.name] for aff in affiliations])
         indices_str = ",".join(map(str, institute_indices))
         author_strings.append(f"{author.author_name} ({indices_str})")
@@ -1724,10 +1868,23 @@ def generate_mnras(request):
         # Skip authors without affiliations or valid names
         if not author.institute_affiliations.exists() or not author.author_name:
             continue
-        affiliations = sorted(
-            author.institute_affiliations.all(),
-            key=lambda aff: aff.order  # Sort by 'order'
-        )
+        parsed_date = date.fromisoformat(selected_date_str)
+        time_midnight = time(23, 59, 59)
+        naive_datetime = datetime.combine(parsed_date, time_midnight)
+        utc_timezone = pytz.utc
+        aware_datetime_utc = naive_datetime.replace(tzinfo=utc_timezone)
+        # Get the latest AuthorInstituteAffiliation for each institute for a given author_details
+        latest_affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            institute=OuterRef('institute'),
+            creation_date__lte=aware_datetime_utc,
+        ).order_by('-creation_date').values('id')[:1]
+
+        # Use a Subquery to filter the AuthorInstituteAffiliation objects and order them.
+        affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            id__in=Subquery(latest_affiliations)
+        ).order_by('order', '-creation_date').distinct('order')
         for affiliation in affiliations:
             institute = affiliation.institute
             if institute.name not in all_institutes:
@@ -1744,10 +1901,23 @@ def generate_mnras(request):
         # Skip authors without affiliations or valid names
         if not author.institute_affiliations.exists() or not author.author_name:
             continue
-        affiliations = sorted(
-            author.institute_affiliations.all(),
-            key=lambda aff: aff.order  # Sort by 'order'
-        )
+        parsed_date = date.fromisoformat(selected_date_str)
+        time_midnight = time(23, 59, 59)
+        naive_datetime = datetime.combine(parsed_date, time_midnight)
+        utc_timezone = pytz.utc
+        aware_datetime_utc = naive_datetime.replace(tzinfo=utc_timezone)
+        # Get the latest AuthorInstituteAffiliation for each institute for a given author_details
+        latest_affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            institute=OuterRef('institute'),
+            creation_date__lte=aware_datetime_utc,
+        ).order_by('-creation_date').values('id')[:1]
+
+        # Use a Subquery to filter the AuthorInstituteAffiliation objects and order them.
+        affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            id__in=Subquery(latest_affiliations)
+        ).order_by('order', '-creation_date').distinct('order')
         institute_indices = [institute_dict[aff.institute.name] for aff in affiliations]
         indices_str = ",".join(map(str, institute_indices))
         author_name = author.author_name.replace("  ", " ").replace(" ", "~")
@@ -1798,7 +1968,23 @@ def generate_pos(request):
         # Skip authors without affiliations or valid names
         if not author.institute_affiliations.exists() or not author.author_name:
             continue
-        affiliations = author.institute_affiliations.order_by('order')  # Ensure affiliations are in the correct order
+        parsed_date = date.fromisoformat(selected_date_str)
+        time_midnight = time(23, 59, 59)
+        naive_datetime = datetime.combine(parsed_date, time_midnight)
+        utc_timezone = pytz.utc
+        aware_datetime_utc = naive_datetime.replace(tzinfo=utc_timezone)
+        # Get the latest AuthorInstituteAffiliation for each institute for a given author_details
+        latest_affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            institute=OuterRef('institute'),
+            creation_date__lte=aware_datetime_utc,
+        ).order_by('-creation_date').values('id')[:1]
+
+        # Use a Subquery to filter the AuthorInstituteAffiliation objects and order them.
+        affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            id__in=Subquery(latest_affiliations)
+        ).order_by('order', '-creation_date').distinct('order')
         for affiliation in affiliations:
             institute = affiliation.institute
             if institute.name not in institute_dict:
@@ -1813,7 +1999,23 @@ def generate_pos(request):
         # Skip authors without affiliations or valid names
         if not author.institute_affiliations.exists() or not author.author_name:
             continue
-        affiliations = author.institute_affiliations.order_by('order')  # Ensure affiliations are in the correct order
+        parsed_date = date.fromisoformat(selected_date_str)
+        time_midnight = time(23, 59, 59)
+        naive_datetime = datetime.combine(parsed_date, time_midnight)
+        utc_timezone = pytz.utc
+        aware_datetime_utc = naive_datetime.replace(tzinfo=utc_timezone)
+        # Get the latest AuthorInstituteAffiliation for each institute for a given author_details
+        latest_affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            institute=OuterRef('institute'),
+            creation_date__lte=aware_datetime_utc,
+        ).order_by('-creation_date').values('id')[:1]
+
+        # Use a Subquery to filter the AuthorInstituteAffiliation objects and order them.
+        affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            id__in=Subquery(latest_affiliations)
+        ).order_by('order', '-creation_date').distinct('order')
         if not affiliations:
             print(f"Author {author.author_name} has no affiliation!")
             continue
@@ -1871,7 +2073,24 @@ def generate_nature(request):
         # Skip authors without affiliations or valid names
         if not author.institute_affiliations.exists() or not author.author_name:
             continue
-        for affiliation in author.institute_affiliations.all():
+        parsed_date = date.fromisoformat(selected_date_str)
+        time_midnight = time(23, 59, 59)
+        naive_datetime = datetime.combine(parsed_date, time_midnight)
+        utc_timezone = pytz.utc
+        aware_datetime_utc = naive_datetime.replace(tzinfo=utc_timezone)
+        # Get the latest AuthorInstituteAffiliation for each institute for a given author_details
+        latest_affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            institute=OuterRef('institute'),
+            creation_date__lte=aware_datetime_utc,
+        ).order_by('-creation_date').values('id')[:1]
+
+        # Use a Subquery to filter the AuthorInstituteAffiliation objects and order them.
+        affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            id__in=Subquery(latest_affiliations)
+        ).order_by('order', '-creation_date').distinct('order')
+        for affiliation in affiliations:
             institute = affiliation.institute
             if institute.name not in institute_dict:
                 institute_dict[institute.name] = institute_counter
@@ -1891,8 +2110,25 @@ def generate_nature(request):
             continue  # Or handle this case more explicitly
 
         author_string = f"{author_name} $^{{"
+        parsed_date = date.fromisoformat(selected_date_str)
+        time_midnight = time(23, 59, 59)
+        naive_datetime = datetime.combine(parsed_date, time_midnight)
+        utc_timezone = pytz.utc
+        aware_datetime_utc = naive_datetime.replace(tzinfo=utc_timezone)
+        # Get the latest AuthorInstituteAffiliation for each institute for a given author_details
+        latest_affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            institute=OuterRef('institute'),
+            creation_date__lte=aware_datetime_utc,
+        ).order_by('-creation_date').values('id')[:1]
+
+        # Use a Subquery to filter the AuthorInstituteAffiliation objects and order them.
+        affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            id__in=Subquery(latest_affiliations)
+        ).order_by('order', '-creation_date').distinct('order')
         institute_indices = sorted(
-            [institute_dict[aff.institute.name] for aff in author.institute_affiliations.all()]
+            [institute_dict[aff.institute.name] for aff in affiliations]
         )
         author_string += ",".join(str(idx) for idx in institute_indices) + "}$"
 
@@ -1941,7 +2177,24 @@ def generate_science(request):
         # Skip authors without affiliations or valid names
         if not author.institute_affiliations.exists() or not author.author_name:
             continue
-        for affiliation in author.institute_affiliations.all():
+        parsed_date = date.fromisoformat(selected_date_str)
+        time_midnight = time(23, 59, 59)
+        naive_datetime = datetime.combine(parsed_date, time_midnight)
+        utc_timezone = pytz.utc
+        aware_datetime_utc = naive_datetime.replace(tzinfo=utc_timezone)
+        # Get the latest AuthorInstituteAffiliation for each institute for a given author_details
+        latest_affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            institute=OuterRef('institute'),
+            creation_date__lte=aware_datetime_utc,
+        ).order_by('-creation_date').values('id')[:1]
+
+        # Use a Subquery to filter the AuthorInstituteAffiliation objects and order them.
+        affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            id__in=Subquery(latest_affiliations)
+        ).order_by('order', '-creation_date').distinct('order')
+        for affiliation in affiliations:
             institute = affiliation.institute
             if institute.name not in institute_dict:
                 institute_dict[institute.name] = institute_counter
@@ -1961,8 +2214,25 @@ def generate_science(request):
             continue  # Or handle this case more explicitly
 
         author_string = f"{author_name} $^{{"
+        parsed_date = date.fromisoformat(selected_date_str)
+        time_midnight = time(23, 59, 59)
+        naive_datetime = datetime.combine(parsed_date, time_midnight)
+        utc_timezone = pytz.utc
+        aware_datetime_utc = naive_datetime.replace(tzinfo=utc_timezone)
+        # Get the latest AuthorInstituteAffiliation for each institute for a given author_details
+        latest_affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            institute=OuterRef('institute'),
+            creation_date__lte=aware_datetime_utc,
+        ).order_by('-creation_date').values('id')[:1]
+
+        # Use a Subquery to filter the AuthorInstituteAffiliation objects and order them.
+        affiliations = AuthorInstituteAffiliation.objects.filter(
+            author_details=author,
+            id__in=Subquery(latest_affiliations)
+        ).order_by('order', '-creation_date').distinct('order')
         institute_indices = sorted(
-            [institute_dict[aff.institute.name] for aff in author.institute_affiliations.all()]
+            [institute_dict[aff.institute.name] for aff in affiliations]
         )
         author_string += ",".join(str(idx) for idx in institute_indices) + "}$"
 
@@ -2218,3 +2488,34 @@ class AddInstitute(LoginRequiredMixin, View):
         else:
             resp['msg'] = 'No data has been sent.'
         return HttpResponse(json.dumps(resp), content_type='application/json')
+    
+class DutyList(LoginRequiredMixin, View):
+    def get(self, request):
+        # Optional filtering based on the LST flag
+        show_all = request.GET.get('show_all', 'false').lower() == 'true'
+
+        # Data for the filters (countries, groups, institutes)
+        countries = Country.objects.prefetch_related('groups__institutes').order_by('name')
+        filters_data = {
+            country.name: {
+                "groups": {
+                    group.name: list(
+                        group.institutes.values_list('name', flat=True)
+                        if show_all else
+                        group.institutes.filter(is_lst=True).values_list('name', flat=True)
+                    )
+                    for group in country.groups.all()
+                }
+            }
+            for country in countries
+        }
+
+        context = {
+            'page_title': 'Duty List',
+            'groups': list(Group.objects.order_by('name').values('id', 'name')),
+            'countries': list(Country.objects.order_by('name').values('id', 'name')),
+            'filters': filters_data,
+            'current_date': timezone.now().strftime('%B %d, %Y'),
+            'show_all': show_all,
+        }
+        return render(request, 'duty_list.html', context)
