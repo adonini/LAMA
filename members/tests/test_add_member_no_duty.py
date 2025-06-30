@@ -33,4 +33,3 @@ def test_add_member_no_duty(client):
     assert not member.is_active_cf()
     assert not member.is_active_author()
     assert not member.future_authorship()
-    assert False
