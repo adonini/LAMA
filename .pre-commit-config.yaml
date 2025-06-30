@@ -3,7 +3,7 @@ repos:
     hooks:
       - id: pytest-check
         name: Run pytest before push
-        entry: pytest
+        entry: bash -c 'docker exec django_lama_${PROJECT_VERSION} pytest'
         language: system
         types: [python]
-        stages: [push]
+        stages: [pre-push]
