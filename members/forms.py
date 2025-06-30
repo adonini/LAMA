@@ -23,11 +23,10 @@ class AddMemberForm(forms.ModelForm):
     primary_email = forms.EmailField(required=True)
     start_date = forms.DateField(required=True)
     end_date = forms.DateField(required=False)
-    duty = forms.ModelChoiceField(queryset=Duty.objects.all(), initial=0, required=False)
 
     class Meta:
         model = Member
-        fields = ['name', 'surname', 'primary_email', 'start_date', 'end_date', 'role', 'institute', 'group', 'country', 'duty']
+        fields = ['name', 'surname', 'primary_email', 'start_date', 'end_date', 'role', 'institute', 'group', 'country']
 
     def clean(self):
         cleaned_data = super().clean()

@@ -102,7 +102,7 @@
             ],
             order: [[1, 'asc']], // Default sorting by Institute Name (column index 1) in ascending order
             columnDefs: [
-                { orderable: false, targets: [0, 6, 7] }, // Disable ordering for specific columns
+                { orderable: false, targets: [0,1,2,3,4,5,6,7] }, // Disable ordering
                 {targets: 0, searchable: false,
                     render: function(data, type, row, meta) {
                         return meta.row + meta.settings._iDisplayStart + 1; // Row numbering

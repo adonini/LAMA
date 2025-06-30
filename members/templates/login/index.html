@@ -18,7 +18,7 @@
 
         {% if user.is_authenticated %}
         <!-- Welcome Text -->
-        <div class="col-12 text-center mb-4">
+        <div class="col-12 text-center">
             <h1>Welcome to LAMA!</h1>
             <p><strong>LST Administration of Members and Authors</strong></p>
             <div class="col-12 text-center mb-4">
@@ -113,11 +113,32 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Third Row with 2 Cards -->
+            <!-- Third Row with 4 Cards-->
             <div class="row justify-content-center">
+                <!--Total duties-->
+                <div class="col-md-3 col-sm-12" style="max-height: 9.5rem;">
+                    <div class="card shadow">
+                        <div class="card-header custom-card-header text-center">
+                            <i class="fa-solid fa-book-open" style="color: #77bb41;"></i> Filled duties
+                        </div>
+                        <div class="card-body text-center">
+                            <p class="card-text"><strong class="large-bold-number">{{ total_duties }}</strong></p>
+                        </div>
+                    </div>
+                </div>
+                <!--Available Duties-->
+                <div class="col-md-3 col-sm-12" style="max-height: 9.5rem;">
+                    <div class="card shadow">
+                        <div class="card-header custom-card-header text-center">
+                            <i class="fa-solid fa-book-open" style="color: #e32400;"></i> Free duties
+                        </div>
+                        <div class="card-body text-center">
+                            <p class="card-text"><strong class="large-bold-number">{{ available_duties }}</strong></p>
+                        </div>
+                    </div>
+                </div>
                 <!-- Groups Card -->
-                <div class="col-md-5 col-sm-12">
+                <div class="col-md-3 col-sm-12" style="max-height: 9.5rem;">
                     <div class="card shadow">
                         <div class="card-header custom-card-header text-center">
                             <i class="fa-solid fa-people-roof"></i> Groups
@@ -144,7 +165,7 @@
                 </div>
 
                 <!-- Institutes Card -->
-                <div class="col-md-5 col-sm-12">
+                <div class="col-md-3 col-sm-12" style="max-height: 9.5rem;">
                     <div class="card shadow">
                         <div class="card-header custom-card-header text-center">
                             <i class="fa-solid fa-building-columns"></i> Institutes
@@ -177,17 +198,34 @@
 
 <script>
     $(document).ready(function () {
+        const style = "max-height: 9.5rem;"
+        const toggleGroupsButton = document.getElementById('toggleGroups')
+        const toggleInstitutesButton = document.getElementById('toggleInstitutes')
+        toggleGroupsButton.addEventListener('click', function(e) {
+            const isExpanded = this.getAttribute('aria-expanded') === 'true'
+            if (isExpanded) {
+                e.target.parentNode.closest('.col-md-3').style = ''
+            }
+        })
+        toggleInstitutesButton.addEventListener('click', function(e) {
+            const isExpanded = this.getAttribute('aria-expanded') === 'true'
+            if (isExpanded) {
+                e.target.parentNode.closest('.col-md-3').style = ''
+            }
+        })
         // Handle Institutes toggle
         $('#institutesBreakdown').on('shown.bs.collapse', function () {
             $('#toggleInstitutes').addClass('rotated'); // Expand (Arrow up)
-        }).on('hidden.bs.collapse', function () {
+        }).on('hidden.bs.collapse', function (e) {
+            e.target.parentNode.closest('.col-md-3').style = style
             $('#toggleInstitutes').removeClass('rotated'); // Collapse (Arrow down)
         });
 
         // Handle Groups toggle
         $('#groupsBreakdown').on('shown.bs.collapse', function () {
             $('#toggleGroups').addClass('rotated'); // Expand (Arrow up)
-        }).on('hidden.bs.collapse', function () {
+        }).on('hidden.bs.collapse', function (e) {
+            e.target.parentNode.closest('.col-md-3').style = style
             $('#toggleGroups').removeClass('rotated'); // Collapse (Arrow down)
         });
     });

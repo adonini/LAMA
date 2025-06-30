@@ -1,0 +1,106 @@
+{% load custom_filter %}
+
+<div class="container-fluid">
+    <div class="err-msg"></div>
+    <form action="" id="duty-form">
+        {% csrf_token %}
+        <input type="hidden" name="id" value="{{ duty.id }}">
+        <div class="row">
+            <!-- Left Column -->
+            <div class="col-md-6">
+                <div class="form-group mb-3 position-relative">
+                    <label for="name" class="control-label">Name</label>
+                    <input type="text" class="form-control rounded-0" id="name" name="name" value="{{ duty.name }}" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="description" class="control-label">Description</label>
+                    <textarea name="description" id="description">{{duty.description}}</textarea>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-md-6">
+                <div class="form-group mb-3 position-relative">
+                    <label for="max_mem" class="control-label">Maximum Slots</label>
+                    <input type="number" class="form-control rounded-0" id="max_mem" name="max_mem" value="{{ duty.maximum_members}}">
+                </div>
+                <div class="form-group mb-3">
+                    <label for="duty_type" class="control-label">Type</label>
+                    <select class="form-control rounded-0 dropdown-input capitalize" id="duty_type" name="duty_type">
+                        <option value="" disabled selected>Select a type</option> <!-- Placeholder option -->
+                        {% for type in types %}
+                            <option value="{{ type.id }}" class="capitalize" {% if duty.duty_type and duty.duty_type.id == type.id %}selected{% endif %}>
+                                {{ type.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    $(document).ready(function() {
+
+        $('#duty-form').submit(function(e) {
+            e.preventDefault();
+            var _this = $(this);
+            let form = new FormData($(this)[0]);
+
+            // Check if the form is valid
+            if (_this[0].checkValidity() == false) {
+                _this[0].reportValidity();
+                return false;
+            } else {
+                console.log("Form is valid.");
+            }
+
+            var el = $('.err-msg'); // Reference to the element for displaying messages
+            el.addClass("alert alert-danger err-msg"); // Add alert classes
+            el.hide(); // Hide the element
+
+            start_loader();
+            url = "{% url 'new-duty' %}"
+            $.ajax({
+                url: url,
+                data: form,
+                cache: false,
+                contentType: false,
+                processData: false,
+                method: 'POST',
+                type: 'POST',
+                dataType: 'json',
+                error: function(err) {
+                    console.error("AJAX Error:", err);
+                    el.text("An error occurred while processing the request. Please try again.");
+                    _this.prepend(el);
+                    el.show('slow');
+                    end_loader();
+                },
+                success: function(resp) {
+                    //console.log("AJAX success response:", resp);
+                    if (resp.status === 'success') {
+                        //console.log("Form submission successful.");
+                        el.removeClass("alert alert-danger err-msg").addClass("alert alert-success");
+                        el.text("duty successfully saved!");
+                        _this.prepend(el);
+                        el.show('slow');
+                        location.reload();  // Reload page on success
+                    } else if (resp.status === 'failed' && resp.msg) {
+                        //console.log("Form submission failed. Message:", resp.msg);
+                        el.html(resp.msg);
+                        _this.prepend(el);
+                        el.show('slow');
+                    } else {
+                        //console.log("Unexpected response structure.");
+                        el.text("An unexpected error occurred. Please try again.");
+                        _this.prepend(el);
+                        el.show('slow');
+                    }
+                    end_loader();
+                }
+            });
+        });
+    });
+</script>

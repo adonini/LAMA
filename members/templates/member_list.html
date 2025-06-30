@@ -7,9 +7,9 @@
     <div class="header position-relative d-flex align-items-center">
         <div class="d-flex align-items-center w-100 mt-0 mb-2">
             {% if user|has_group:"admin" %}
-            <div class="tools">
-                <button type="button" class="btn-new-member" id='add_new'><i class="fa fa-plus"></i> New Member</button>
-            </div>
+                <div class="tools">
+                    <button type="button" class="btn-new-member" id='add_new'><i class="fa fa-plus"></i> New Member</button>
+                </div>
             {% endif %}
             <!-- Switch for Show Active Members/Show All Members -->
             <div class="d-flex align-items-center ms-3">
@@ -17,7 +17,7 @@
                     <input type="checkbox" id="toggleShowAll" class="custom-control-input" {% if show_all %}checked{% endif %}>
                     <label class="custom-control-label mb-0" for="toggleShowAll"></label>
                 </div>
-                <span class="ml-2 switch-text">Include Former Members</span>
+                <span class="ml-2 switch-text">Include Former & Future Members</span>
             </div>
         </div>
     </div>
@@ -185,8 +185,9 @@
                 {extend: 'print',exportOptions: {columns: ':not(:last-child)'}
                 }
             ],
+            order: [[1, 'asc']],
             columnDefs: [
-                { orderable: false, targets: [0, 3, 4, 5, 8, 9, 12] }, // Disable ordering for specific columns
+                { orderable: false, targets: [0,1,2,3,4,5,6,7,8,9,10,11,12] }, // Disable ordering (Not working good with pagination)
                 {targets: 0, searchable: false,
                     render: function(data, type, row, meta) {
                         return meta.row + meta.settings._iDisplayStart + 1; // Row numbering

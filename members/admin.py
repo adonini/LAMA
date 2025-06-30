@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Country, Duty, Group, Institute, Member, MemberDuty, MembershipPeriod, AuthorshipPeriod, AuthorDetails
+from .models import Country, Duty, Group, Institute, Member, MemberDuty, MembershipPeriod, AuthorshipPeriod, AuthorDetails, DutyType, AuthorInstituteAffiliation, ActiveDutyManager
 
 
 class MemberAdmin(admin.ModelAdmin):
@@ -30,5 +30,5 @@ admin.site.register(Member, MemberAdmin)
 admin.site.register(MemberDuty)
 admin.site.register(MembershipPeriod)
 admin.site.register(AuthorshipPeriod)
-admin.site.register(AuthorDetails, AuthorDetailsAdmin)
+admin.site.register(AuthorDetails, AuthorDetailsAdmin)  
 

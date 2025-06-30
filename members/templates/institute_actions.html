@@ -1,7 +1,7 @@
 {% load custom_filter %}
-<div class="d-flex justify-content-evenly align-items-center">
+<div class="d-flex justify-content-center align-items-center">
     {% if is_admin or is_sapo %}
-        <button class="btn btn-sm selected edit-data" data-id="{{ author.pk }}" title="Edit author">
+        <button class="btn btn-sm selected edit-data me-1" data-id="{{ author.pk }}" title="Edit author">
             <i class="fa-solid fa-edit fa-2xl"></i>
         </button>
     {% endif %}
@@ -11,7 +11,7 @@
     </button>
 </div>
 <script>
-    $(document).on('click', '.item-data', function(e) {
+    $(document).off('click', '.item-data').on('click', '.item-data', function(e) {
         // Handle event target for button or icon click
         let id = e.target.dataset.id;  // Corrected: use e.target
         let baseUrl = "{% url 'institute-record' 0 %}";
@@ -50,7 +50,7 @@
         }
     });
 
-    $(document).on('click', '.edit-data', function (e) {
+    $(document).off('click', '.edit-data').on('click', '.edit-data', function (e) {
         // Get the author ID from the data attribute
         const id = e.target.dataset.id;
         const baseUrl = "{% url 'manage-institute-pk' 0 %}";

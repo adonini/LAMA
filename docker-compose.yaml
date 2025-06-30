@@ -30,6 +30,7 @@ services:
     command: ./run.sh
     restart: always
     volumes:
+      - .:/code
       - static:/code/staticfiles
     environment:
       - POSTGRES_DB=${POSTGRES_DB}

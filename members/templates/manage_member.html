@@ -3,7 +3,7 @@
     <div class="err-msg"></div>
     <form action="" id="member-form">
         {% csrf_token %}
-        <input type="hidden" name="id" value="{{ member.id }}">
+        <input type="hidden" id="member_id" name="id" value="{{ member.id }}">
         <div class="row">
             <!-- Left Column -->
             <div class="col-md-6">
@@ -38,8 +38,8 @@
                         <option value="technician" {% if member.role == "technician" %} selected {% endif %}>Technician</option>
                         <option value="researcher" {% if member.role == "researcher" %} selected {% endif %}>Researcher</option>
                         <option value="affiliated" {% if member.role == "affiliated" %} selected {% endif %}>Affiliated</option>
-                        <option value="affiliated" {% if member.role == "engineer" %} selected {% endif %}>Engineer</option>
-                        <option value="affiliated" {% if member.role == "administrator" %} selected {% endif %}>Administrator</option>
+                        <option value="engineer" {% if member.role == "engineer" %} selected {% endif %}>Engineer</option>
+                        <option value="administrator" {% if member.role == "administrator" %} selected {% endif %}>Administrator</option>
                     </select>
                 </div>
                 <div class="form-group mb-3">
@@ -57,53 +57,133 @@
                     </select>
                 </div>
                 <div class="form-group mb-3">
-                    <label for="is_author" class="control-label">Is Author</label>
-                    <input type="checkbox" class="form-check-input" id="is_author" name="is_author" {% if is_author %} checked {% endif %}>
+                    <label for="is_cf" class="control-label">Common Found</label>
+                    <input type="checkbox" class="form-check-input" id="is_cf" name="is_cf" {% if is_cf %} checked {% endif %}>
                 </div>
-                <div id="authorship-fields" class="{% if not member.is_author %} d-none {% endif %}">
+                <div id="cf-fields" class="{% if not is_cf %} d-none {% endif %}">
                     <div class="form-group mb-3">
-                        <label for="authorship_start" class="control-label">Authorship Start</label>
+                        <label for="cf_start" class="control-label">CF Start</label>
                         <a class="fas fa-info-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="right"
-                            title="Authorship will start 6 months after the entered date." style="cursor: pointer; margin-left: 5px;">
+                            title="cf will start 6 months after the entered date." style="cursor: pointer; margin-left: 5px;">
                         </a>
-                        <input type="date" class="form-control rounded-0" id="authorship_start" name="authorship_start" value="{{ authorship_start|date:"Y-m-d" }}">
+                        <input type="date" class="form-control rounded-0" id="cf_start" name="cf_start" value="{{ cf_start|date:"Y-m-d" }}">
                     </div>
                     <div class="form-group mb-3">
-                        <label for="authorship_end" class="control-label">Authorship End</label>
+                        <label for="cf_end" class="control-label">CF End</label>
                         <a class="fas fa-info-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="right"
-                            title="Authorship will end 6 months after the entered date." style="cursor: pointer; margin-left: 5px;">
+                            title="cf will end 6 months after the entered date." style="cursor: pointer; margin-left: 5px;">
                         </a>
-                        <input type="date" class="form-control rounded-0" id="authorship_end" name="authorship_end" value="{{ authorship_end|date:"Y-m-d" }}">
+                        <input type="date" class="form-control rounded-0" id="cf_end" name="cf_end" value="{{ cf_end|date:"Y-m-d" }}">
                     </div>
                 </div>
             </div>
             {% if is_edit %}
                 <div class="col-md-12">
-                        <div id="future-authorship" class="form-group mb-3">
-                            <label class="control-label">Future Authorship Periods</label>
-                            {% if future_auth_periods %}
-                                <ul class="list-group">
-                                    {% for period in future_auth_periods %}
-                                        <li class="list-group-item">
-                                            <div class="row">
-                                                <!-- Start Date -->
-                                                <div class="col-md-6 col-sm-12">
-                                                    <strong>Start:</strong> {{ period.start_date|date:"Y-m-d" }}
-                                                </div>
-                                                <!-- End Date -->
-                                                <div class="col-md-6 col-sm-12">
-                                                    <strong>End:</strong> {{ period.end_date|date:"Y-m-d" }}
-                                                </div>
+                    <div id="future-authorship" class="form-group mb-3">
+                        <label class="control-label">Future Authorship Periods</label>
+                        {% if future_auth_periods %}
+                            <ul class="list-group">
+                                {% for period in future_auth_periods %}
+                                    <li class="list-group-item">
+                                        <div class="row">
+                                            <div class="col-md-6 col-sm-12">
+                                                <strong>Start:</strong> {{ period.start_date|date:"Y-m-d" }}
                                             </div>
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            {% else %}
-                                <p class="text-muted">No future authorship periods logged.</p>
-                            {% endif %}
-                        </div>
+                                            <div class="col-md-6 col-sm-12">
+                                                <strong>End:</strong> {{ period.end_date|date:"Y-m-d" }}
+                                            </div>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-muted">No future authorship periods logged.</p>
+                        {% endif %}
+                    </div>
                 </div>
+                <div class="dutiesSection col-md-12 {% if not duties %} hidden {% endif %}">
+                    <label class="control-label">Duties</label>
+                    {% if duties %}
+                        <ul class="list-group">
+                            {% for duty in temporaryDuties %}
+                                <li class="list-group-item">
+                                    <div class="row d-flex justify-content-start">
+                                        <div class="col-md-5 col-sm-12 d-flex align-items-center">
+                                            <p class="mb-0">{{ duty.duty.name }}</p>
+                                        </div>
+                                        <div class="col-md-7 col-sm-12 d-flex {% if duty.duty.duty_type.name == 'temporary' and duty.end_date == None %}flex-row justify-content-between align-items-center{% else %}flex-column align-items-start justify-content-center{% endif %}">
+                                            <div class="d-flex align-items-center">
+                                                <strong class="me-1">Start: </strong> {{ duty.start_date|date:"Y-m-d" }}
+                                            </div>
+                                            {% if duty.duty.duty_type.name == 'temporary' and duty.end_date == None %}
+                                                <div class="d-flex align-items-center">
+                                                    <button class="btn btn-sm btn-clear rounded-xl mt-0 endBtn" data-id="{{duty.pk}}">End</button>
+                                                </div>
+                                            {% else %}
+                                                {% if not duty.end_date == None %}
+                                                    <div class="d-flex align-items-center">
+                                                        <strong class="end-mar">End: </strong> {{ duty.end_date|date:"Y-m-d" }}
+                                                    </div>
+                                                {% endif %}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                            {% for duty in permanentDuties %}
+                                <li class="list-group-item">
+                                    <div class="row d-flex justify-content-start">
+                                        <div class="col-md-5 col-sm-12 d-flex align-items-center">
+                                            <p class="mb-0">{{ duty.duty.name }}</p>
+                                        </div>
+                                        <div class="col-md-7 col-sm-12 d-flex {% if duty.end_date == None %}flex-row justify-content-between align-items-center{% else %}flex-column align-items-start justify-content-center{% endif %}">
+                                            <div class="d-flex align-items-center">
+                                                <strong class="me-1">Start: </strong> {{ duty.start_date|date:"Y-m-d" }}
+                                            </div>
+                                            {% if duty.end_date == None %}
+                                                <div class="d-flex align-items-center">
+                                                    <button class="btn btn-sm btn-clear rounded-xl mt-0 endBtn" data-id="{{duty.pk}}">End</button>
+                                                </div>
+                                            {% else %}
+                                                <div class="d-flex align-items-center">
+                                                    <strong class="end-mar">End: </strong> {{ duty.end_date|date:"Y-m-d" }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        <p class="text-muted">Showing {{showingDuties}} of {{totalDuties}} duties</p>
+                    {% endif %}
+                </div>  
             {% endif %}
+            <div class="col-12 d-flex justify-content-center align-items-center addBtn">
+                <button class="btn btn-md add_duty" id="add_duty"><i class="fa fa-plus"></i> Add duty</button>
+            </div>
+            <div class="col-12 d-flex justify-content-start align-items-center duty_form hidden">
+                <div class="d-flex flex-column me-2 align-items-start justify-content-center ms-2">
+                    <label for="dutySelector">New duty</label>
+                    <select name="duty" class="standardDuty" id="duty">
+                        {% for duty in selectOptions %}
+                            {% if duty.maximum_members > duty.get_active_members %}
+                                <option data-type="{{duty.duty_type.name}}" value="{{duty.pk}}">{{duty.name}}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="dateContainer d-flex">
+                    <div class="me-1">
+                        <label for="startDate">Start Date</label>
+                        <input type="date" class="date" name="dutyStartDate" id="startDate">
+                    </div>
+                    <div class="endDateContainer me-1 hidden">
+                        <label for="endDate">End Date</label>
+                        <input type="date" class="date" name="dutyEndDate" id="endDate">
+                    </div>
+                </div>
+                <button class="btn btn-sm selected edit new_duty" id="new_duty"><i class="fa fa-plus"></i> Add</button>
+            </div>
         </div>
     </form>
 </div>
@@ -112,27 +192,56 @@
 </script>
 <script>
     $(document).ready(function() {
-        const isAuthorCheckbox = document.getElementById('is_author');
-        const authorshipFields = document.getElementById('authorship-fields');
+        let newDuties = []
+        const cfFields = document.getElementById('cf-fields');
         const isEdit = JSON.parse(document.getElementById('is-edit-flag').textContent);
-
+        const dutySection = document.querySelector('.dutiesSection')
+        const dutySelector = document.querySelector('#duty')
+        const endDateContainer = document.querySelector('.endDateContainer')
+        const assignedDuties = document.createElement('div')
+        assignedDuties.classList.add("dutiesSection", "col-md-12", "mt-2")
+        const dutyLabel = document.createElement('label')
+        dutyLabel.classList.add("control-label")
+        dutyLabel.appendChild(document.createTextNode("Assigned duties"))
+        assignedDuties.appendChild(dutyLabel)
+        const dutyList = document.createElement('ul')
+        dutyList.classList.add("list-group")
+        assignedDuties.appendChild(dutyList)
+        const isCommonFoundCheck = document.getElementById('is_cf');
+        
+        dutySelector.addEventListener('change', (e)=>{
+            let selectedOption = e.target.options[e.target.selectedIndex]
+            if (selectedOption.dataset.type == 'temporary'){
+                if(endDateContainer.classList.contains('hidden')){
+                    endDateContainer.classList.remove('hidden')
+                }
+                if(!dutySelector.classList.contains('duty')){
+                    dutySelector.classList.add('duty')
+                }
+            }else{
+                if(!endDateContainer.classList.contains('hidden')){
+                    endDateContainer.classList.add('hidden')
+                }
+                if(dutySelector.classList.contains('duty')){
+                    dutySelector.classList.remove('duty')
+                }
+            }
+        })
         // Function to toggle the visibility of authorship fields
-        const toggleAuthorshipFields = () => {
-            if (isEdit) {
-                if (isAuthorCheckbox && authorshipFields) {
-                    if (isAuthorCheckbox.checked) {
-                        authorshipFields.classList.remove('d-none');
-                    } else {
-                        authorshipFields.classList.add('d-none');
-                    }
+        const toggleCfFields = () => {
+            if (isCommonFoundCheck && cfFields) {
+                if (isCommonFoundCheck.checked) {
+                    cfFields.classList.remove('d-none');
+                } else {
+                    cfFields.classList.add('d-none');
                 }
             }
         };
         // Initialize visibility on page load
-        toggleAuthorshipFields();
+        toggleCfFields();
         // Add event listener to toggle authorship fields visibility when checkbox changes
-        if (isAuthorCheckbox) {
-            isAuthorCheckbox.addEventListener('change', toggleAuthorshipFields);
+        if (isCommonFoundCheck) {
+            isCommonFoundCheck.addEventListener('change', toggleCfFields);
         }
 
         let tooltipelements = document.querySelectorAll("[data-bs-toggle='tooltip']");
@@ -144,15 +253,16 @@
             // preventing from page reload and default actions
             e.preventDefault()
             var _this = $(this)
-            let form = new FormData($(this)[0])
-            //console.log("is Author:", form.get('is_author'));
-            //console.log("institute:", form.get('institute'));
-            // Clear previous error messages
             $('.err-msg').remove();
             var el = $('<div>')
             el.addClass("alert alert-danger err-msg")
             el.hide()
-
+            let form = new FormData($(this)[0])
+            if (newDuties.length > 0) {
+                form.append('new_duties', JSON.stringify(newDuties));
+            }
+            //console.log("institute:", form.get('institute'));
+            // Clear previous error messages
             // Check if the form is valid
             if (_this[0].checkValidity() == false) {
                 _this[0].reportValidity();
@@ -184,7 +294,7 @@
                         el.text("Member successfully saved!");
                         _this.prepend(el);
                         el.show('slow');
-                        location.reload();  // Reload page on success
+                        location.reload();  // Reload page on success  
                     } else if (resp.status == 'failed' && resp.msg) {
                         // Failure response with a message
                         el.html(resp.msg);
@@ -199,6 +309,378 @@
                     end_loader();
                 }
             })
+        })
+        const dutyForm = document.querySelector('.duty_form')
+        const addBtn = document.querySelector('.addBtn')
+        $('.add_duty').on('click', function(e){
+            e.preventDefault()
+            if(dutyForm && dutyForm.classList.contains('hidden')){
+                dutyForm.classList.remove('hidden')
+            }
+            if(addBtn && !addBtn.classList.contains('hidden')){
+                addBtn.classList.add('hidden')
+            }
+        })
+        $('.new_duty').on('click', function(e){
+            e.preventDefault()
+            memberId = document.getElementById('member_id').value
+            dutyId = document.getElementById('duty').value
+            start_date = document.getElementById('startDate').value
+            end_date = document.getElementById('endDate').value
+            if(memberId){
+                var _this = $(e.target.parentNode)
+                $('.err-msg').remove();
+                var el = $('<div>')
+                el.addClass("alert alert-danger err-msg")
+                el.hide()
+                $.ajax({
+                    url: "{% url 'add_duty' %}",
+                    headers: {'X-CSRFToken': "{{csrf_token}}"},
+                    data: {
+                        'id': memberId,
+                        'duty': dutyId,
+                        'start_date': start_date,
+                        'end_date': end_date,
+                    },
+                    cache: false,
+                    method: 'POST',
+                    type: 'POST',
+                    dataType: 'json',
+                    error: function(err) {
+                        console.log("AJAX Error:", err);
+                        // Provide detailed error message
+                        el.text("An error occurred while processing the request. Please try again.");
+                        _this.append(el);
+                        el.show('slow');
+                        end_loader();
+                    },
+                    success: function(resp) {
+                        // Check if response is an object and has status
+                        if (resp.status == 'success') {
+                            // Success response
+                            el.removeClass("alert alert-danger err-msg").addClass("alert alert-success");
+                            el.text("Duty successfully ended!");
+                            _this.prepend(el);
+                            el.show('slow');
+                            location.reload();  // Reload page on success
+                        } else if (resp.status == 'failed' && resp.msg) {
+                            // Failure response with a message
+                            el.html(resp.msg);
+                            _this.prepend(el);
+                            el.show('slow');
+                        } else {
+                            // If response structure is unexpected
+                            el.text("An unexpected error occurred. Please try again.");
+                            _this.prepend(el);
+                            el.show('slow');
+                        }
+                        end_loader();
+                    }
+                })
+            }else{
+                if(dutyId && start_date ){
+                    if(end_date && end_date > start_date){
+                        $('.err-msg').remove();
+
+                        const exists = newDuties.some(duty =>
+                            duty.duty === dutyId
+                        );
+    
+                        if (!exists) {
+                            newDuties.push({
+                                'duty': dutyId,
+                                'start_date': start_date,
+                                'end_date': end_date,
+                            })
+                            let dutyLi = document.createElement('li')
+                            dutyLi.classList.add("list-group-item")
+                            dutyLi.setAttribute("id", newDuties.length-1)
+                            dutyList.appendChild(dutyLi)
+                            let dutyRow = document.createElement('div')
+                            dutyRow.classList.add("row", "d-flex", "justify-content-start")
+                            let dutyColName = document.createElement('div')
+                            dutyColName.classList.add("col-md-5", "col-sm-12", "d-flex", "align-items-center")
+                            let nameP = document.createElement('p')
+                            nameP.classList.add('mb-0')
+                            nameP.appendChild(document.createTextNode(document.getElementById("duty").options[document.getElementById("duty").selectedIndex].innerHTML))
+                            dutyColName.appendChild(nameP)
+                            dutyRow.appendChild(dutyColName)
+                            let dutyColDates = document.createElement('div')
+                            dutyColDates.classList.add("col-md-5", "col-sm-12", "d-flex", "flex-column", "align-items-start", "justify-content-center")
+                            let divStartDate = document.createElement('div')
+                            divStartDate.classList.add("d-flex", "align-items-center")
+                            let strStart = document.createElement('strong')
+                            strStart.classList.add("me-1")
+                            strStart.appendChild(document.createTextNode("Start: "))
+                            divStartDate.appendChild(strStart)
+                            divStartDate.appendChild(document.createTextNode(" "+start_date+" "))
+                            dutyColDates.appendChild(divStartDate)
+                            if(end_date){
+                                let divEndDate = document.createElement('div')
+                                divEndDate.classList.add("d-flex", "align-items-center")
+                                let strEnd = document.createElement('strong')
+                                strEnd.classList.add("me-1")
+                                strEnd.appendChild(document.createTextNode("End: "))
+                                divEndDate.appendChild(strEnd)
+                                divEndDate.appendChild(document.createTextNode(" "+end_date+" "))
+                                dutyColDates.appendChild(divEndDate)
+                            }
+                            let dutyColBtn = document.createElement('div')
+                            dutyColBtn.classList.add("col-md-2", "col-sm-12", "d-flex", "justify-content-center", "align-items-center")
+                            let removeBtn = document.createElement('button')
+                            removeBtn.classList.add("btn", "btn-lg", "btn-close", "btn-close1", "rounded-xl", "mt-0", "p-3", "border", "border-1", "border-dark")
+                            removeBtn.setAttribute("aria-label", "Close")
+                            removeBtn.dataset.id = newDuties.length-1
+                            removeBtn.addEventListener("click", (e)=>{
+                                e.preventDefault()
+                                newDuties.splice(e.target.dataset.id, 1)
+                                if(e.target.closest('li').parentNode.children.length > 0){
+                                    console.log(e.target.closest('li').parentNode.children)
+                                }else{
+                                    console.log(e.target.closest('li'))
+                                }
+                            })
+                            dutyColBtn.appendChild(removeBtn)
+                            dutyRow.appendChild(dutyColDates)
+                            dutyRow.appendChild(dutyColBtn)
+                            dutyLi.appendChild(dutyRow)
+                            e.target.closest(".row").appendChild(assignedDuties)
+                            document.getElementById('startDate').value = ''
+                            document.getElementById('endDate').value = ''
+                        }
+                    }else if(end_date != ''){
+                        var _this = $(e.target.parentNode.parentNode.parentNode)
+                        $('.err-msg').remove();
+                        var el = $('<div>')
+                        el.addClass("col-12 alert alert-danger err-msg")
+                        el.hide()
+                        el.html("Start date must be before End date.");
+                        _this.prepend(el);
+                        el.show('slow');
+                    }else{
+                        $('.err-msg').remove();
+
+                        const exists = newDuties.some(duty =>
+                            duty.duty === dutyId
+                        );
+    
+                        if (!exists) {
+                            newDuties.push({
+                                'duty': dutyId,
+                                'start_date': start_date,
+                            })
+                            let dutyLi = document.createElement('li')
+                            dutyLi.classList.add("list-group-item")
+                            dutyLi.setAttribute("id", newDuties.length-1)
+                            dutyList.appendChild(dutyLi)
+                            let dutyRow = document.createElement('div')
+                            dutyRow.classList.add("row", "d-flex", "justify-content-start")
+                            let dutyColName = document.createElement('div')
+                            dutyColName.classList.add("col-md-5", "col-sm-12", "d-flex", "align-items-center")
+                            let nameP = document.createElement('p')
+                            nameP.classList.add('mb-0')
+                            nameP.appendChild(document.createTextNode(document.getElementById("duty").options[document.getElementById("duty").selectedIndex].innerHTML))
+                            dutyColName.appendChild(nameP)
+                            dutyRow.appendChild(dutyColName)
+                            let dutyColDates = document.createElement('div')
+                            dutyColDates.classList.add("col-md-5", "col-sm-12", "d-flex", "flex-column", "align-items-start", "justify-content-center")
+                            let divStartDate = document.createElement('div')
+                            divStartDate.classList.add("d-flex", "align-items-center")
+                            let strStart = document.createElement('strong')
+                            strStart.classList.add("me-1")
+                            strStart.appendChild(document.createTextNode("Start: "))
+                            divStartDate.appendChild(strStart)
+                            divStartDate.appendChild(document.createTextNode(" "+start_date+" "))
+                            dutyColDates.appendChild(divStartDate)
+                            let dutyColBtn = document.createElement('div')
+                            dutyColBtn.classList.add("col-md-2", "col-sm-12", "d-flex", "justify-content-center", "align-items-center")
+                            let removeBtn = document.createElement('button')
+                            removeBtn.classList.add("btn", "btn-lg", "btn-close", "btn-close1", "rounded-xl", "mt-0", "p-3", "border", "border-1", "border-dark")
+                            removeBtn.setAttribute("aria-label", "Close")
+                            removeBtn.dataset.id = newDuties.length-1
+                            removeBtn.addEventListener("click", (e)=>{
+                                e.preventDefault()
+                                newDuties.splice(e.target.dataset.id, 1)
+                                let li = e.target.closest('li')
+                                let children = li.parentNode.children
+                                li.parentNode.removeChild(li)
+                                console.log(children)
+                                if(children.length == 0){
+                                    let container = document.querySelector(".dutiesSection")
+                                    console.log(container.parentNode)
+                                    container.parentNode.removeChild(container)
+                                }
+                            })
+                            dutyColBtn.appendChild(removeBtn)
+                            dutyRow.appendChild(dutyColDates)
+                            dutyRow.appendChild(dutyColBtn)
+                            dutyLi.appendChild(dutyRow)
+                            e.target.closest(".row").appendChild(assignedDuties)
+                            document.getElementById('startDate').value = ''
+                            document.getElementById('endDate').value = ''
+                        }
+                    }
+                }
+            }
+        })
+        $('.endBtn').on('click', function(e){
+            e.preventDefault()
+            // Create header for the modal
+            let prevHeader = document.querySelector("#uni_modal .modal-content .modal-header")
+            let prevFooter = document.querySelector("#uni_modal .modal-content .modal-footer")
+            let id = e.target.dataset.id
+            if(prevHeader){
+                prevHeader = prevHeader.cloneNode(true)
+            }
+            if(prevFooter){
+                prevFooter = prevFooter.cloneNode(true)
+            }
+            let memberId = document.getElementById('member_id').value
+            let ref = "{% url 'member-record' 0 %}"
+            let finalRef = ref.replace('0', memberId);
+            let headerDiv = document.createElement('div');
+            headerDiv.classList.add("modal-header", "d-flex", "align-items-center", "justify-content-between", "border-0");
+
+            // Title of the modal with icon
+            let titleDiv = document.createElement('div');
+            titleDiv.classList.add('d-flex', 'align-items-center');
+            let addIcon = document.createElement('i');
+            addIcon.classList.add('fa-solid', 'fa-ban', 'me-2');
+            let title = document.createElement('h5');
+            title.classList.add('modal-title', 'dark-text', 'm-0');
+            title.innerText = "End duty";
+            titleDiv.appendChild(addIcon);
+            titleDiv.appendChild(title);
+
+            // Close button for the modal header
+            let closeButton = document.createElement('button');
+            closeButton.classList.add('btn-close', 'btn-close1');
+            closeButton.setAttribute('aria-label', 'Close');
+            headerDiv.appendChild(titleDiv);
+            headerDiv.appendChild(closeButton);
+
+            // This is not working
+            const modalElement = document.getElementById('uni_modal');
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            modal.hide();
+
+            setTimeout(()=>{
+                uni_modal(headerDiv, 'show_end_modal', 'modal-md')
+                setTimeout(()=>{
+                    let closeButton = document.querySelector('#uni_modal .modal-content .modal-header .btn-close1')
+                    console.log(closeButton)
+                    closeButton.addEventListener('click', (e)=>{
+                        const modalElement = document.getElementById('uni_modal');
+                        let modal = bootstrap.Modal.getInstance(modalElement);
+                        let modalHeader = document.querySelector('#uni_modal .modal-header')
+                        modal.hide();
+                        setTimeout(()=>{
+                            uni_modal(prevHeader.children[0], finalRef, 'modal-md')
+                            let modal = document.getElementById('uni_modal');
+                            if(modal){
+                                let footer = document.querySelector('#uni_modal .modal-content .modal-footer')
+                                if(footer){
+                                    document.querySelector('#uni_modal .modal-content').removeChild(footer);
+                                }
+                                if(prevFooter){
+                                    document.querySelector('#uni_modal .modal-content').appendChild(prevFooter);
+                                }
+                            }
+                        }, 500)
+                    })
+                }, 300)
+            }, 300)
+
+            let modalFooter = modalElement.querySelector('.modal-footer');
+            if(modalFooter){
+                document.querySelector('.modal-content').removeChild(modalFooter)
+            }
+            setTimeout(()=>{
+                let removeButton = document.createElement('button');
+                removeButton.innerHTML = "Remove";
+                removeButton.classList.add("btn", "highlight-color");
+                removeButton.setAttribute("id", "removeSub")
+                removeButton.addEventListener("click", ()=>{
+                    var _this = $(this)
+                    $('.err-msg').remove();
+                    var el = $('<div>')
+                    el.addClass("alert alert-danger err-msg")
+                    el.hide()
+                    let endDate = document.getElementById("endDate").value
+                    console.log(endDate)
+                    console.log(id)
+                    $.ajax({
+                        url: "{% url 'end_duty' %}",
+                        headers: {'X-CSRFToken': "{{csrf_token}}"},
+                        data: {
+                            "id": id,
+                            "end-date": endDate
+                        },
+                        cache: false,
+                        method: 'POST',
+                        type: 'POST',
+                        dataType: 'json',
+                        error: function(err) {
+                            console.log("AJAX Error:", err);
+                            // Provide detailed error message
+                            el.text("An error occurred while processing the request. Please try again.");
+                            _this.prepend(el);
+                            el.show('slow');
+                            end_loader();
+                        },
+                        success: function(resp) {
+                            // Check if response is an object and has status
+                            if (resp.status == 'success') {
+                                // Success response
+                                el.removeClass("alert alert-danger err-msg").addClass("alert alert-success");
+                                el.text("Member successfully saved!");
+                                _this.prepend(el);
+                                el.show('slow');
+                                location.reload();  // Reload page on success  
+                            } else if (resp.status == 'failed' && resp.msg) {
+                                // Failure response with a message
+                                el.html(resp.msg);
+                                _this.prepend(el);
+                                el.show('slow');
+                            } else {
+                                // If response structure is unexpected
+                                el.text("An unexpected error occurred. Please try again.");
+                                _this.prepend(el);
+                                el.show('slow');
+                            }
+                            end_loader();
+                        }
+                    })
+                })
+                let cancelButton = document.createElement('button');
+                cancelButton.innerHTML = "Cancel";
+                cancelButton.classList.add("btn", "selected");
+                cancelButton.setAttribute("id", "cancelSub")
+                modalFooter = document.createElement('div');
+                cancelButton.addEventListener("click", ()=>{
+                    const modalElement = document.getElementById('uni_modal');
+                    let modal = bootstrap.Modal.getInstance(modalElement);
+                    let modalHeader = document.querySelector('#uni_modal .modal-header')
+                    modal.hide();
+                    setTimeout(()=>{
+                        uni_modal(prevHeader.children[0], finalRef, 'modal-md')
+                        let modal = document.getElementById('uni_modal');
+                        if(modal){
+                            let footer = document.querySelector('#uni_modal .modal-content .modal-footer')
+                            if(footer){
+                                document.querySelector('#uni_modal .modal-content').removeChild(footer);
+                            }
+                            if(prevFooter){
+                                document.querySelector('#uni_modal .modal-content').appendChild(prevFooter);
+                            }
+                        }
+                    }, 500)
+                })
+                modalFooter.appendChild(removeButton);
+                modalFooter.appendChild(cancelButton);
+                modalFooter.classList.add('modal-footer');
+                document.querySelector('#uni_modal .modal-content').appendChild(modalFooter);
+            }, 500)
         })
     })
 </script>

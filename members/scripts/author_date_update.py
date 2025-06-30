@@ -1,10 +1,13 @@
 from ..models import ( AuthorshipPeriod, AuthorDetails,
-                     AuthorInstituteAffiliation)
+                     AuthorInstituteAffiliation, DutyType)
 from datetime import timedelta, datetime
 from pytz import UTC
 from django.utils.timezone import make_aware
 
 def run():
+
+    DutyTypes = ["temporary", "permanent"]
+
     authorAffiliations = AuthorInstituteAffiliation.objects.all()
 
     print("Updating affiliation times")
@@ -18,5 +21,13 @@ def run():
             except Exception as e:
                 affiliation.creation_date = make_aware(datetime(period.start_date.year, period.start_date.month, period.start_date.day), timezone=UTC)+timedelta(hours=1)
                 affiliation.save()
+
+    print("Creating duty types")
+
+    for element in DutyTypes:
+        DutyType.objects.create(
+            name=element
+        )
+
 
     print("Finished !")

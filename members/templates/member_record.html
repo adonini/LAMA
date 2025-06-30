@@ -23,7 +23,7 @@
                     <li class="list-group-item"><strong class="text-dark fw-bold">Country</strong> <br> {{ member.current_institute.group.country.name|default:"-" }}</li>
                 </ul>
             {% else %}
-                <p class="text-dark">No current affiliation</p>
+                <p class="text-dark w-100 text-center">No current affiliation</p>
             {% endif %}
         </div>
     </div>
@@ -49,39 +49,74 @@
                 </tbody>
             </table>
         {% else %}
-            <p class="text-dark">No membership periods available</p>
+            <p class="text-dark w-100 text-center">No membership periods available</p>
         {% endif %}
     </div>
+    {% if is_cf or current_authorship %}
+        <div class="mt-3">
+            <h5 class="text-dark section-title">Authorship</h5>
+            {% if current_authorship %}
+                <table class="table table-bordered table-hover styled-table">
+                    <thead>
+                        <tr>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for period in authorship_periods %}
+                            <tr>
+                                <td>{{ period.start_date|date:"Y-m-d" }}</td>
+                                <td>{{ period.end_date|date:"Y-m-d"|default:"Active" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% elif authorship_periods %}
+                {% if authorship_period_status == "future" %}
+                    <p class="text-dark">
+                        No active authorship period, but a future authorship period exists and will start on
+                        {{ authorship_periods.0.start_date|date:"Y-m-d" }}.
+                    </p>
+                {% else %}
+                    <p class="text-dark w-100 text-center">No authorship period</p>
+                {% endif %}
+            {% else %}
+                <p class="text-dark w-100 text-center">No authorship period</p>
+            {% endif %}
+        </div>
+    {% endif %}
     <div class="mt-3">
-        <h5 class="text-dark section-title">Authorship</h5>
-        {% if current_authorship %}
+        <h5 class="text-dark section-title">Active Duties</h5>
+        {% if temporaryDuties or permanentDuties %}
             <table class="table table-bordered table-hover styled-table">
                 <thead>
                     <tr>
+                        <th>Name</th>
                         <th>Start Date</th>
                         <th>End Date</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for period in authorship_periods %}
+                    {% for duty in temporaryDuties %}
                         <tr>
-                            <td>{{ period.start_date|date:"Y-m-d" }}</td>
-                            <td>{{ period.end_date|date:"Y-m-d"|default:"Active" }}</td>
+                            <td>{{ duty.duty.name }}</td>
+                            <td>{{ duty.start_date|date:"Y-m-d" }}</td>
+                            <td>{{ duty.end_date|date:"Y-m-d"|default:"Active" }}</td>
+                        </tr>
+                    {% endfor %}
+                    {% for duty in permanentDuties %}
+                        <tr>
+                            <td>{{ duty.duty.name }}</td>
+                            <td>{{ duty.start_date|date:"Y-m-d" }}</td>
+                            <td>{{ duty.end_date|date:"Y-m-d"|default:"Active" }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>
             </table>
-        {% elif authorship_periods %}
-            {% if authorship_period_status == "future" %}
-                <p class="text-dark">
-                    No active authorship period, but a future authorship period exists and will start on
-                    {{ authorship_periods.0.start_date|date:"Y-m-d" }}.
-                </p>
-            {% else %}
-                <p class="text-dark">No authorship period</p>
-            {% endif %}
+            <p class="text-dark w-100 text-center">Showing {{showingDuties}} of {{totalDuties}}</p>
         {% else %}
-            <p class="text-dark">No authorship period</p>
+            <p class="text-dark w-100 text-center">No duties have been assigned to this member</p>
         {% endif %}
     </div>
 </div>

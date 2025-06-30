@@ -2,6 +2,8 @@ from django.db import models
 from django.utils import timezone
 from django.utils.timezone import now
 from django.db.models import Q
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 #from django.core.exceptions import ValidationError
 
 
@@ -11,14 +13,12 @@ class Country(models.Model):
     def __str__(self):
         return self.name
 
-
 class Group(models.Model):
     name = models.CharField(max_length=50)
     country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='groups')
 
     def __str__(self):
         return self.name
-
 
 class Institute(models.Model):
     name = models.CharField(max_length=100, unique=True, help_text="A unique short name (abbreviation) for the institute, to be used in the app.")
@@ -43,20 +43,46 @@ class Institute(models.Model):
         self.clean()  # Call clean to ensure validation
         super().save(*args, **kwargs)
 
+class DutyType(models.Model):
+    """
+    Represents a predefined list of duty types that can be assigned to duties.
+    """
+    name = models.CharField(max_length=100, unique=True)  # Duty type names must be unique
 
+    class Meta:
+        verbose_name_plural = 'Duty_types'
+
+    def __str__(self):
+        return self.name
+    
 class Duty(models.Model):
     """
     Represents a predefined list of duties that can be assigned to members.
     """
     name = models.CharField(max_length=100, unique=True)  # Duty names must be unique
     description = models.TextField(blank=True)  # Optional description for the duty
+    duty_type = models.ForeignKey(DutyType, on_delete=models.DO_NOTHING)
+    maximum_members = models.IntegerField(null=True)
 
     class Meta:
         verbose_name_plural = 'Duties'
 
+    def get_active_members(self):
+        today = timezone.now().date()
+        return len(MemberDuty.objects.filter(duty=self).filter(Q(start_date__lte=today) & Q(end_date__gte=today) | Q(start_date__lte=today) & Q(end_date__isnull=True)))
+    
+    def get_short_active_members(self):
+        today = timezone.now().date()
+        yearStart = datetime(today.year, 1, 1)
+        yearEnd = datetime(today.year, 12, 31)
+        return len(MemberDuty.objects.filter(duty=self).filter(Q(start_date__gte=yearStart) & Q(start_date__lte=yearEnd)))
+    
+    def get_future_members(self):
+        today = timezone.now().date()
+        return len(MemberDuty.objects.filter(duty=self).filter(Q(start_date__gte=today) & Q(end_date__gt=today) | Q(start_date__gte=today) & Q(end_date__isnull=True)))
+
     def __str__(self):
         return self.name
-
 
 class MembershipPeriod(models.Model):
     member = models.ForeignKey('Member', on_delete=models.CASCADE, related_name='membership_periods')
@@ -70,18 +96,32 @@ class MembershipPeriod(models.Model):
     def __str__(self):
         return f"{self.member.name} - {self.start_date} to {self.end_date or 'Active'}"
 
-
 class AuthorshipPeriod(models.Model):
     member = models.ForeignKey('Member', on_delete=models.CASCADE, related_name='authorship_periods')
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)  # Null means still active
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['member', 'end_date'], name='unique_member_end_date')
+        ]
 
     def is_active(self):
         return not self.end_date or self.end_date >= now().date()
 
     def __str__(self):
         return f"{self.member.name} - {self.start_date} to {self.end_date or 'Active'}"
+    
+class CommonFound(models.Model):
+    member = models.ForeignKey('Member', on_delete=models.CASCADE, related_name='common_found')
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
 
+    def is_active(self):
+        return not self.end_date or self.end_date >= now().date()
+
+    def __str__(self):
+        return f"{self.member.name} - {self.start_date}"
 
 class Member(models.Model):
     ROLE_CHOICES = [
@@ -112,7 +152,7 @@ class Member(models.Model):
         else:
             # Return only the active membership
             return self.membership_periods.filter(
-                Q(start_date__lte=today) & (Q(end_date__isnull=True) | Q(end_date__gte=today))
+                Q(start_date__lte=today) & (Q(end_date__isnull=True) | Q(start_date__lte=today) & Q(end_date__gte=today))
             ).order_by('-start_date').first()
 
     def current_authorship(self, include_inactive=False):
@@ -127,7 +167,32 @@ class Member(models.Model):
         else:
             # Return only the active authorship
             return self.authorship_periods.filter(
-                Q(start_date__lte=today) & (Q(end_date__isnull=True) | Q(end_date__gte=today))
+                Q(start_date__lte=today) & (Q(end_date__isnull=True) | Q(start_date__lte=today) & Q(end_date__gte=today))
+            ).order_by('-start_date').first()
+        
+    def dated_authorship(self, date):
+        """
+        Get the current active authorship period or the most recent authorship if include_inactive=True.
+        """
+        
+        # Return only the active authorship
+        return self.authorship_periods.filter(
+            Q(start_date__lte=date) & (Q(end_date__isnull=True) | Q(start_date__lte=date) & Q(end_date__gte=date))
+        ).order_by('-start_date').first()
+    
+    def current_cf(self, include_inactive=False):
+        """
+        Get the current active CF period or the most recent CF if include_inactive=True.
+        """
+        today = timezone.now().date()
+
+        if include_inactive:
+            # Return the most recent authorship, active or inactive
+            return self.common_found.order_by('-start_date').first()
+        else:
+            # Return only the active authorship
+            return self.common_found.filter(
+                (Q(end_date__isnull=True) | Q(end_date__gte=today))
             ).order_by('-start_date').first()
 
     def future_membership(self):
@@ -163,6 +228,27 @@ class Member(models.Model):
         return self.authorship_periods.filter(
             Q(start_date__lte=today) & (Q(end_date__isnull=True) | Q(end_date__gte=today))
         ).exists()
+    
+    def is_active_cf(self):
+        """
+        Check if the member belongs to the Common Found.
+        Member belongs to the Common Found if its end_date is null or greater than today.
+        """
+        today = timezone.now().date()
+        return self.common_found.filter(
+            Q(start_date__lte=today) & (Q(end_date__isnull=True) | Q(start_date__lte=today) & Q(end_date__gte=today))
+        ).exists()
+    
+    def has_active_duty(self):
+        """
+        Check if the member has any active duties.
+        A duty is active if its end_date is null or greater than today.
+        """
+        today = timezone.now().date()
+        return self.duties.filter(
+            Q(end_date__isnull=True) | Q(end_date__gte=today)
+        ).exists()
+    
 
     def current_institute(self, include_inactive=False):
         """
@@ -177,6 +263,14 @@ class Member(models.Model):
     def active_duties(self):
         """Get all active duties for this member."""
         return self.duties.filter(end_date__isnull=True) | self.duties.filter(end_date__gte=timezone.now().date())
+    
+    def has_valid_duty(self):
+        """Returns true or false if there is a valid duty for the member."""
+        return self.duties.filter(end_date__isnull=True).exists() | self.duties.filter(end_date__gte=timezone.now().date()).exists() | self.duties.filter(duty__duty_type__name='temporary', start_date__gte=datetime(timezone.now().date().year-1, 1, 1)).exists() | self.duties.filter(duty__duty_type__name='permanent').filter(Q(end_date__gte=datetime.now().date() - relativedelta(months=6))).exists()
+    
+    def has_valid_duty_dated(self, date):
+        """Returns true or false if there is a valid duty for the member."""
+        return self.duties.filter(end_date__isnull=True).exists() | self.duties.filter(end_date__gte=date).exists() | self.duties.filter(duty__duty_type__name='temporary', start_date__gte=datetime(date.year-1, 1, 1)).exists() | self.duties.filter(duty__duty_type__name='permanent').filter(Q(end_date__gte=date - relativedelta(months=6))).exists()
 
     def inactive_duties(self):
         """Get all inactive duties for this member."""
@@ -208,11 +302,10 @@ class AuthorDetails(models.Model):
         """
         Return the institutes in the specified order.
         """
-        return [affiliation.institute for affiliation in self.institute_affiliations.all()]
+        return [affiliation.institute for affiliation in self.institute_affiliations.filter(end_date__isnull=True).order_by('-creation_date')]
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-
 
 class AuthorInstituteAffiliation(models.Model):
     author_details = models.ForeignKey('AuthorDetails', on_delete=models.CASCADE, related_name='institute_affiliations',
@@ -220,7 +313,8 @@ class AuthorInstituteAffiliation(models.Model):
     institute = models.ForeignKey('Institute', on_delete=models.CASCADE,
                                   help_text="Institute affiliated with this author.")
     order = models.PositiveIntegerField(help_text="The order in which the institute appears for the author.")
-    creation_date = models.DateTimeField(auto_now_add=True)
+    creation_date = models.DateTimeField(auto_now_add=False)
+    end_date = models.DateTimeField(auto_now_add=False, null=True)
     class Meta:
         unique_together = ('author_details', 'institute', 'order', 'creation_date')  # Prevent duplicates
         ordering = ['order']  # Always return institutes in the specified order
@@ -230,7 +324,6 @@ class AuthorInstituteAffiliation(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-
 
 class MemberDuty(models.Model):
     """
@@ -254,7 +347,6 @@ class MemberDuty(models.Model):
         Check if the duty assignment is currently active.
         """
         return self.end_date is None or self.end_date >= timezone.now().date()
-
 
 class ActiveDutyManager(models.Manager):
     """
