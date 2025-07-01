@@ -53,6 +53,5 @@ services:
       - web
     restart: always
 
-
 volumes:
   static:

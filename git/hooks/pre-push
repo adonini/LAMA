@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Usa la variable de entorno PROJECT_VERSION exportada antes
+# Uses the env variable PROJECT_VERSION 
 CONTAINER_NAME="django_lama_${PROJECT_VERSION}"
 
 echo "Running tests inside container $CONTAINER_NAME..."

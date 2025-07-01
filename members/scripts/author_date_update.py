@@ -8,6 +8,11 @@ def run():
 
     DutyTypes = ["temporary", "permanent"]
 
+    for element in DutyTypes:
+        DutyType.objects.create(
+            name=element
+        )
+        
     authorAffiliations = AuthorInstituteAffiliation.objects.all()
 
     print("Updating affiliation times")
@@ -24,10 +29,6 @@ def run():
 
     print("Creating duty types")
 
-    for element in DutyTypes:
-        DutyType.objects.create(
-            name=element
-        )
 
 
     print("Finished !")
