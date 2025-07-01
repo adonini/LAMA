@@ -13,6 +13,28 @@ class InstituteAdmin(admin.ModelAdmin):
     search_fields = ['name']
     list_filter = ['name']
 
+class DutyAdmin(admin.ModelAdmin):
+    list_display = ['name']
+    search_fields = ['name']
+    list_filter = ['name']
+
+class GroupAdmin(admin.ModelAdmin):
+    list_display = ['name']
+    search_fields = ['name']
+    list_filter = ['name']
+
+class MemberDutyAdmin(admin.ModelAdmin):
+    list_display = ['member']
+    search_fields = ['member__name']
+    list_filter = ['member']
+class MembershipPeriodAdmin(admin.ModelAdmin):
+    list_display = ['member', 'institute', 'start_date', 'end_date']
+    search_fields = ['member__name', 'institute__name', 'start_date', 'end_date']
+    list_filter = ['member','institute', 'start_date', 'end_date']
+class AuthorshipPeriodAdmin(admin.ModelAdmin):
+    list_display = ['member', 'start_date', 'end_date']
+    search_fields = ['member__name', 'start_date', 'end_date']
+    list_filter = ['member','start_date', 'end_date']
 
 class AuthorDetailsAdmin(admin.ModelAdmin):
     list_display = ['author_name', 'member']
@@ -23,12 +45,12 @@ class AuthorDetailsAdmin(admin.ModelAdmin):
 
 # Register your models here.
 admin.site.register(Country)
-admin.site.register(Group)
+admin.site.register(Group, GroupAdmin)
 admin.site.register(Institute, InstituteAdmin)
-admin.site.register(Duty)
+admin.site.register(Duty, DutyAdmin)
 admin.site.register(Member, MemberAdmin)
-admin.site.register(MemberDuty)
-admin.site.register(MembershipPeriod)
-admin.site.register(AuthorshipPeriod)
+admin.site.register(MemberDuty, MemberDutyAdmin)
+admin.site.register(MembershipPeriod, MembershipPeriodAdmin)
+admin.site.register(AuthorshipPeriod, AuthorshipPeriodAdmin)
 admin.site.register(AuthorDetails, AuthorDetailsAdmin)  
 
