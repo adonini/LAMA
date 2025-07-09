@@ -55,17 +55,33 @@ class DutyType(models.Model):
     def __str__(self):
         return self.name
     
+class Category(models.Model):
+    """
+    Represents a predefined list of categories that can be assigned to duties.
+    """
+    name = models.CharField(max_length=100, unique=True)  # Duty type names must be unique
+
+    class Meta:
+        verbose_name_plural = 'Categories'
+
+    def __str__(self):
+        return self.name
+    
 class Duty(models.Model):
     """
     Represents a predefined list of duties that can be assigned to members.
     """
-    name = models.CharField(max_length=100, unique=True)  # Duty names must be unique
+    name = models.CharField(max_length=100)  # Duty names must be unique
     description = models.TextField(blank=True)  # Optional description for the duty
     duty_type = models.ForeignKey(DutyType, on_delete=models.DO_NOTHING)
+    category = models.ForeignKey(Category, on_delete=models.DO_NOTHING)
     maximum_members = models.IntegerField(null=True)
 
     class Meta:
         verbose_name_plural = 'Duties'
+        constraints = [
+            models.UniqueConstraint(fields=['name', 'category'], name='unique_name_category')
+        ]
 
     def get_active_members(self):
         today = timezone.now().date()

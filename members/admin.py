@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Country, Duty, Group, Institute, Member, MemberDuty, MembershipPeriod, AuthorshipPeriod, AuthorDetails, DutyType, AuthorInstituteAffiliation, ActiveDutyManager
+from .models import Country, Duty, Group, Institute, Member, MemberDuty, MembershipPeriod, AuthorshipPeriod, AuthorDetails, DutyType, AuthorInstituteAffiliation, ActiveDutyManager, Category
 
 
 class MemberAdmin(admin.ModelAdmin):
@@ -19,6 +19,11 @@ class DutyAdmin(admin.ModelAdmin):
     list_filter = ['name']
 
 class GroupAdmin(admin.ModelAdmin):
+    list_display = ['name']
+    search_fields = ['name']
+    list_filter = ['name']
+
+class CategoryAdmin(admin.ModelAdmin):
     list_display = ['name']
     search_fields = ['name']
     list_filter = ['name']
@@ -45,6 +50,7 @@ class AuthorDetailsAdmin(admin.ModelAdmin):
 
 # Register your models here.
 admin.site.register(Country)
+admin.site.register(Category, CategoryAdmin)
 admin.site.register(Group, GroupAdmin)
 admin.site.register(Institute, InstituteAdmin)
 admin.site.register(Duty, DutyAdmin)

@@ -42,6 +42,7 @@
                 <thead>
                     <tr>
                         <th class="text-center dark-text">#</th>
+                        <th class="text-center dark-text">Category</th>
                         <th class="text-center dark-text">Duty Name</th>
                         <th class="text-center dark-text xlargeCol">Description</th>
                         <th class="text-center dark-text">Type</th>
@@ -182,11 +183,12 @@
                     url: '/api/get-duty-list/',
                     type: 'GET',
                     data: function(d) {
-                        // Filters
+                        d.category = $('#Category').val();
                     }
                 },
                 columns: [
                     { data: null },
+                    { data: 'category' },
                     { data: 'duty_name' },
                     { data: 'duty_description' },
                     { data: 'duty_type' },
@@ -197,6 +199,7 @@
                       searchable: false
                     },
                 ],
+                responsive: true,
                 dom: '<"top1"<"top1Start"><"top1End"Bf>>t<"bottom"<"bottomStart"i><"bottomCenter"l><"bottomEnd"p>>',
                 buttons: [{
                     extend: 'copy',
@@ -241,8 +244,18 @@
                         $('td:eq(0)', this.node()).addClass('text-center')
                     });
                 },
-                order: [[1, 'asc']],
+                order: [[2, 'asc']],
             });
+
+            let filterLabels = ['Category: '];
+            let mainDiv = document.querySelector('.top1Start');
+            let generalDiv = document.createElement('div');
+            generalDiv.classList.add('d-flex', 'flex-wrap');
+            mainDiv.classList.add('filters');
+            let categoryDropdown
+            let filtersContainer = document.createElement('div');
+            filtersContainer.classList.add('d-flex', 'flex-wrap');
+            
         }
     }
     $('#add_duty').click(function() {

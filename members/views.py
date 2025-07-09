@@ -4,7 +4,7 @@ from datetime import date, datetime, timedelta, time
 from .forms import LoginForm, AddMemberForm, AddAuthorDetailsForm, AddInstituteForm
 from .models import (Member, Institute, Group, Duty, DutyType, Country, MemberDuty,
                      MembershipPeriod, AuthorshipPeriod, AuthorDetails,
-                     AuthorInstituteAffiliation, CommonFound)
+                     AuthorInstituteAffiliation, CommonFound, Category)
 from django.template.loader import render_to_string
 from dateutil.relativedelta import relativedelta
 from django.shortcuts import render, redirect
@@ -88,10 +88,20 @@ def calculate_12_months_avg(queryset, date_field, today):
         # Calculate the target date for the 15th of each month
         month_date = start_month + relativedelta(months=-i)
         # Get the count of members/authors active until the 15th of the month
-        monthly_count = queryset.filter(**{f"{date_field}__lte": month_date}) \
-                                .filter(
-                                    Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=month_date)
-                                ).distinct().count()
+        member_ids = [element['id'] for element in queryset.values('id')]
+        members = MembershipPeriod.objects.filter(
+            Q(end_date__isnull=True) | Q(end_date__gt=month_date),
+            start_date__lte=month_date,
+            member__id__in=member_ids,
+        )
+        if date_field == 'common_found':
+            member_ids = [element['member__id'] for element in members.values('member__id')]
+            members = CommonFound.objects.filter((
+                    Q(end_date__isnull=True) | Q(end_date__gt=month_date)) &
+                    Q(start_date__lt=month_date),
+                    member__id__in=member_ids,
+                )
+        monthly_count = members.count()
         months_data.append(monthly_count)
     # Calculate the average over the 12 months
     return sum(months_data) / len(months_data) if months_data else 0
@@ -114,32 +124,28 @@ def calculate_averages(queryset, date_field, year, current_year, current_month):
     total = 0
 
     for month in months:
-        count = queryset.filter(**{f"{date_field}__lte": datetime(year, month, 15)}) \
-            .filter(
-                Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=datetime(year, month, 15))
-            ).distinct().count()
+        month_date = datetime(year, month, 15)
+        member_ids = [element['id'] for element in queryset.values('id')]
+        members = MembershipPeriod.objects.filter(
+            Q(end_date__isnull=True) | Q(end_date__gt=month_date),
+            start_date__lte=month_date,
+            member__id__in=member_ids,
+        )
+        if date_field == 'common_found':
+            member_ids = [element['member__id'] for element in members.values('member__id')]
+            members = CommonFound.objects.filter((
+                    Q(end_date__isnull=True) | Q(end_date__gt=month_date)) &
+                    Q(start_date__lt=month_date),
+                    member__id__in=member_ids,
+                )
 
-        #logger.debug(f"Year: {year}, Month: {month}, Active Members Count: {count}")
-        total += count
+        #logger.debug(f"Year: {year}, Month: {month}, Active Members Count: {members.count()}")
+        total += members.count()
 
     divisor = len(months)
     average = total / divisor if divisor > 0 else 0
 
     return average
-
-
-def get_active_member_count(queryset, date_field, year, month):
-    check_date = datetime(year, month, 15).date()
-    return queryset.filter(**{f"{date_field}__lte": check_date}).filter(
-        Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=check_date)
-    ).count()
-
-
-def get_active_author_count(queryset, year, month):
-    check_date = datetime(year, month, 15).date()
-    return queryset.filter(authorship_periods__start_date__lte=check_date).filter(
-        Q(authorship_periods__end_date__isnull=True) | Q(authorship_periods__end_date__gt=check_date)
-    ).count()
 
 
 def get_active_periods_count(queryset, period_field, year, month):
@@ -161,20 +167,26 @@ def get_active_periods_count(queryset, period_field, year, month):
     active_count = 0
 
     #print(f"Checking activity for {period_field} in {year}-{month}")
-
     for member in queryset:
         # Get all the periods for the specified field (membership or authorship)
-        periods = getattr(member, period_field).all()  # Get the membership or authorship periods
-        #print(f"  Checking member: {member.id} - {member.name} for {period_field} periods")
-        for period in periods:
-            #print(f"    Checking period: {period.start_date} to {period.end_date if period.end_date else 'None'}")
-            # Check if the period is active on the 15th day of the month
-            if period.start_date <= check_date and (not period.end_date or period.end_date >= check_date):
-                active_count += 1
-                #print(f"  member: {member.id} - {member.name} for {period_field} periods")
-                #print(f"    Period {period.start_date} to {period.end_date if period.end_date else 'None'} is active, member counted. Active count now: {active_count}")
-                break  # No need to count the same member multiple times
-    print(f"Total active members for {period_field} in {year}-{month}: {active_count}")
+        isActive = MembershipPeriod.objects.filter(
+            Q(end_date__isnull=True) | Q(end_date__gt=check_date),
+            start_date__lte=check_date,
+            member=member
+        ).exists()
+        if isActive:
+            periods = getattr(member, period_field).all()  # Get the membership or authorship periods
+            
+            #print(f"  Checking member: {member.id} - {member.name} for {period_field} periods")
+            for period in periods:
+                #print(f"    Checking period: {period.start_date} to {period.end_date if period.end_date else 'None'}")
+                # Check if the period is active on the 15th day of the month
+                if period.start_date <= check_date and (not period.end_date or period.end_date >= check_date):
+                    active_count += 1
+                    #print(f"  member: {member.id} - {member.name} for {period_field} periods")
+                    #print(f"    Period {period.start_date} to {period.end_date if period.end_date else 'None'} is active, member counted. Active count now: {active_count}")
+                    break  # No need to count the same member multiple times
+    #logger.info(f"Total active members for {period_field} in {year}-{month}: {active_count}")
     return active_count
 
 
@@ -1180,90 +1192,114 @@ class Statistics(TemplateView):
         # Calculations total active members and authors for tables
         #####################################################
         # Filter members whose membership is currently active as of today (used in table and cards)
-        total_members = Member.objects.filter(
-            Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=today),
-            membership_periods__start_date__lte=today
-        ).distinct().count()
+        total_members = MembershipPeriod.objects.filter(
+            Q(end_date__isnull=True) | Q(end_date__gt=today),
+            start_date__lte=today
+        )
+        member_ids = [element.member.id for element in total_members]
+        total_members = total_members.count()
 
         # Filter authors with a valid authorship period as of today (used in table and cards)
-        active_authors = Member.objects.filter(
-            authorship_periods__start_date__lte=today
-        ).filter(
-            Q(authorship_periods__end_date__isnull=True) | Q(authorship_periods__end_date__gt=today)
-        ).distinct()
+        active_authors = AuthorshipPeriod.objects.filter(
+            Q(end_date__isnull=True) | Q(end_date__gt=today),
+            start_date__lte=today,
+            member__pk__in=member_ids
+        )
         total_authors = active_authors.count()
+
+        # Filter authors with a valid authorship period as of today (used in table and cards)
+        active_cf = CommonFound.objects.filter(
+            Q(end_date__isnull=True) | Q(end_date__gt=today),
+            start_date__lte=today,
+            member__pk__in=member_ids
+        )
+        total_cf = active_cf.count()
 
         # Members and authors by country with percentage calculations
         countries_data = []
         for country in Country.objects.order_by('name'):
             # Current members in each country as of today (used in table)
-            country_members = Member.objects.filter(
+            total_country_members = Member.objects.filter(
+                Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=today),
                 membership_periods__institute__group__country=country,
                 membership_periods__start_date__lte=today,
-            ).filter(Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=today)).count()
+            )
+
+            country_members = total_country_members.count()
 
             # Current authors in each country as of today (used in table)
-            country_authors = Member.objects.filter(
-                membership_periods__institute__group__country=country,
-                authorship_periods__start_date__lte=today
-            ).filter(Q(authorship_periods__end_date__isnull=True) | Q(authorship_periods__end_date__gt=today)).count()
+            membership_periods__institute__group__country=country,
+            country_author = AuthorshipPeriod.objects.filter(
+                Q(end_date__isnull=True) | Q(end_date__gt=today),
+                start_date__lte=today,
+                member__pk__in=[element['id'] for element in total_country_members.values('id')]
+            ).count()
+
+            country_cf = CommonFound.objects.filter(Q(end_date__isnull=True) | Q(end_date__gt=today), start_date__lte=today, member__pk__in=[element['id'] for element in total_country_members.values('id')]).count()
 
             # Calculate percentages as of today (used in table)
             member_percentage = (country_members / total_members * 100) if total_members > 0 else 0
-            author_percentage = (country_authors / total_authors * 100) if total_authors > 0 else 0
+            cf_percentage = (country_cf / total_cf * 100) if total_cf > 0 else 0
 
             # Calculate monthly averages for the last 12 months based on the 15th of each month
             avg_members_12 = calculate_12_months_avg(
                 Member.objects.filter(membership_periods__institute__group__country=country),
-                'membership_periods__start_date',
+                'membership_periods',
                 today
             )
 
-            avg_authors_12 = calculate_12_months_avg(
+            avg_cf_12 = calculate_12_months_avg(
                 Member.objects.filter(membership_periods__institute__group__country=country),
-                'authorship_periods__start_date',
+                'common_found',
                 today
             )
 
             countries_data.append({
                 'country': country.name,
                 'members_count': country_members,
-                'authors_count': country_authors,
+                'cf_count': country_cf,
+                'author_count': country_author,
                 'member_percentage': member_percentage,
-                'author_percentage': author_percentage,
+                'cf_percentage': cf_percentage,
                 'avg_members_12': avg_members_12,
-                'avg_authors_12': avg_authors_12,
+                'avg_cf_12': avg_cf_12,
             })
 
         # Members and authors by group with percentage calculations
         groups_data = []
         for group in Group.objects.order_by('name'):
             # Current members in each group as of today (used in table)
-            group_members = Member.objects.filter(
+            total_group_members = Member.objects.filter(
+                Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=today),
                 membership_periods__institute__group=group,
                 membership_periods__start_date__lte=today,
-            ).filter(Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=today)).count()
+            )
+
+            group_members = total_group_members.count()
 
             # Current authors in each group as of today (used in table)
-            group_authors = Member.objects.filter(
-                membership_periods__institute__group=group,
-                authorship_periods__start_date__lte=today
-            ).filter(Q(authorship_periods__end_date__isnull=True) | Q(authorship_periods__end_date__gt=today)).count()
+            group_authors = AuthorshipPeriod.objects.filter(
+                Q(end_date__isnull=True) | Q(end_date__gt=today),
+                start_date__lte=today,
+                member__pk__in=[element['id'] for element in total_group_members.values('id')]
+            ).count()
+
+            group_cf = CommonFound.objects.filter(Q(end_date__isnull=True) | Q(end_date__gt=today), start_date__lte=today, member__pk__in=[element['id'] for element in total_group_members.values('id')]).count()
 
             # Calculate percentages as of today (used in table)
             member_percentage = (group_members / total_members * 100) if total_members > 0 else 0
-            author_percentage = (group_authors / total_authors * 100) if total_authors > 0 else 0
+            cf_percentage = (group_cf / total_cf * 100) if total_cf > 0 else 0
 
             # Calculate monthly averages for the last 12 months based on the 15th of each month
             avg_members_12 = calculate_12_months_avg(
                 Member.objects.filter(membership_periods__institute__group=group),
-                'membership_periods__start_date',
+                'membership_periods',
                 today
             )
 
-            avg_authors_12 = calculate_12_months_avg(
+            avg_cf_12 = calculate_12_months_avg(
                 Member.objects.filter(membership_periods__institute__group=group),
-                'authorship_periods__start_date',
+                'common_found',
                 today
             )
 
@@ -1271,15 +1307,17 @@ class Statistics(TemplateView):
                 'group': group.name,
                 'members_count': group_members,
                 'authors_count': group_authors,
+                'cf_count': group_cf,
                 'member_percentage': member_percentage,
-                'author_percentage': author_percentage,
+                'cf_percentage': cf_percentage,
                 'avg_members_12': avg_members_12,
-                'avg_authors_12': avg_authors_12,
+                'avg_cf_12': avg_cf_12,
             })
 
         context.update({
             'total_members': total_members,  # for card
             'total_authors': total_authors,  # for card
+            'total_cf': total_cf,
             'countries_data': countries_data,  # country table
             'groups_data': groups_data,  # group table
             'years_list': list(years),
@@ -1322,11 +1360,11 @@ def get_filtered_chart_data(request):
 
     for year in years:
         # Average members
-        avg_members = calculate_averages(queryset, "membership_periods__start_date", year, current_year, today.month)
+        avg_members = calculate_averages(queryset, "membership_periods", year, current_year, today.month)
 
         # Average authors
-        avg_authors = calculate_averages(queryset.filter(authorship_periods__start_date__isnull=False),
-                                         "authorship_periods__start_date", year, current_year, today.month)
+        avg_authors = calculate_averages(queryset,
+                                         "common_found", year, current_year, today.month)
 
         filtered_data['members'].append(avg_members)
         filtered_data['authors'].append(avg_authors)
@@ -1395,21 +1433,12 @@ def get_filtered_monthly_data(request):
     if institute:
         queryset = queryset.filter(membership_periods__institute__name=institute)
 
-    # Calculate monthly data
-    # members = [
-    #     get_active_member_count(queryset, "membership_periods__start_date", year, month)
-    #     for month in range(1, last_month + 1)
-    # ]
-    # authors = [
-    #     get_active_author_count(queryset, year, month)
-    #     for month in range(1, last_month + 1)
-    # ]
     members = [
         get_active_periods_count(queryset, "membership_periods", year, month)
         for month in range(1, last_month + 1)
     ]
     authors = [
-        get_active_periods_count(queryset, "authorship_periods", year, month)
+        get_active_periods_count(queryset, "common_found", year, month)
         for month in range(1, last_month + 1)
     ]
     # Fill remaining months with zero for consistency
@@ -2968,6 +2997,7 @@ def get_duty_list(request):
     for item in current_page:
         data.append({
             'id': item.pk,
+            'category': Category.objects.get(pk=item.category.pk).name,
             'duty_name': item.name if item.name else '-',
             'duty_description': item.description if item.description else '-',
             'duty_type': item.duty_type.name.capitalize(),
@@ -3216,6 +3246,7 @@ class AddDuty(LoginRequiredMixin, View):
                 'page_title': "Manage Duty",
                 'today': date.today(),
                 'types': DutyType.objects.all(),
+                'categories': Category.objects.all(),
             }
             return render(request, 'manage_duty.html', context)
         else:
@@ -3224,6 +3255,7 @@ class AddDuty(LoginRequiredMixin, View):
                 'page_title': "Manage Duty",
                 'today': date.today(),
                 'types': DutyType.objects.all(),
+                'categories': Category.objects.all(),
                 'duty': duty,
             }
             return render(request, 'manage_duty.html', context)
@@ -3236,6 +3268,7 @@ class AddDuty(LoginRequiredMixin, View):
             description = request.POST.get('description')
             max_mem = request.POST.get('max_mem')
             duty_type = request.POST.get('duty_type')
+            category = request.POST.get('category')
             if not id:
                 try:
                     Duty.objects.create(
@@ -3243,27 +3276,40 @@ class AddDuty(LoginRequiredMixin, View):
                         description=description,
                         duty_type=DutyType.objects.get(pk=int(duty_type)),
                         maximum_members=max_mem,
+                        category=Category.objects.get(pk=category),
                     )
                     resp['status'] = 'success'
                     resp['msg'] = 'Duty created!'
                 except Exception as e:
+                    if not duty_type and not category:
+                        resp['msg'] = 'You need to select a type and category for the new duty'
+                    elif not duty_type:
+                        resp['msg'] = 'You need to select a type for the new duty'
+                    elif not category:
+                        resp['msg'] = 'You need to select a category for the new duty'
+                    else:
+                        resp['msg'] = 'There is an error on the request'
                     logger.info("There was an error: ", str(e))
+                    return HttpResponse(json.dumps(resp), content_type="application/json")
             else:
                 id = request.POST.get('id')
                 name = request.POST.get('name')
                 description = request.POST.get('description')
                 max_mem = request.POST.get('max_mem')
                 duty_type = request.POST.get('duty_type')
+                category = request.POST.get('category')
                 foundDuty = Duty.objects.get(pk=id)
                 if foundDuty:
                     if foundDuty.name != name:
                         foundDuty.name = name
-                    elif foundDuty.description != description:
+                    if foundDuty.description != description:
                         foundDuty.description = description
-                    elif foundDuty.duty_type != DutyType.objects.get(pk=int(duty_type)):
+                    if foundDuty.duty_type != DutyType.objects.get(pk=int(duty_type)):
                         foundDuty.duty_type = DutyType.objects.get(pk=int(duty_type))
-                    elif foundDuty.maximum_members != max_mem:
+                    if foundDuty.maximum_members != max_mem:
                         foundDuty.maximum_members = max_mem
+                    if foundDuty.category.pk != Category.objects.get(pk=int(category)):
+                        foundDuty.category = Category.objects.get(pk=int(category))
                     foundDuty.save()
                     resp['status'] = 'success'
                     resp['msg'] = 'Duty updated!'
