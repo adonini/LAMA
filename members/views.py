@@ -119,7 +119,6 @@ def calculate_12_months_avg(queryset, date_field, today, country=None, group=Non
     # Calculate the average over the 12 months
     return sum(months_data) / len(months_data) if months_data else 0
 
-
 def calculate_averages(queryset, date_field, year, current_year, current_month):
     """
     Calculates the average count of members or authors for a specific year, based on activity on the 15th of each month.
@@ -606,7 +605,7 @@ class AddMember(LoginRequiredMixin, View):
         new_institute = Institute.objects.get(pk=new_institute_id) if new_institute_id else None
         future_authorship = member.future_authorship()
 
-        previous_end_date = membership_start_date - timedelta(days=1)
+        previous_end_date = membership_start_date - relativedelta(days=1)
         logger.info(f"This is the new institute: {new_institute} and this is the old one: {old_institute} and this is the result of the if: {old_institute != new_institute}")
         if old_institute != new_institute:
             logger.info(f'Handling institute change for Member ID={member.id}, Old Institute: {old_institute}, New Institute: {new_institute} at {membership_start_date} with is_cf={is_cf}, cf_start={cf_start}, cf_end={cf_end}')
