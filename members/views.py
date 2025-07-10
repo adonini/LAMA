@@ -56,7 +56,7 @@ def login_view(request):
     return render(request, 'login/login.html', {'form': form})
 
 
-def calculate_12_months_avg(queryset, date_field, today):
+def calculate_12_months_avg(queryset, date_field, today, country=None, group=None):
     """
     Calculates the average count of members or authors over the last 12 months,
     considering data on the 15th of each month.
@@ -89,11 +89,21 @@ def calculate_12_months_avg(queryset, date_field, today):
         month_date = start_month + relativedelta(months=-i)
         # Get the count of members/authors active until the 15th of the month
         member_ids = [element['id'] for element in queryset.values('id')]
-        members = MembershipPeriod.objects.filter(
-            Q(end_date__isnull=True) | Q(end_date__gt=month_date),
-            start_date__lte=month_date,
-            member__id__in=member_ids,
-        )
+        if country:
+            members = MembershipPeriod.objects.filter(
+                Q(end_date__isnull=True) | Q(end_date__gt=month_date),
+                start_date__lte=month_date,
+                member__id__in=member_ids,
+                institute__group__country=country,
+            )
+        if group:
+            members = MembershipPeriod.objects.filter(
+                Q(end_date__isnull=True) | Q(end_date__gt=month_date),
+                start_date__lte=month_date,
+                member__id__in=member_ids,
+                institute__group=group,
+            )
+
         if date_field == 'common_found':
             member_ids = [element['member__id'] for element in members.values('member__id')]
             members = CommonFound.objects.filter((
@@ -101,6 +111,9 @@ def calculate_12_months_avg(queryset, date_field, today):
                     Q(start_date__lt=month_date),
                     member__id__in=member_ids,
                 )
+        if group and group.name == 'IFAE':
+            logger.info(month_date)
+            logger.info(members)
         monthly_count = members.count()
         months_data.append(monthly_count)
     # Calculate the average over the 12 months
@@ -148,7 +161,7 @@ def calculate_averages(queryset, date_field, year, current_year, current_month):
     return average
 
 
-def get_active_periods_count(queryset, period_field, year, month):
+def get_active_periods_count(queryset, period_field, year, month, group=None):
     """
     Calculates and returns the total number of members who were active during a given month, considering
     all of their membership or authorship periods (both past and current). The function checks if any of
@@ -169,14 +182,21 @@ def get_active_periods_count(queryset, period_field, year, month):
     #print(f"Checking activity for {period_field} in {year}-{month}")
     for member in queryset:
         # Get all the periods for the specified field (membership or authorship)
-        isActive = MembershipPeriod.objects.filter(
-            Q(end_date__isnull=True) | Q(end_date__gt=check_date),
-            start_date__lte=check_date,
-            member=member
-        ).exists()
+        if group:
+            isActive = MembershipPeriod.objects.filter(
+                Q(end_date__isnull=True) | Q(end_date__gt=check_date),
+                start_date__lte=check_date,
+                member=member,
+                institute__group__name=group,
+            ).exists()
+        else:
+            isActive = MembershipPeriod.objects.filter(
+                Q(end_date__isnull=True) | Q(end_date__gt=check_date),
+                start_date__lte=check_date,
+                member=member
+            ).exists()
         if isActive:
             periods = getattr(member, period_field).all()  # Get the membership or authorship periods
-            
             #print(f"  Checking member: {member.id} - {member.name} for {period_field} periods")
             for period in periods:
                 #print(f"    Checking period: {period.start_date} to {period.end_date if period.end_date else 'None'}")
@@ -1240,18 +1260,20 @@ class Statistics(TemplateView):
             # Calculate percentages as of today (used in table)
             member_percentage = (country_members / total_members * 100) if total_members > 0 else 0
             cf_percentage = (country_cf / total_cf * 100) if total_cf > 0 else 0
-
+            queryset = Member.objects.filter(id__in=[element['member__id'] for element in MembershipPeriod.objects.filter(institute__group__country__name=country).values('member__id')])
             # Calculate monthly averages for the last 12 months based on the 15th of each month
             avg_members_12 = calculate_12_months_avg(
-                Member.objects.filter(membership_periods__institute__group__country=country),
+                queryset,
                 'membership_periods',
-                today
+                today, 
+                country
             )
 
             avg_cf_12 = calculate_12_months_avg(
-                Member.objects.filter(membership_periods__institute__group__country=country),
+                queryset,
                 'common_found',
-                today
+                today,
+                country
             )
 
             countries_data.append({
@@ -1289,18 +1311,24 @@ class Statistics(TemplateView):
             # Calculate percentages as of today (used in table)
             member_percentage = (group_members / total_members * 100) if total_members > 0 else 0
             cf_percentage = (group_cf / total_cf * 100) if total_cf > 0 else 0
-
+            queryset = Member.objects.filter(id__in=[element['member__id'] for element in MembershipPeriod.objects.filter(institute__group=group).values('member__id')])
+            if group.name == 'CROATIA':
+                logger.info(queryset)
             # Calculate monthly averages for the last 12 months based on the 15th of each month
             avg_members_12 = calculate_12_months_avg(
-                Member.objects.filter(membership_periods__institute__group=group),
+                queryset,
                 'membership_periods',
-                today
+                today,
+                None,
+                group
             )
 
             avg_cf_12 = calculate_12_months_avg(
-                Member.objects.filter(membership_periods__institute__group=group),
+                queryset,
                 'common_found',
-                today
+                today,
+                None,
+                group
             )
 
             groups_data.append({
@@ -1427,27 +1455,27 @@ def get_filtered_monthly_data(request):
 
     # Apply filters dynamically
     if country and country != 'all':
-        queryset = queryset.filter(membership_periods__institute__group__country__name=country)
+        queryset = queryset.filter(id__in=[element['member__id'] for element in MembershipPeriod.objects.filter(institute__group__country__name=country).values('member__id')])
     if group:
-        queryset = queryset.filter(membership_periods__institute__group__name=group)
+        queryset = queryset.filter(id__in=[element['member__id'] for element in MembershipPeriod.objects.filter(institute__group__name=group).values('member__id')])
     if institute:
-        queryset = queryset.filter(membership_periods__institute__name=institute)
+        queryset = queryset.filter(id__in=[element['member__id'] for element in MembershipPeriod.objects.filter(institute__name=institute).values('member__id')])
 
     members = [
-        get_active_periods_count(queryset, "membership_periods", year, month)
+        get_active_periods_count(queryset, "membership_periods", year, month, group)
         for month in range(1, last_month + 1)
     ]
-    authors = [
-        get_active_periods_count(queryset, "common_found", year, month)
+    cfs = [
+        get_active_periods_count(queryset, "common_found", year, month, group)
         for month in range(1, last_month + 1)
     ]
     # Fill remaining months with zero for consistency
     members.extend([0] * (12 - last_month))
-    authors.extend([0] * (12 - last_month))
+    cfs.extend([0] * (12 - last_month))
 
     #logger.debug(f"Received filter parameters: Year={year}, Country={country}, Group={group}, Institute={institute}")
     #logger.debug(f"members: {members}, authors: {authors}")
-    return JsonResponse({"members": members, "authors": authors})
+    return JsonResponse({"members": members, "authors": cfs})
 
 
 def get_years(request):
