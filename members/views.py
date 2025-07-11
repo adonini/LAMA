@@ -2916,9 +2916,12 @@ def get_member_duty(request):
     country = request.GET.get('country', None)
     group = request.GET.get('group', None)
     institute = request.GET.get('institute', None)
+    today = timezone.now().date()
 
     # First fetch
     members = Member.objects.order_by('name', 'surname')
+    members = members.filter(
+            Q(membership_periods__start_date__lte=today) & Q(membership_periods__end_date__isnull=True) | Q(membership_periods__start_date__lte=today) & Q(membership_periods__end_date__gte=today))
 
     if country and country != 'All':
         groups = Group.objects.filter(country__name = country)
@@ -2975,8 +2978,6 @@ def get_member_duty(request):
         active_membership = item.current_membership()
         future_membership = item.future_membership()
         membership = active_membership or future_membership
-        logger.info(membership)
-        logger.info(membership.institute)
         current_institute = membership.institute if membership else None
         foundDuty = MemberDuty.objects.filter(member=item).filter(Q(start_date__lte=today) & Q(end_date__gte=today) | Q(start_date__lte=today) & Q(end_date__isnull=True))
         if len(foundDuty) > 0:
