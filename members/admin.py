@@ -51,6 +51,15 @@ class CommonFoundAdmin(admin.ModelAdmin):
     search_fields = ['member__name', 'start_date', 'end_date']
     list_filter = ['member','start_date', 'end_date']
 
+class AuthorInstituteAffiliationAdmin(admin.ModelAdmin):
+    list_display = ['get_member_name', 'institute', 'order', 'creation_date', 'end_date']
+    search_fields = ['author_details__member__name', 'institute__name', 'order', 'creation_date', 'end_date']
+    list_filter = ['author_details__member', 'order', 'institute', 'creation_date', 'end_date']
+
+    def get_member_name(self, obj):
+        return f"{obj.author_details.member.name} {obj.author_details.member.surname}"
+    get_member_name.short_description = 'Member'
+
 
 # Register your models here.
 admin.site.register(Country)
@@ -62,6 +71,7 @@ admin.site.register(Member, MemberAdmin)
 admin.site.register(MemberDuty, MemberDutyAdmin)
 admin.site.register(MembershipPeriod, MembershipPeriodAdmin)
 admin.site.register(AuthorshipPeriod, AuthorshipPeriodAdmin)
+admin.site.register(AuthorInstituteAffiliation, AuthorInstituteAffiliationAdmin)
 admin.site.register(AuthorDetails, AuthorDetailsAdmin)  
 admin.site.register(CommonFound, CommonFoundAdmin)  
 

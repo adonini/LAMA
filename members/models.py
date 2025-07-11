@@ -10,12 +10,18 @@ from dateutil.relativedelta import relativedelta
 class Country(models.Model):
     name = models.CharField(max_length=50)
 
+    class Meta:
+        ordering = ['name']
+
     def __str__(self):
         return self.name
 
 class Group(models.Model):
     name = models.CharField(max_length=50)
     country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='groups')
+
+    class Meta:
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -26,6 +32,9 @@ class Institute(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='institutes', null=True, blank=True)
     long_description = models.TextField(blank=True)
     is_lst = models.BooleanField(default=True)  # Flag to indicate LST-specific institutes
+
+    class Meta:
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -50,6 +59,7 @@ class DutyType(models.Model):
     name = models.CharField(max_length=100, unique=True)  # Duty type names must be unique
 
     class Meta:
+        ordering = ['name']
         verbose_name_plural = 'Duty_types'
 
     def __str__(self):
@@ -62,6 +72,7 @@ class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)  # Duty type names must be unique
 
     class Meta:
+        ordering = ['name']
         verbose_name_plural = 'Categories'
 
     def __str__(self):
@@ -78,6 +89,7 @@ class Duty(models.Model):
     maximum_members = models.IntegerField(null=True)
 
     class Meta:
+        ordering = ['name']
         verbose_name_plural = 'Duties'
         constraints = [
             models.UniqueConstraint(fields=['name', 'category'], name='unique_name_category')
@@ -106,6 +118,9 @@ class MembershipPeriod(models.Model):
     end_date = models.DateField(null=True, blank=True)  # Null means still active
     institute = models.ForeignKey('Institute', on_delete=models.SET_NULL, null=True, blank=True)
 
+    class Meta:
+        ordering = ['member__name']
+
     def is_active(self):
         return not self.end_date or self.end_date >= now().date()
 
@@ -118,6 +133,7 @@ class AuthorshipPeriod(models.Model):
     end_date = models.DateField(null=True, blank=True)  # Null means still active
 
     class Meta:
+        ordering = ['member__name']
         constraints = [
             models.UniqueConstraint(fields=['member', 'end_date'], name='unique_member_end_date')
         ]
@@ -132,6 +148,8 @@ class CommonFound(models.Model):
     member = models.ForeignKey('Member', on_delete=models.CASCADE, related_name='common_found')
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
+    class Meta:
+        ordering = ['member__name']
 
     def is_active(self):
         return not self.end_date or self.end_date >= now().date()
@@ -153,6 +171,9 @@ class Member(models.Model):
     surname = models.CharField(max_length=50)
     primary_email = models.EmailField(unique=True)  # Mandatory
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+
+    class Meta:
+        ordering = ['name']
 
     def clean(self):
         super().clean()
@@ -311,6 +332,10 @@ class AuthorDetails(models.Model):
                                      help_text="Email used for publications.")
     orcid = models.CharField(max_length=25, blank=True)  # ORCID has 19 characters including hyphens
 
+    class Meta:
+        ordering = ['member__name']
+        verbose_name_plural = 'AuthorDetails'
+
     def __str__(self):
         return f"Author Info: {self.member.name} {self.member.surname}"
 
@@ -332,14 +357,15 @@ class AuthorInstituteAffiliation(models.Model):
     creation_date = models.DateTimeField(auto_now_add=False)
     end_date = models.DateTimeField(auto_now_add=False, null=True)
     class Meta:
+        ordering = ['author_details__member__name', 'order']
         unique_together = ('author_details', 'institute', 'order', 'creation_date')  # Prevent duplicates
-        ordering = ['order']  # Always return institutes in the specified order
 
     def __str__(self):
         return f"{self.institute.name} ({self.order})"
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
+    
 
 class MemberDuty(models.Model):
     """
@@ -351,6 +377,7 @@ class MemberDuty(models.Model):
     end_date = models.DateField(null=True, blank=True)  # Null means ongoing
 
     class Meta:
+        ordering = ['member__name']
         unique_together = ('member', 'duty', 'start_date')  # Prevent duplicate assignments for the same start date
         verbose_name_plural = 'Member Duties'
 
