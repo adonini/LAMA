@@ -196,7 +196,7 @@ table>th{
     border: 1px solid #000000 !important;
     color: #3D4357!important;
 }
-.top1End{
+.top1End, .top1End1, .top1End2{
     display: flex;
     flex-direction: column;
     align-items: center;

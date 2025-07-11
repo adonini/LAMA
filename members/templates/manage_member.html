@@ -105,6 +105,29 @@
                     <label class="control-label">Duties</label>
                     {% if duties %}
                         <ul class="list-group">
+                            {% for duty in permanentDuties %}
+                                <li class="list-group-item">
+                                    <div class="row d-flex justify-content-start">
+                                        <div class="col-md-5 col-sm-12 d-flex align-items-center">
+                                            <p class="mb-0">{{ duty.duty.name }}</p>
+                                        </div>
+                                        <div class="col-md-7 col-sm-12 d-flex {% if duty.end_date == None %}flex-row justify-content-between align-items-center{% else %}flex-column align-items-start justify-content-center{% endif %}">
+                                            <div class="d-flex align-items-center">
+                                                <strong class="me-1">Start: </strong> {{ duty.start_date|date:"Y-m-d" }}
+                                            </div>
+                                            {% if duty.end_date == None %}
+                                                <div class="d-flex align-items-center">
+                                                    <button class="btn btn-sm btn-clear rounded-xl mt-0 endBtn" data-id="{{duty.pk}}">End</button>
+                                                </div>
+                                            {% else %}
+                                                <div class="d-flex align-items-center">
+                                                    <strong class="end-mar">End: </strong> {{ duty.end_date|date:"Y-m-d" }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </li>
+                            {% endfor %}
                             {% for duty in temporaryDuties %}
                                 <li class="list-group-item">
                                     <div class="row d-flex justify-content-start">
@@ -125,29 +148,6 @@
                                                         <strong class="end-mar">End: </strong> {{ duty.end_date|date:"Y-m-d" }}
                                                     </div>
                                                 {% endif %}
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </li>
-                            {% endfor %}
-                            {% for duty in permanentDuties %}
-                                <li class="list-group-item">
-                                    <div class="row d-flex justify-content-start">
-                                        <div class="col-md-5 col-sm-12 d-flex align-items-center">
-                                            <p class="mb-0">{{ duty.duty.name }}</p>
-                                        </div>
-                                        <div class="col-md-7 col-sm-12 d-flex {% if duty.end_date == None %}flex-row justify-content-between align-items-center{% else %}flex-column align-items-start justify-content-center{% endif %}">
-                                            <div class="d-flex align-items-center">
-                                                <strong class="me-1">Start: </strong> {{ duty.start_date|date:"Y-m-d" }}
-                                            </div>
-                                            {% if duty.end_date == None %}
-                                                <div class="d-flex align-items-center">
-                                                    <button class="btn btn-sm btn-clear rounded-xl mt-0 endBtn" data-id="{{duty.pk}}">End</button>
-                                                </div>
-                                            {% else %}
-                                                <div class="d-flex align-items-center">
-                                                    <strong class="end-mar">End: </strong> {{ duty.end_date|date:"Y-m-d" }}
-                                                </div>
                                             {% endif %}
                                         </div>
                                     </div>

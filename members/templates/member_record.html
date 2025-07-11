@@ -98,14 +98,14 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for duty in temporaryDuties %}
+                    {% for duty in permanentDuties %}
                         <tr>
                             <td>{{ duty.duty.name }}</td>
                             <td>{{ duty.start_date|date:"Y-m-d" }}</td>
                             <td>{{ duty.end_date|date:"Y-m-d"|default:"Active" }}</td>
                         </tr>
                     {% endfor %}
-                    {% for duty in permanentDuties %}
+                    {% for duty in temporaryDuties %}
                         <tr>
                             <td>{{ duty.duty.name }}</td>
                             <td>{{ duty.start_date|date:"Y-m-d" }}</td>

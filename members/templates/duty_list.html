@@ -5,13 +5,13 @@
 {% load humanize %}
 <div class="container-fluid">
     <div class="header position-relative d-flex align-items-center">
-        {% if user|has_group:"admin" %}
-            <div class="d-flex align-items-center w-25 mt-0 newDuty">
+        <div class="d-flex align-items-center w-25 mt-0 newDuty">
+            {% if user|has_group:"admin" %}
                 <div class="tools">
                     <button type="button" class="btn-new-member" id='add_duty'><i class="fa fa-plus"></i> New Duty</button>
                 </div>
-            </div>
-        {% endif %}
+            {% endif %}
+        </div>
         <div class="d-flex {% if user|has_group:'admin' %}justify-content-center w-100 translateTH position-absolute{% else %}justify-content-center w-100 translateU{% endif %}">
             <div class="viewSelector">
                 <div class="leftSelector {% if not duty_view %}selected{% endif %}">Member List</div>
@@ -66,7 +66,21 @@
     let initialized = false
     let table = null
     let tableDuty = null
+    let categories = {{ categories|safe }}
+    let types = {{ types|safe }}
+    let institutes = {{ institutes|safe }};
+    let groups = {{ groups|safe }};
+    let countries = {{ countries|safe }};
+    let filters = {{ filters|safe }};
+    console.log(categories)
+    console.log(types)
+    console.log(filters)
     if(!initialized){
+        $.extend(true, $.fn.dataTable.defaults, {
+            language: {
+                search: ""
+            }
+        });
         loadMemberTable()
         initialized = true
     }
@@ -111,7 +125,9 @@
                     url: '/api/get-member-duty/',
                     type: 'GET',
                     data: function(d) {
-                        // Filters
+                        d.country = $('#Country').val();
+                        d.group = $('#Group').val();
+                        d.institute = $('#Institute').val();
                     }
                 },
                 columns: [
@@ -127,31 +143,17 @@
                       searchable: false
                     },
                 ],
-                dom: '<"top1"<"top1Start"><"top1End"Bf>>t<"bottom"<"bottomStart"i><"bottomCenter"l><"bottomEnd"p>>',
-                buttons: [{
-                    extend: 'copy',
-                    exportOptions: {
-                        columns: ':not(:eq(6))'
+                responsive: true,
+                dom: '<"top1"<"top1Start1"f><"top1End1"B>>t<"bottom"<"bottomStart"i><"bottomCenter"l><"bottomEnd"p>>',
+                buttons: [{extend: 'copy', exportOptions: {columns: ':not(:last-child)'} // Exclude the last column (Actions/Details)
+                    },
+                    {extend: 'csv', exportOptions: {columns: ':not(:last-child)'}
+                    },
+                    {extend: 'excel',exportOptions: {columns: ':not(:last-child)'}
+                    },
+                    {extend: 'print',exportOptions: {columns: ':not(:last-child)'}
                     }
-                },
-                {
-                    extend: 'csv',
-                    exportOptions: {
-                        columns: ':not(:eq(6))'
-                    }
-                },
-                {
-                    extend: 'excel',
-                    exportOptions: {
-                        columns: ':not(:eq(6))'
-                    }
-                },
-                {
-                    extend: 'print',
-                    exportOptions: {
-                        columns: ':not(:eq(6))'
-                    }
-                }],
+                ],
                 columnDefs: [
                     {orderable: false, targets: [0,1,2,3,4,5,6,7]},
                     {
@@ -173,6 +175,192 @@
                 },
                 order: [[1, 'asc']],
             });
+            let data = table.data().toArray()
+            let filterLabels = ['Country: ', 'Group: ', 'Institute: '];
+            let mainDiv = document.querySelector('.top1Start1');
+            let generalDiv = document.createElement('div');
+            generalDiv.classList.add('d-flex', 'flex-wrap');
+            mainDiv.classList.add('filters');
+            let countryDropdown, groupDropdown, instituteDropdown; // Variables to store dropdowns
+            
+            let filtersContainer = document.createElement('div');
+            filtersContainer.classList.add('d-flex', 'flex-wrap');
+            
+            // Helper function to update options dynamically
+            function updateDropdown(dropdown, options, selectedValue) {
+                dropdown.innerHTML = ''; // Clear existing options
+                
+                // Sort options alphabetically
+                options.sort((a, b) => a.localeCompare(b));
+                // If there's only one option, select it automatically
+                if (options.length === 1) {
+                    let opt = document.createElement('option');
+                    opt.value = options[0];
+                    opt.textContent = options[0];
+                    opt.selected = true;
+                    dropdown.appendChild(opt);
+                } else {
+                    let defaultOption = document.createElement('option');
+                    defaultOption.value = 'All';
+                    defaultOption.textContent = 'All';
+                    dropdown.appendChild(defaultOption);
+                    // Add options
+                    options.forEach(option => {
+                        let opt = document.createElement('option');
+                        opt.value = option;
+                        opt.textContent = option;
+                        // Maintain the selected value if it's available in the options
+                        if (option === selectedValue) {
+                            opt.selected = true;
+                        }
+                        dropdown.appendChild(opt);
+                    });
+                }
+            }
+            
+            // Update other dropdowns based on current selections
+            function updateFilters(triggeredBy) {
+                let selectedCountry = countryDropdown.value;
+                let selectedGroup = groupDropdown.value;
+                let selectedInstitute = instituteDropdown.value;
+                
+                let validCountries = new Set();
+                let validGroups = new Set();
+                let validInstitutes = new Set();
+                
+                // Calculate valid options based on the selections
+                for (let country in filters) {
+                    let countryData = filters[country];
+                    let countryGroups = countryData.groups;
+                    
+                    for (let group in countryGroups) {
+                        let groupInstitutes = countryGroups[group];
+                        let matchesCountry = selectedCountry === 'All' || selectedCountry === country;
+                        let matchesGroup = selectedGroup === 'All' || selectedGroup === group;
+                        let matchesInstitute = selectedInstitute === 'All' || groupInstitutes.includes(selectedInstitute);
+                        
+                        // If the combination matches, add to the valid lists
+                        if (matchesCountry && matchesGroup && matchesInstitute) {
+                            validCountries.add(country);
+                            validGroups.add(group);
+                            groupInstitutes.forEach(institute => validInstitutes.add(institute));
+                        }
+                    }
+                }
+                
+                // Convert Sets to Arrays for dropdown updates
+                validCountries = Array.from(validCountries);
+                validGroups = Array.from(validGroups);
+                validInstitutes = Array.from(validInstitutes);
+                
+                // Update dropdowns based on valid options
+                if (triggeredBy !== 'country') updateDropdown(countryDropdown, validCountries, selectedCountry);
+                if (triggeredBy !== 'group') updateDropdown(groupDropdown, validGroups, selectedGroup);
+                
+                // Show only the selected institute if one is chosen
+                if (selectedInstitute !== 'All' && triggeredBy === 'institute') {
+                    updateDropdown(instituteDropdown, [selectedInstitute], selectedInstitute);
+                } else {
+                    if (triggeredBy !== 'institute') updateDropdown(instituteDropdown, validInstitutes, selectedInstitute);
+                }
+                
+                // Apply filters to the table
+                table.column(5).search(selectedCountry !== 'All' ? selectedCountry : '').draw();
+                table.column(4).search(selectedGroup !== 'All' ? selectedGroup : '').draw();
+                table.column(3).search(selectedInstitute !== 'All' ? selectedInstitute : '').draw();
+            }
+            
+            for (let label of filterLabels) {
+                let divInput = document.createElement('div');
+                divInput.classList.add('filterInput');
+                divInput.style.marginTop = '5px';
+                
+                let input = document.createElement('select');
+                input.classList.add('rounded-pill', 'form-select');
+                let defaultOption = document.createElement('option');
+                defaultOption.appendChild(document.createTextNode('All'));
+                input.appendChild(defaultOption);
+                input.setAttribute('id', label.replace(": ", ""));
+                
+                // Filter by Country
+                if (label.toLowerCase().includes('country')) {
+                    countryDropdown = input;
+                    input.addEventListener('change', () => updateFilters('country'));
+                    // Populate with all countries initially
+                    for (let country in filters) {
+                        let option = document.createElement('option');
+                        option.value = country;
+                        option.appendChild(document.createTextNode(country));
+                        input.appendChild(option);
+                    }
+                    filtersContainer.appendChild(divInput);
+                }
+                
+                // Filter by Group
+                if (label.toLowerCase().includes('group')) {
+                    groupDropdown = input;
+                    input.addEventListener('change', () => updateFilters('group'));
+                    // Initially empty; will be populated dynamically
+                    filtersContainer.appendChild(divInput);
+                }
+                
+                // Filter by Institute
+                if (label.toLowerCase().includes('institute')) {
+                    instituteDropdown = input;
+                    input.addEventListener('change', () => updateFilters('institute'));
+                    // Initially empty; will be populated dynamically
+                    filtersContainer.appendChild(divInput);
+                }
+                
+                
+                
+                // Set up the label and input for each filter
+                let inputLabel = document.createElement('label');
+                inputLabel.appendChild(document.createTextNode(label));
+                inputLabel.setAttribute('for', label);
+                divInput.appendChild(inputLabel);
+                divInput.appendChild(input);
+            }
+            
+            // Append the other filters container
+            mainDiv.appendChild(filtersContainer);
+            
+            // Initialize dropdowns with valid options
+            updateFilters();
+            
+            let top1End = document.querySelector('.top1End1');
+            let clearFilterButton = document.createElement('div');
+            clearFilterButton.classList.add('btn', 'btn-clear', 'rounded-xl');
+            clearFilterButton.appendChild(document.createTextNode('Clear filters'));
+            clearFilterButton.addEventListener('click', function() {
+                let inputs = document.querySelectorAll('.filterInput > select');
+                
+                // Reset all dropdowns to "All"
+                inputs.forEach(input => {
+                    input.value = 'All';
+                });
+                
+                // Sequentially update filters
+                updateFilters('country'); // Reset country
+                updateFilters('group');   // Reset group
+                updateFilters('institute'); // Reset institute explicitly
+                
+                // Force repopulation of the institute dropdown
+                updateDropdown(instituteDropdown, Array.from(new Set(Object.values(filters).flatMap(country => {
+                    return Object.values(country.groups).flat();
+                }))), 'All');
+                
+                // Clear any custom searches on the table
+                table.search('').draw();
+            });
+            top1End.appendChild(clearFilterButton);
+            
+            // Custom Search placeholders and Clear Filter button
+            $('.top1Start1 [type=search]').each(function () {
+                $(this).attr("placeholder", "Search...");
+                $(this).attr("autocomplete", "off");
+                $(this).before('<span class="fa fa-search"></span>');
+            });
         }
     }
     function loadDutyTable() {
@@ -184,6 +372,7 @@
                     type: 'GET',
                     data: function(d) {
                         d.category = $('#Category').val();
+                        d.type = $('#Type').val();
                     }
                 },
                 columns: [
@@ -200,7 +389,7 @@
                     },
                 ],
                 responsive: true,
-                dom: '<"top1"<"top1Start"><"top1End"Bf>>t<"bottom"<"bottomStart"i><"bottomCenter"l><"bottomEnd"p>>',
+                dom: '<"top1"<"top1Start2"f><"top1End2"B>>t<"bottom"<"bottomStart"i><"bottomCenter"l><"bottomEnd"p>>',
                 buttons: [{
                     extend: 'copy',
                     exportOptions: {
@@ -247,14 +436,109 @@
                 order: [[2, 'asc']],
             });
 
-            let filterLabels = ['Category: '];
-            let mainDiv = document.querySelector('.top1Start');
+            let data = tableDuty.data().toArray()
+            let filterLabels = ['Category: ', 'Type: '];
+            let mainDiv = document.querySelector('.top1Start2');
+            console.log(mainDiv)
             let generalDiv = document.createElement('div');
             generalDiv.classList.add('d-flex', 'flex-wrap');
             mainDiv.classList.add('filters');
-            let categoryDropdown
+            let categoryDropdown, typeDropdown
+            
             let filtersContainer = document.createElement('div');
             filtersContainer.classList.add('d-flex', 'flex-wrap');
+            
+            // Update other dropdowns based on current selections
+            function updateFilters() {
+                let selectedCategory = categoryDropdown.value;
+                let selectedType = typeDropdown.value;
+                               
+                // Apply filters to the table
+                tableDuty.column(1).search(selectedCategory !== -1 ? selectedCategory : '').draw();
+                tableDuty.column(4).search(selectedType !== -1 ? selectedType : '').draw();
+            }
+            
+            for (let label of filterLabels) {
+                let divInput = document.createElement('div');
+                divInput.classList.add('filterInput');
+                divInput.style.marginTop = '5px';
+                
+                let input = document.createElement('select');
+                input.classList.add('rounded-pill', 'form-select');
+                let defaultOption = document.createElement('option');
+                defaultOption.setAttribute('value', -1);
+                defaultOption.appendChild(document.createTextNode('All'));
+                input.appendChild(defaultOption);
+                input.setAttribute('id', label.replace(": ", ""));
+                
+                // Filter by Country
+                if (label.toLowerCase().includes('category')) {
+                    categoryDropdown = input;
+                    input.addEventListener('change', () => updateFilters());
+                    // Populate with all countries initially
+                    for (let category in categories) { 
+                        let option = document.createElement('option');
+                        option.value = categories[category].id;
+                        option.appendChild(document.createTextNode(categories[category].name));
+                        input.appendChild(option);
+                    }
+                    filtersContainer.appendChild(divInput);
+                }
+                
+                // Filter by Group
+                if (label.toLowerCase().includes('type')) {
+                    typeDropdown = input;
+                    input.addEventListener('change', () => updateFilters());
+                    for (let type in types) { 
+                        let option = document.createElement('option');
+                        option.value = types[type].id;
+                        option.appendChild(document.createTextNode(types[type].name.charAt(0).toUpperCase()+types[type].name.slice(1)));
+                        input.appendChild(option);
+                    }
+                    filtersContainer.appendChild(divInput);
+                }              
+                
+                
+                // Set up the label and input for each filter
+                let inputLabel = document.createElement('label');
+                inputLabel.appendChild(document.createTextNode(label));
+                inputLabel.setAttribute('for', label);
+                divInput.appendChild(inputLabel);
+                divInput.appendChild(input);
+            }
+            
+            // Append the other filters container
+            mainDiv.appendChild(filtersContainer);
+            
+            // Initialize dropdowns with valid options
+            updateFilters();
+            
+            let top1End = document.querySelector('.top1End2');
+            let clearFilterButton = document.createElement('div');
+            clearFilterButton.classList.add('btn', 'btn-clear', 'rounded-xl');
+            clearFilterButton.appendChild(document.createTextNode('Clear filters'));
+            clearFilterButton.addEventListener('click', function() {
+                let inputs = document.querySelectorAll('.filterInput > select');
+                
+                // Reset all dropdowns to "All"
+                inputs.forEach(input => {
+                    input.value = 'All';
+                });
+                
+                // Sequentially update filters
+                updateFilters(); // Reset category
+                
+                // Clear any custom searches on the table
+                tableDuty.search('').draw();
+            });
+            top1End.appendChild(clearFilterButton);
+            
+            // Custom Search placeholders and Clear Filter button
+            $('.top1Start2 [type=search]').each(function () {
+                $(this).attr("placeholder", "Search...");
+                $(this).attr("autocomplete", "off");
+                $(this).before('<span class="fa fa-search"></span>');
+            });
             
         }
     }

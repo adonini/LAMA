@@ -110,7 +110,7 @@ class MembershipPeriod(models.Model):
         return not self.end_date or self.end_date >= now().date()
 
     def __str__(self):
-        return f"{self.member.name} - {self.start_date} to {self.end_date or 'Active'}"
+        return f"{self.member.name} {self.member.surname} - {self.start_date} to {self.end_date or 'Active'}"
 
 class AuthorshipPeriod(models.Model):
     member = models.ForeignKey('Member', on_delete=models.CASCADE, related_name='authorship_periods')
@@ -137,7 +137,7 @@ class CommonFound(models.Model):
         return not self.end_date or self.end_date >= now().date()
 
     def __str__(self):
-        return f"{self.member.name} - {self.start_date}"
+        return f"{self.member.name} {self.member.surname} - {self.start_date}"
 
 class Member(models.Model):
     ROLE_CHOICES = [
