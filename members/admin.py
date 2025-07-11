@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Country, Duty, Group, Institute, Member, MemberDuty, MembershipPeriod, AuthorshipPeriod, AuthorDetails, DutyType, AuthorInstituteAffiliation, ActiveDutyManager, Category
+from .models import Country, Duty, Group, Institute, Member, MemberDuty, MembershipPeriod, AuthorshipPeriod, AuthorDetails, DutyType, AuthorInstituteAffiliation, ActiveDutyManager, Category, CommonFound
 
 
 class MemberAdmin(admin.ModelAdmin):
@@ -46,6 +46,10 @@ class AuthorDetailsAdmin(admin.ModelAdmin):
     search_fields = ['author_name', 'member__name', 'member__surname']
     list_filter = ['member']  # Filter by related member
 
+class CommonFoundAdmin(admin.ModelAdmin):
+    list_display = ['member', 'start_date', 'end_date']
+    search_fields = ['member__name', 'start_date', 'end_date']
+    list_filter = ['member','start_date', 'end_date']
 
 
 # Register your models here.
@@ -59,4 +63,5 @@ admin.site.register(MemberDuty, MemberDutyAdmin)
 admin.site.register(MembershipPeriod, MembershipPeriodAdmin)
 admin.site.register(AuthorshipPeriod, AuthorshipPeriodAdmin)
 admin.site.register(AuthorDetails, AuthorDetailsAdmin)  
+admin.site.register(CommonFound, CommonFoundAdmin)  
 
