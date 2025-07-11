@@ -2972,7 +2972,13 @@ def get_member_duty(request):
     data = []
     today = timezone.now().date()
     for item in current_page:
-        foundDuty = MemberDuty.objects.filter(member=item.member).filter(Q(start_date__lte=today) & Q(end_date__gte=today) | Q(start_date__lte=today) & Q(end_date__isnull=True))
+        active_membership = item.current_membership()
+        future_membership = item.future_membership()
+        membership = active_membership or future_membership
+        logger.info(membership)
+        logger.info(membership.institute)
+        current_institute = membership.institute if membership else None
+        foundDuty = MemberDuty.objects.filter(member=item).filter(Q(start_date__lte=today) & Q(end_date__gte=today) | Q(start_date__lte=today) & Q(end_date__isnull=True))
         if len(foundDuty) > 0:
             dutiesStr = ""
             for duty in foundDuty:
@@ -2982,14 +2988,14 @@ def get_member_duty(request):
             foundDuty = None
 
         data.append({
-            'id': item.member.pk,
-            'member_name': item.member.name if item.member.name else '-',
-            'member_surname': item.member.surname if item.member.surname else '-',
-            'institute': item.institute.name if item.institute else '-',
-            'group': item.institute.group.name if item.institute and item.institute.group else '-',
-            'country': item.institute.group.country.name if item.institute and item.institute.group else '-',
+            'id': item.pk,
+            'member_name': item.name if item.name else '-',
+            'member_surname': item.surname if item.surname else '-',
+            'group_name': current_institute.group.name if current_institute and current_institute.group else 'No Group',
+            'country_name': current_institute.group.country.name if current_institute and current_institute.group and current_institute.group.country else 'No Country',
+            'institute_name': current_institute.name if current_institute else 'No Institute',
             'duty': foundDuty if foundDuty else '-',
-            'actions': render_to_string('member_actions.html', {'author': item.member, 'is_admin': is_admin, 'is_sapo': is_sapo}),
+            'actions': render_to_string('member_actions.html', {'author': item, 'is_admin': is_admin, 'is_sapo': is_sapo}),
         })
 
     # JSON Response for the DataTable

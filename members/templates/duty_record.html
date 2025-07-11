@@ -250,7 +250,6 @@
             uni_modal(headerDiv, 'show_end_modal', 'modal-md')
             setTimeout(()=>{
                 let closeButton = document.querySelector('#uni_modal .modal-content .modal-header .btn-close1')
-                console.log(closeButton)
                 closeButton.addEventListener('click', (e)=>{
                     const modalElement = document.getElementById('uni_modal');
                     let modal = bootstrap.Modal.getInstance(modalElement);
@@ -280,7 +279,7 @@
         }else{
             setTimeout(()=>{
                 let removeButton = document.createElement('button');
-                removeButton.innerHTML = "End";
+                removeButton.innerHTML = "Confirm";
                 removeButton.classList.add("btn", "highlight-color");
                 removeButton.setAttribute("id", "removeSub")
                 removeButton.addEventListener("click", ()=>{
