@@ -72,9 +72,6 @@
     let groups = {{ groups|safe }};
     let countries = {{ countries|safe }};
     let filters = {{ filters|safe }};
-    console.log(categories)
-    console.log(types)
-    console.log(filters)
     if(!initialized){
         $.extend(true, $.fn.dataTable.defaults, {
             language: {
@@ -439,7 +436,6 @@
             let data = tableDuty.data().toArray()
             let filterLabels = ['Category: ', 'Type: '];
             let mainDiv = document.querySelector('.top1Start2');
-            console.log(mainDiv)
             let generalDiv = document.createElement('div');
             generalDiv.classList.add('d-flex', 'flex-wrap');
             mainDiv.classList.add('filters');
@@ -522,7 +518,7 @@
                 
                 // Reset all dropdowns to "All"
                 inputs.forEach(input => {
-                    input.value = 'All';
+                    input.value = -1;
                 });
                 
                 // Sequentially update filters
