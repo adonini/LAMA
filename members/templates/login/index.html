@@ -58,10 +58,10 @@
                 <div class="col-md-4 col-sm-6 mb-4">
                     <div class="card shadow">
                         <div class="card-header custom-card-header text-center">
-                            <i class="fa-regular fa-flag" style="color: #006d8f;"></i> Countries
+                            <i class="fa-solid fa-sack-dollar" style="color: #ffaa00;"></i> Members Contributing to CF
                         </div>
                         <div class="card-body text-center">
-                            <p class="card-text"><strong class="large-bold-number">{{ total_countries }}</strong></p>
+                            <p class="card-text"><strong class="large-bold-number">{{ cf }}</strong></p>
                         </div>
                     </div>
                 </div>
@@ -69,7 +69,7 @@
 
             <!-- Second Row with 4 Cards -->
             <div class="row justify-content-center">
-                <div class="col-md-3 col-sm-12 mb-4">
+                <div class="col-md-4 col-sm-6 mb-4">
                     <div class="card shadow">
                         <div class="card-header custom-card-header text-center">
                             <i class="fa-solid fa-arrow-right-to-bracket" style="color: #77bb41;"></i> Becoming Authors within 6 Months
@@ -80,7 +80,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-3 col-sm-12 mb-4">
+                <div class="col-md-4 col-sm-6 mb-4">
                     <div class="card shadow">
                         <div class="card-header custom-card-header text-center">
                             <i class="fa-solid fa-arrow-right-from-bracket" style="color: #e32400;"></i> Non-members leaving Authorship within 6 Months
@@ -91,7 +91,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-3 col-sm-12 mb-4">
+                <div class="col-md-4 col-sm-6 mb-4">
                     <div class="card shadow">
                         <div class="card-header custom-card-header text-center">
                             <i class="fa-solid fa-arrow-right-from-bracket" style="color: #e32400;"></i> Leaving Authorship within 6 Months
@@ -101,44 +101,21 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="col-md-3 col-sm-12 mb-4">
-                    <div class="card shadow">
-                        <div class="card-header custom-card-header text-center">
-                            <i class="fa-solid fa-sack-dollar" style="color: #ffaa00;"></i> Members Contributing to CF
-                        </div>
-                        <div class="card-body text-center">
-                            <p class="card-text"><strong class="large-bold-number">{{ cf }}</strong></p>
-                        </div>
-                    </div>
-                </div>
             </div>
             <!-- Third Row with 4 Cards-->
             <div class="row justify-content-center">
-                <!--Total duties-->
-                <div class="col-md-3 col-sm-12" style="max-height: 9.5rem;">
+                <div class="col-md-4 col-sm-6 mb-4">
                     <div class="card shadow">
                         <div class="card-header custom-card-header text-center">
-                            <i class="fa-solid fa-book-open" style="color: #77bb41;"></i> Filled duties
+                            <i class="fa-regular fa-flag" style="color: #006d8f;"></i> Countries
                         </div>
                         <div class="card-body text-center">
-                            <p class="card-text"><strong class="large-bold-number">{{ total_duties }}</strong></p>
-                        </div>
-                    </div>
-                </div>
-                <!--Available Duties-->
-                <div class="col-md-3 col-sm-12" style="max-height: 9.5rem;">
-                    <div class="card shadow">
-                        <div class="card-header custom-card-header text-center">
-                            <i class="fa-solid fa-book-open" style="color: #e32400;"></i> Free duties
-                        </div>
-                        <div class="card-body text-center">
-                            <p class="card-text"><strong class="large-bold-number">{{ available_duties }}</strong></p>
+                            <p class="card-text"><strong class="large-bold-number">{{ total_countries }}</strong></p>
                         </div>
                     </div>
                 </div>
                 <!-- Groups Card -->
-                <div class="col-md-3 col-sm-12" style="max-height: 9.5rem;">
+                <div class="col-md-4 col-sm-6 mb-4" style="max-height: 9.5rem;">
                     <div class="card shadow">
                         <div class="card-header custom-card-header text-center">
                             <i class="fa-solid fa-people-roof"></i> Groups
@@ -165,7 +142,7 @@
                 </div>
 
                 <!-- Institutes Card -->
-                <div class="col-md-3 col-sm-12" style="max-height: 9.5rem;">
+                <div class="col-md-4 col-sm-6 mb-4" style="max-height: 9.5rem;">
                     <div class="card shadow">
                         <div class="card-header custom-card-header text-center">
                             <i class="fa-solid fa-building-columns"></i> Institutes
@@ -191,10 +168,35 @@
                     </div>
                 </div>
             </div>
+            <div class="row justify-content-center">
+                <!--Total duties-->
+                <div class="col-md-4 col-sm-6 mb-4" style="max-height: 9.5rem;">
+                    <div class="card shadow">
+                        <div class="card-header custom-card-header text-center">
+                            <i class="fa-solid fa-book-open" style="color: #77bb41;"></i> Filled duties
+                        </div>
+                        <div class="card-body text-center">
+                            <p class="card-text"><strong class="large-bold-number">{{ total_duties }}</strong></p>
+                        </div>
+                    </div>
+                </div>
+                <!--Available Duties-->
+                <div class="col-md-4 col-sm-6 mb-4" style="max-height: 9.5rem;">
+                    <div class="card shadow">
+                        <div class="card-header custom-card-header text-center">
+                            <i class="fa-solid fa-book-open" style="color: #e32400;"></i> Free duties
+                        </div>
+                        <div class="card-body text-center">
+                            <p class="card-text"><strong class="large-bold-number">{{ available_duties }}</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         {% endif %}
     </div>
 </div>
+
 
 <script>
     $(document).ready(function () {

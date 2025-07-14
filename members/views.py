@@ -297,9 +297,9 @@ class Index(TemplateView):
         ).values('member').distinct().count()
 
         # Contributing to CF
-        cf = AuthorshipPeriod.objects.filter(
-            start_date__lte=six_months_future
-        ).filter(Q(end_date__isnull=True) | Q(end_date__gt=six_months_future)).values('member').distinct().count()
+        cf = CommonFound.objects.filter(start_date__lte=today).filter(
+                Q(end_date__isnull=True) | Q(end_date__gt=today)
+                ).values('member').distinct().count()
 
         # Count institutes and groups per country
         #total_institutes = Institute.objects.count()
