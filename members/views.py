@@ -318,7 +318,7 @@ class Index(TemplateView):
 
         duties = Duty.objects.all()
         total_duties = len([element.pk for element in duties if element.duty_type.name == 'permanent' and element.maximum_members <= element.get_active_members() or element.duty_type.name == 'temporary' and not element.maximum_members <= element.get_short_active_members()])
-        available_duties= len([element.pk for element in duties if element.duty_type.name == 'permanent' and element.maximum_members > element.get_active_members() or element.duty_type.name == 'temporary' and not element.maximum_members > element.get_short_active_members()])
+        available_duties= len([element.pk for element in duties if element.maximum_members is not None and ((element.duty_type.name == 'permanent' and element.maximum_members > element.get_active_members()) or (element.duty_type.name == 'temporary' and element.maximum_members > element.get_short_active_members()))])
         logger.info(available_duties)
 
         # Prepare the context to pass to the template
