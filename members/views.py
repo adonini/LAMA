@@ -1223,14 +1223,18 @@ class Statistics(TemplateView):
             Q(end_date__isnull=True) | Q(end_date__gt=today),
             start_date__lte=today
         )
-        member_ids = [element.member.id for element in total_members]
+        valid_members = MembershipPeriod.objects.filter(
+            Q(end_date__isnull=True) | Q(end_date__gt=today-relativedelta(months=6)),
+            start_date__lte=today
+        )
+        member_ids = [element.member.id for element in valid_members]
         total_members = total_members.count()
 
         # Filter authors with a valid authorship period as of today (used in table and cards)
         active_authors = AuthorshipPeriod.objects.filter(
             Q(end_date__isnull=True) | Q(end_date__gt=today),
             start_date__lte=today,
-            member__pk__in=member_ids
+            member__pk__in=member_ids,
         )
         total_authors = active_authors.count()
 
@@ -1251,6 +1255,11 @@ class Statistics(TemplateView):
                 membership_periods__institute__group__country=country,
                 membership_periods__start_date__lte=today,
             )
+            valid_country_members = Member.objects.filter(
+                Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=today-relativedelta(months=6)),
+                membership_periods__institute__group__country=country,
+                membership_periods__start_date__lte=today,
+            )
 
             country_members = total_country_members.count()
 
@@ -1259,7 +1268,7 @@ class Statistics(TemplateView):
             country_author = AuthorshipPeriod.objects.filter(
                 Q(end_date__isnull=True) | Q(end_date__gt=today),
                 start_date__lte=today,
-                member__pk__in=[element['id'] for element in total_country_members.values('id')]
+                member__pk__in=[element['id'] for element in valid_country_members.values('id')]
             ).count()
 
             country_cf = CommonFound.objects.filter(Q(end_date__isnull=True) | Q(end_date__gt=today), start_date__lte=today, member__pk__in=[element['id'] for element in total_country_members.values('id')]).count()
@@ -1303,6 +1312,11 @@ class Statistics(TemplateView):
                 membership_periods__institute__group=group,
                 membership_periods__start_date__lte=today,
             )
+            valid_group_members = Member.objects.filter(
+                Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=today-relativedelta(months=6)),
+                membership_periods__institute__group=group,
+                membership_periods__start_date__lte=today,
+            )
 
             group_members = total_group_members.count()
 
@@ -1310,7 +1324,7 @@ class Statistics(TemplateView):
             group_authors = AuthorshipPeriod.objects.filter(
                 Q(end_date__isnull=True) | Q(end_date__gt=today),
                 start_date__lte=today,
-                member__pk__in=[element['id'] for element in total_group_members.values('id')]
+                member__pk__in=[element['id'] for element in valid_group_members.values('id')]
             ).count()
 
             group_cf = CommonFound.objects.filter(Q(end_date__isnull=True) | Q(end_date__gt=today), start_date__lte=today, member__pk__in=[element['id'] for element in total_group_members.values('id')]).count()
