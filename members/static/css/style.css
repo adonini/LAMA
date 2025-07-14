@@ -898,3 +898,7 @@ button>p{
 @keyframes l23 {
   100% {transform: rotate(1turn)}
 }
+
+.duty-header{
+    margin-bottom: 1rem;
+}

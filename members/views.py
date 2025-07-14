@@ -317,8 +317,9 @@ class Index(TemplateView):
             groups_per_country[country.name] = Group.objects.filter(country=country).count()
 
         duties = Duty.objects.all()
-        total_duties = len([element for element in duties if element.maximum_members == element.get_active_members()])
-        available_duties= len([element for element in duties if not element.maximum_members == element.get_active_members()])
+        total_duties = len([element.pk for element in duties if element.duty_type.name == 'permanent' and element.maximum_members <= element.get_active_members() or element.duty_type.name == 'temporary' and not element.maximum_members <= element.get_short_active_members()])
+        available_duties= len([element.pk for element in duties if element.duty_type.name == 'permanent' and element.maximum_members > element.get_active_members() or element.duty_type.name == 'temporary' and not element.maximum_members > element.get_short_active_members()])
+        logger.info(available_duties)
 
         # Prepare the context to pass to the template
         context.update({
@@ -2882,7 +2883,9 @@ class AddInstitute(LoginRequiredMixin, View):
     
 class DutyList(LoginRequiredMixin, View):
     def get(self, request):
-
+        show_free = request.GET.get("show_free")
+        dutyFunc = True if show_free else False
+        show_free = True if show_free == 'true' else False
         # Data for the filters (countries, groups, institutes)
         countries = Country.objects.prefetch_related('groups__institutes').order_by('name')
         filters_data = {
@@ -2905,6 +2908,8 @@ class DutyList(LoginRequiredMixin, View):
             'categories': list(Category.objects.all().order_by('name').values('id', 'name')),
             'types': list(DutyType.objects.all().order_by('name').values('id', 'name')),
             'current_date': timezone.now().strftime('%B %d, %Y'),
+            'show_free': True if show_free else False,
+            'duty_view': True if dutyFunc else False,
         }
         return render(request, 'duty_list.html', context)
     
@@ -2941,6 +2946,7 @@ def get_member_duty(request):
     # Search logic
     if search_value:
         duty_ids = [element['member__pk'] for element in MemberDuty.objects.filter(duty__name__icontains=search_value, end_date=None).values('member__pk')]
+        periods = MembershipPeriod.objects.filter(member__in=members)
         query = Q(
             member__name__icontains=search_value
         ) | Q(
@@ -2954,8 +2960,8 @@ def get_member_duty(request):
         ) | Q(
             pk__in=duty_ids
         )
-
-        members = members.filter(query)
+        periods = periods.filter(query)
+        members = members.filter(pk__in=[element['member__pk'] for element in periods.values('member__pk')])
 
     # Total of entries
     total_records = members.count()
@@ -3016,8 +3022,7 @@ def get_duty_list(request):
     search_value = request.GET.get('search[value]', '').strip()
     category = request.GET.get('category', None)
     type = request.GET.get('type', None)
-    logger.info(f'This is the category: {category}')
-    logger.info(f'This is the type: {type}')
+    showFree = request.GET.get('showFree', None)
 
     # First fetch
     duties = Duty.objects.annotate(
@@ -3030,6 +3035,10 @@ def get_duty_list(request):
     if type and type != '-1':
         type = DutyType.objects.get(pk=int(type))
         duties = duties.filter(duty_type=type)
+    if showFree and showFree == 'true':
+        filtered_duties = [element.pk for element in duties if element.maximum_members is not None and ((element.duty_type.name == 'permanent' and element.maximum_members > element.get_active_members()) or (element.duty_type.name == 'temporary' and element.maximum_members > element.get_short_active_members()))]
+        logger.info(len(filtered_duties))
+        duties = duties.filter(pk__in=filtered_duties)
 
     # Search logic
     if search_value:
@@ -3068,7 +3077,7 @@ def get_duty_list(request):
             'duty_name': item.name if item.name else '-',
             'duty_description': item.description if item.description else '-',
             'duty_type': item.duty_type.name.capitalize(),
-            'maximum_members': item.maximum_members if item.maximum_members else '-',
+            'maximum_members': item.maximum_members,
             'active_members': item.get_short_active_members() if item.duty_type.name == 'temporary' else item.get_active_members(),
             'actions': render_to_string('duty_actions.html', {'duty': item, 'is_admin': is_admin}),
         })
@@ -3415,11 +3424,11 @@ class DutyRecord(LoginRequiredMixin, View):
                 today = datetime.now()
                 members = MemberDuty.objects.filter(duty=duty, start_date__gte=datetime(today.year, 1, 1), start_date__lte=datetime(today.year, 12, 31))
 
-            availableMembers = Member.objects.all().exclude(id__in=members.values_list('member')).order_by('name')
+            availableMembers = Member.objects.all().order_by('name')
         # Add to context the institute details along with the group and country information
         context.update({
             'duty': duty,
-            'members': members,
+            'members': members.order_by('start_date'),
             'available_members': availableMembers,
             'curent_members': duty.get_active_members()+duty.get_future_members() if duty.duty_type.name == 'permanent' else duty.get_short_active_members()
         })

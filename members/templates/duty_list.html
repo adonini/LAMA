@@ -4,7 +4,7 @@
 {% load custom_filter %}
 {% load humanize %}
 <div class="container-fluid">
-    <div class="header position-relative d-flex align-items-center">
+    <div class="header position-relative d-flex align-items-center duty-header">
         <div class="d-flex align-items-center w-25 mt-0 newDuty">
             {% if user|has_group:"admin" %}
                 <div class="tools">
@@ -20,7 +20,7 @@
         </div>
     </div>
     <div class="body">
-        <div class="member-table-wrapper">
+        <div class="member-table-wrapper" {% if duty_view %}hidden{% endif %}>
             <table class="table table-sm table-hover" id="member-list">
                 <thead>
                     <tr>
@@ -37,7 +37,14 @@
                 </thead>
             </table>
         </div>
-        <div class="duty-table-wrapper" hidden>
+        <div class="duty-table-wrapper" {% if not duty_view %}hidden{% endif %}>
+            <div class="d-flex align-items-center ms-3">
+                <div class="custom-switch d-flex align-items-center">
+                    <input type="checkbox" id="toggleShowFree" class="custom-control-input" {% if show_free %}checked{% endif %}>
+                    <label class="custom-control-label mb-0" for="toggleShowFree"></label>
+                </div>
+                <span class="ml-2 switch-text">Show only duties with free positions</span>
+            </div>
             <table class="table table-sm table-hover" id="duty-list">
                 <thead>
                     <tr>
@@ -72,16 +79,31 @@
     let groups = {{ groups|safe }};
     let countries = {{ countries|safe }};
     let filters = {{ filters|safe }};
+    let dutyFunc = {{ duty_view|yesno:"true,false" }};
+    console.log(dutyFunc)
     if(!initialized){
         $.extend(true, $.fn.dataTable.defaults, {
             language: {
                 search: ""
             }
         });
-        loadMemberTable()
+        if(!dutyFunc){
+            loadMemberTable()
+        }else{
+            loadDutyTable()
+        }
         initialized = true
     }
     $(function() {
+        document.getElementById('toggleShowFree').addEventListener('change', function() {
+            // Get the current state of the checkbox (checked or not)
+            const showFree = this.checked;
+            // Update the URL with the show_all query parameter
+            const url = new URL(window.location.href);
+            url.searchParams.set('show_free', showFree ? 'true' : 'false'); // 'true' if checked, 'false' if unchecked
+            // Reload the page with the new URL
+            window.location.href = url.toString();
+        });
         rightSelector.addEventListener('click', (e)=>{
             window.history.replaceState({}, '', window.location.pathname)
             if(!e.target.classList.contains('selected')){
@@ -97,6 +119,14 @@
             if(!tableContainerList.hasAttribute('hidden')){
                 tableContainerList.setAttribute('hidden', '')
             }
+            // Get the current state of the checkbox (checked or not)
+            const showFree = document.getElementById('toggleShowFree').checked;
+            console.log(showFree)
+            // Update the URL with the show_all query parameter
+            const url = new URL(window.location.href);
+            url.searchParams.set('show_free', showFree ? 'true' : 'false'); // 'true' if checked, 'false' if unchecked
+            // Reload the page with the new URL
+            window.location.href = url.toString();
         })
         leftSelector.addEventListener('click', (e)=>{
             if(!e.target.classList.contains('selected')){
@@ -370,6 +400,7 @@
                     data: function(d) {
                         d.category = $('#Category').val();
                         d.type = $('#Type').val();
+                        d.showFree = $('#toggleShowFree').prop('checked')
                     }
                 },
                 columns: [
