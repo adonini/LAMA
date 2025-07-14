@@ -293,7 +293,7 @@ class Index(TemplateView):
         # People leaving authorship in the next 6 months
         six_months_future = today + relativedelta(months=6)
         people_leaving_authorship = AuthorshipPeriod.objects.filter(
-            end_date__gt=today, end_date__lte=six_months_future
+            end_date__gte=today, end_date__lte=six_months_future
         ).values('member').distinct().count()
 
         # Contributing to CF
