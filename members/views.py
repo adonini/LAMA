@@ -531,11 +531,18 @@ class MemberRecord(LoginRequiredMixin, View):
 
             # Get historical duties if any
             today = datetime.now()
-            start_year = datetime(today.year-1, 1, 1)
+            start_year_last = datetime(today.year-1, 1, 1)
+            start_year = datetime(today.year, 1, 1)
             end_year = datetime(today.year, 12, 31)
-            permanentDuties = MemberDuty.objects.filter(member=member, duty__duty_type=DutyType.objects.get(name="permanent")).exclude(end_date__isnull=False, end_date__lt=today).order_by('-start_date')
-            temporaryDuties = MemberDuty.objects.filter(member=member, duty__duty_type=DutyType.objects.get(name="temporary")).filter(
-                Q(start_date__gte=start_year-relativedelta(years=1)) & Q(start_date__lte=end_year)
+            end_next_year = datetime(today.year+1, 12, 31)
+
+            permanentDuties = MemberDuty.objects.filter(member=member).filter(
+                Q(start_date__lte=today, end_date__gte=today, duty__duty_type=DutyType.objects.get(name='permanent')) |
+                Q(start_date__lte=today, end_date__isnull=True, duty__duty_type=DutyType.objects.get(name='permanent')) 
+            ).order_by('-start_date')
+            temporaryDuties = MemberDuty.objects.filter(member=member).filter(
+                Q(start_date__gte=start_year_last, end_date__lte=end_year, duty__duty_type=DutyType.objects.get(name='temporary')) |
+                Q(start_date__gte=start_year, end_date__lte=end_next_year, duty__duty_type=DutyType.objects.get(name='temporary'))
             ).order_by('-start_date')
             totalDuties = len(MemberDuty.objects.filter(member=member))
             showingDuties = len(permanentDuties) + len(temporaryDuties)
@@ -2940,7 +2947,8 @@ def get_member_duty(request):
     # First fetch
     members = Member.objects.order_by('name', 'surname')
     members = members.filter(
-            Q(membership_periods__start_date__lte=today) & Q(membership_periods__end_date__isnull=True) | Q(membership_periods__start_date__lte=today) & Q(membership_periods__end_date__gte=today))
+        Q(membership_periods__start_date__lte=today) & Q(membership_periods__end_date__isnull=True) | Q(membership_periods__start_date__lte=today) & Q(membership_periods__end_date__gte=today)
+    )
 
     if country and country != 'All':
         groups = Group.objects.filter(country__name = country)
@@ -2999,7 +3007,17 @@ def get_member_duty(request):
         future_membership = item.future_membership()
         membership = active_membership or future_membership
         current_institute = membership.institute if membership else None
-        foundDuty = MemberDuty.objects.filter(member=item).filter(Q(start_date__lte=today) & Q(end_date__gte=today) | Q(start_date__lte=today) & Q(end_date__isnull=True))
+        today = datetime.combine(date.today(), time.min)
+        start_last_year = datetime(today.year - 1, 1, 1)
+        end_this_year = datetime(today.year, 12, 31)
+        start_this_year = datetime(today.year, 1, 1)
+        end_next_year = datetime(today.year + 1, 12, 31)
+        foundDuty = MemberDuty.objects.filter(member=item).filter(
+            Q(start_date__lte=today, end_date__gte=today, duty__duty_type=DutyType.objects.get(name='permanent')) |
+            Q(start_date__lte=today, end_date__isnull=True, duty__duty_type=DutyType.objects.get(name='permanent')) |
+            Q(start_date__gte=start_last_year, end_date__lte=end_this_year, duty__duty_type=DutyType.objects.get(name='temporary')) |
+            Q(start_date__gte=start_this_year, end_date__lte=end_next_year, duty__duty_type=DutyType.objects.get(name='temporary'))
+        )
         if len(foundDuty) > 0:
             dutiesStr = ""
             for duty in foundDuty:
@@ -3218,6 +3236,9 @@ def add_duty(request):
             logger.info(f'Future authorship: {member.future_authorship()}')
             prevDuties = MemberDuty.objects.filter(member=member).order_by('start_date')
             if not member.future_authorship() and not member.is_active_author():
+                logger.info(member.dated_authorship(yearStart))
+                logger.info(member.dated_authorship(start_date))
+                logger.info(prevDuties)
                 if not member.dated_authorship(yearStart) and len(prevDuties) > 1 and not member.dated_authorship(start_date):
                     if duty.duty_type.name == 'temporary':
                         logger.info(f"This are the member authorships: {AuthorshipPeriod.objects.filter(member=member)}")
@@ -3320,11 +3341,12 @@ def add_duty(request):
                             authorship_period.save()
                 else:
                     currentAuthorship = member.current_authorship()
-                    if currentAuthorship.start_date != yearStart if yearStart > member.current_cf().start_date + relativedelta(months=6) else member.current_cf().start_date + relativedelta(months=6):
-                        currentAuthorship.start_date = yearStart if yearStart > member.current_cf().start_date + relativedelta(months=6) else member.current_cf().start_date + relativedelta(months=6)
-                    if currentAuthorship.end_date != yearStart+relativedelta(years=1)+relativedelta(month=12)+relativedelta(day=31):
-                        currentAuthorship.end_date = yearStart+relativedelta(years=1)+relativedelta(month=12)+relativedelta(day=31)
-                    currentAuthorship.save()
+                    if not member.has_valid_duty():
+                        if currentAuthorship.start_date != yearStart if yearStart > member.current_cf().start_date + relativedelta(months=6) else member.current_cf().start_date + relativedelta(months=6):
+                            currentAuthorship.start_date = yearStart if yearStart > member.current_cf().start_date + relativedelta(months=6) else member.current_cf().start_date + relativedelta(months=6)
+                        if currentAuthorship.end_date != yearStart+relativedelta(years=1)+relativedelta(month=12)+relativedelta(day=31):
+                            currentAuthorship.end_date = yearStart+relativedelta(years=1)+relativedelta(month=12)+relativedelta(day=31)
+                        currentAuthorship.save()
         if authorship and authorship.end_date:
             logger.info(f"The authorship end date is: {authorship.end_date}")
 
