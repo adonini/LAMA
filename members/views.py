@@ -1186,7 +1186,6 @@ class ManageMember(LoginRequiredMixin, View):
                 temporaryDuties = MemberDuty.objects.filter(member=member, duty__duty_type=DutyType.objects.get(name="temporary")).filter(
                     Q(start_date__gte=start_year-relativedelta(years=1)) & Q(start_date__lte=end_year)
                 ).order_by('-start_date')
-                logger.info(MemberDuty.objects.filter(member=member, duty__duty_type=DutyType.objects.get(name="temporary")))
                 totalDuties = len(MemberDuty.objects.filter(member=member))
                 context['permanentDuties'] = permanentDuties
                 context['temporaryDuties'] = temporaryDuties
@@ -1340,8 +1339,6 @@ class Statistics(TemplateView):
             member_percentage = (group_members / total_members * 100) if total_members > 0 else 0
             cf_percentage = (group_cf / total_cf * 100) if total_cf > 0 else 0
             queryset = Member.objects.filter(id__in=[element['member__id'] for element in MembershipPeriod.objects.filter(institute__group=group).values('member__id')])
-            if group.name == 'CROATIA':
-                logger.info(queryset)
             # Calculate monthly averages for the last 12 months based on the 15th of each month
             avg_members_12 = calculate_12_months_avg(
                 queryset,
@@ -1831,7 +1828,7 @@ class AddAuthor(LoginRequiredMixin, View):
             form = AddAuthorDetailsForm(request.POST, instance=author_details)
             #logger.debug(f"POST data: {request.POST}")
             if form.is_valid():
-                logger.info(f"Form is valid. Data: {form.cleaned_data}")
+                #logger.info(f"Form is valid. Data: {form.cleaned_data}")
 
                 # Save the AuthorDetails instance first
                 author_details = form.save()
@@ -1839,7 +1836,7 @@ class AddAuthor(LoginRequiredMixin, View):
                 # Handle updating affiliations if provided
                 affiliations_json = request.POST.get('affiliations_json')
                 affiliations = json.loads(affiliations_json) if affiliations_json else []
-                logger.debug(f"Affiliations to be updated: {affiliations}")
+                #logger.debug(f"Affiliations to be updated: {affiliations}")
 
                 if affiliations:
                     active_affiliations = AuthorInstituteAffiliation.objects.filter(author_details=author_details, end_date__isnull=True)
@@ -1862,21 +1859,23 @@ class AddAuthor(LoginRequiredMixin, View):
                             foundAffiliation = AuthorInstituteAffiliation.objects.filter(
                                 author_details=author_details,
                                 institute=institute,
-                                order=i + 1
+                                end_date__isnull=True,
                             ).first()
                             if foundAffiliation:
-                                logger.info(foundAffiliation)
                                 if foundAffiliation.creation_date != aware_datetime_utc:
                                     foundAffiliation.creation_date = aware_datetime_utc
                                     foundAffiliation.save()
+                                if foundAffiliation.order != i + 1:
+                                    foundAffiliation.order=i + 1
+                                    foundAffiliation.save()
                             else:
+                                logger.info("Creating affiliation")
                                 AuthorInstituteAffiliation.objects.create(
                                     author_details=author_details,
                                     institute=institute,
                                     order=i + 1,
                                     creation_date= aware_datetime_utc
                                 )
-
                 author_details.save()
                 resp = {'status': 'success'}
                 messages.success(request, "Author details updated successfully.")

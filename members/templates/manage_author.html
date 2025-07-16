@@ -159,13 +159,14 @@
         $('#affiliations-list').on('click', '.remove-affiliation', function (e) {
             //console.log("Remove affiliation clicked.");
             let id = e.target.closest('.affiliation-entry').querySelector('.affiliation_select').dataset.id;
+            console.log(id)
 
             let foundIndex = affiliations.findIndex(element => element.id == id);
             console.log(foundIndex)
-            affiliations.splice(1,1)
+            console.log(affiliations.splice(foundIndex,1))
+            console.log(affiliations)
             document.getElementById('affiliations_json').value = JSON.stringify(affiliations)
             $(this).closest('.affiliation-entry').remove();
-
         });
 
         // Form submission
