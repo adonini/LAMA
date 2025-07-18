@@ -63,16 +63,10 @@
                 <div id="cf-fields" class="{% if not is_cf %} d-none {% endif %}">
                     <div class="form-group mb-3">
                         <label for="cf_start" class="control-label">CF Start</label>
-                        <a class="fas fa-info-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="right"
-                            title="cf will start 6 months after the entered date." style="cursor: pointer; margin-left: 5px;">
-                        </a>
                         <input type="date" class="form-control rounded-0" id="cf_start" name="cf_start" value="{{ cf_start|date:"Y-m-d" }}">
                     </div>
                     <div class="form-group mb-3">
                         <label for="cf_end" class="control-label">CF End</label>
-                        <a class="fas fa-info-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="right"
-                            title="cf will end 6 months after the entered date." style="cursor: pointer; margin-left: 5px;">
-                        </a>
                         <input type="date" class="form-control rounded-0" id="cf_end" name="cf_end" value="{{ cf_end|date:"Y-m-d" }}">
                     </div>
                 </div>

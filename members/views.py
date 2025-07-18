@@ -667,6 +667,14 @@ class AddMember(LoginRequiredMixin, View):
                     institute=new_institute
                 )
                 new_membership.save()
+                AuthorInstituteAffiliation.objects.filter(author_details__member=member).delete()
+                AuthorInstituteAffiliation.objects.create(
+                    author_details = AuthorDetails.objects.filter(member=member).first(),
+                    institute=new_institute,
+                    order=1,
+                    creation_date=membership_start_date
+                )
+
             
             # Step 4: Handle new authorship period if `is_cf` is checked (before was not)
             if is_cf:
@@ -965,6 +973,10 @@ class AddMember(LoginRequiredMixin, View):
 
                     if email_changed:
                         member.primary_email = updated_email
+                        details = AuthorDetails.objects.filter(member=member).first()
+                        if details:
+                            details.author_email = updated_email
+                            details.save()
                         logger.debug(f"Updated email for Member ID={member.id}: {member.primary_email}")
 
                     if role_changed:

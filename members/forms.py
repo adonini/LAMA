@@ -3,6 +3,9 @@ from django.contrib.auth.forms import AuthenticationForm
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from .models import Member, Institute, Group, Duty, Country, AuthorDetails
+import logging
+
+logger = logging.getLogger('lama')
 
 
 class LoginForm(AuthenticationForm):
