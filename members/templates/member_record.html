@@ -52,7 +52,17 @@
             <p class="text-dark w-100 text-center">No membership periods available</p>
         {% endif %}
     </div>
-    {% if is_cf or current_authorship %}
+    <div class="mt-3">
+       <h5 class="text-dark section-title">Common Fund</h5>
+            {% if is_cf  %}
+                <p class="text-dark w-100 text-center">
+                    This member is contributing to CF since {{cf.start_date|date:"Y-m-d"}}
+                </p>
+            {% else %}
+                <p class="text-dark w-100 text-center">This member is not contributing to CF</p>
+            {% endif %}
+    </div>
+    {% if current_authorship %}
         <div class="mt-3">
             <h5 class="text-dark section-title">Authorship</h5>
             {% if current_authorship %}

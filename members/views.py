@@ -575,6 +575,7 @@ class MemberRecord(LoginRequiredMixin, View):
                 'showingDuties': showingDuties,
                 'totalDuties': totalDuties,
                 'institutes': Institute.objects.all(),
+                'cf': member.current_cf(),
                 'is_cf': member.is_active_cf(),
                 'membership_periods': membership_periods,
                 'authorship_periods': authorship_periods,
