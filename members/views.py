@@ -3170,6 +3170,8 @@ def end_duty(request):
                     logger.info(f'the condition is: {temporaryEnd > permanentEnd}')
                     if temporaryEnd > permanentEnd:
                         authorship.end_date = temporaryEnd
+                        authorship.save()
+                        logger.info(f"Authorship end date set to: {authorship.end_date}")
                     else:
                         authorship.end_date = permanentEnd
                         authorship.save()
