@@ -3353,6 +3353,7 @@ def add_duty(request):
                             authorship_period.save()
                 else:
                     currentAuthorship = member.current_authorship()
+                    logger.info(f"The member has a valid duty? {member.has_valid_duty()}")
                     if not member.has_valid_duty():
                         if currentAuthorship.start_date != yearStart if yearStart > member.current_cf().start_date + relativedelta(months=6) else member.current_cf().start_date + relativedelta(months=6):
                             currentAuthorship.start_date = yearStart if yearStart > member.current_cf().start_date + relativedelta(months=6) else member.current_cf().start_date + relativedelta(months=6)
@@ -3360,7 +3361,16 @@ def add_duty(request):
                             currentAuthorship.end_date = yearStart+relativedelta(years=1)+relativedelta(month=12)+relativedelta(day=31)
                         currentAuthorship.save()
         if authorship and authorship.end_date:
+            logger.info(f"The member has active and valid duty? {member.has_active_duty(), member.has_valid_duty()}")
+            logger.info(f"The new duty is permanent? {memberDuty.duty.duty_type.name == 'permanent'}")
             logger.info(f"The authorship end date is: {authorship.end_date}")
+            if member.has_active_duty() and member.has_valid_duty() and memberDuty.duty.duty_type.name == 'permanent':
+                authorship.end_date = None
+                authorship.save()
+            elif member.has_active_duty() and member.has_valid_duty() and memberDuty.duty.duty_type.name == 'temporary':
+                authorship.end_date = datetime(memberDuty.start_date.year + 1, 12, 31).date()
+                authorship.save()
+            logger.info(f"The authorship after revision end date is: {authorship.end_date}")
 
         resp['status'] = 'success'
         resp['msg'] = 'Duty added to member!'
