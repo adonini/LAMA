@@ -5,6 +5,9 @@ from django.db.models import Q
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 #from django.core.exceptions import ValidationError
+import logging
+
+logger = logging.getLogger('lama')
 
 
 class Country(models.Model):
@@ -283,7 +286,8 @@ class Member(models.Model):
         """
         today = timezone.now().date()
         return self.duties.filter(
-            Q(end_date__isnull=True) | Q(end_date__gte=today)
+            Q(start_date__lte=today) &
+            (Q(end_date__isnull=True) | Q(end_date__gte=today))
         ).exists()
     
 
@@ -307,7 +311,7 @@ class Member(models.Model):
     
     def has_valid_duty_dated(self, date):
         """Returns true or false if there is a valid duty for the member."""
-        return self.duties.filter(end_date__isnull=True).exists() | self.duties.filter(end_date__gte=date).exists() | self.duties.filter(duty__duty_type__name='temporary', start_date__gte=datetime(date.year-1, 1, 1)).exists() | self.duties.filter(duty__duty_type__name='permanent').filter(Q(end_date__gte=date - relativedelta(months=6))).exists()
+        return self.duties.filter(start_date__lte=date ,end_date__isnull=True).exists() | self.duties.filter(start_date__lte=date, end_date__gte=date).exists() | self.duties.filter(duty__duty_type__name='temporary', start_date__gte=datetime(date.year-1, 1, 1), start_date__lte=date).exists() | self.duties.filter(duty__duty_type__name='permanent').filter(Q(start_date__lte=date) & Q(end_date__gte=date - relativedelta(months=6))).exists()
 
     def inactive_duties(self):
         """Get all inactive duties for this member."""
