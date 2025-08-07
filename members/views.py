@@ -1,5 +1,5 @@
 import json
-from datetime import date, datetime, timedelta, time
+from datetime import date, datetime, time
 from .forms import LoginForm, AddMemberForm, AddAuthorDetailsForm, AddInstituteForm
 from .models import (Member, Institute, Group, Duty, DutyType, Country, MemberDuty,
                      MembershipPeriod, AuthorshipPeriod, AuthorDetails,
@@ -16,8 +16,7 @@ from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from django.db.models import Q, Count
 from django.utils.timezone import now, make_aware
-from django.db.models import Prefetch, Subquery, OuterRef, F, Window
-from django.db.models.functions import RowNumber
+from django.db.models import Prefetch, Subquery, OuterRef
 from pytz import UTC
 from django.core.paginator import Paginator
 import pytz
@@ -106,11 +105,10 @@ def calculate_12_months_avg(queryset, date_field, today, country=None, group=Non
 
         if date_field == 'common_found':
             member_ids = [element['member__id'] for element in members.values('member__id')]
-            members = CommonFound.objects.filter((
-                    Q(end_date__isnull=True) | Q(end_date__gt=month_date)) &
-                    Q(start_date__lte=month_date),
-                    member__id__in=member_ids,
-                )
+            members = CommonFound.objects.filter(
+                (Q(end_date__isnull=True) | Q(end_date__gt=month_date)) & Q(start_date__lte=month_date),
+                member__id__in=member_ids,
+            )
             if group and group.name == 'INFN':
                 logger.info(month_date)
                 logger.info(len(members))
@@ -120,6 +118,7 @@ def calculate_12_months_avg(queryset, date_field, today, country=None, group=Non
         months_data.append(monthly_count)
     # Calculate the average over the 12 months
     return sum(months_data) / len(months_data) if months_data else 0
+
 
 def calculate_averages(queryset, date_field, year, current_year, current_month):
     """
@@ -147,11 +146,10 @@ def calculate_averages(queryset, date_field, year, current_year, current_month):
         )
         if date_field == 'common_found':
             member_ids = [element['member__id'] for element in members.values('member__id')]
-            members = CommonFound.objects.filter((
-                    Q(end_date__isnull=True) | Q(end_date__gt=month_date)) &
-                    Q(start_date__lte=month_date),
-                    member__id__in=member_ids,
-                )
+            members = CommonFound.objects.filter(
+                (Q(end_date__isnull=True) | Q(end_date__gt=month_date)) & Q(start_date__lte=month_date),
+                member__id__in=member_ids,
+            )
 
         #logger.debug(f"Year: {year}, Month: {month}, Active Members Count: {members.count()}")
         total += members.count()
@@ -297,9 +295,13 @@ class Index(TemplateView):
         ).values('member').distinct().count()
 
         # Contributing to CF
-        cf = CommonFound.objects.filter(start_date__lte=today).filter(
-                Q(end_date__isnull=True) | Q(end_date__gt=today)
-                ).values('member').distinct().count()
+        cf = (
+            CommonFound.objects.filter(start_date__lte=today)
+            .filter(Q(end_date__isnull=True) | Q(end_date__gt=today))
+            .values("member")
+            .distinct()
+            .count()
+        )
 
         # Count institutes and groups per country
         #total_institutes = Institute.objects.count()
@@ -318,7 +320,7 @@ class Index(TemplateView):
 
         duties = Duty.objects.all()
         total_duties = len([element.pk for element in duties if element.duty_type.name == 'permanent' and element.maximum_members <= element.get_active_members() or element.duty_type.name == 'temporary' and not element.maximum_members <= element.get_short_active_members()])
-        available_duties= len([element.pk for element in duties if element.maximum_members is not None and ((element.duty_type.name == 'permanent' and element.maximum_members > element.get_active_members()) or (element.duty_type.name == 'temporary' and element.maximum_members > element.get_short_active_members()))])
+        available_duties = len([element.pk for element in duties if element.maximum_members is not None and ((element.duty_type.name == 'permanent' and element.maximum_members > element.get_active_members()) or (element.duty_type.name == 'temporary' and element.maximum_members > element.get_short_active_members()))])
         logger.info(available_duties)
 
         # Prepare the context to pass to the template
@@ -370,7 +372,8 @@ class MemberList(LoginRequiredMixin, View):
         }
         return render(request, 'member_list.html', context)
 
-def api_member(request): # Finish this ! Here you have a issue with the filters... and also with the information sent on the data...
+
+def api_member(request):  # Finish this ! Here you have a issue with the filters... and also with the information sent on the data...
     country = request.GET.get('country', None)
     group = request.GET.get('group', None)
     institute = request.GET.get('institute', None)
@@ -380,9 +383,9 @@ def api_member(request): # Finish this ! Here you have a issue with the filters.
     draw = int(request.GET.get('draw', 1))  # DataTable Index
     start = int(request.GET.get('start', 0))  # Start of the data
     length = int(request.GET.get('length', 10))  # Rows per page
-    search_value = request.GET.get('search[value]', '').strip() 
+    search_value = request.GET.get('search[value]', '').strip()
     today = timezone.now().date()
-    six_months_future = today + relativedelta(months=6)
+    #six_months_future = today + relativedelta(months=6)
     # First fetch
     members = Member.objects.order_by('name', 'surname')
     # Apply filters
@@ -391,12 +394,12 @@ def api_member(request): # Finish this ! Here you have a issue with the filters.
             Q(membership_periods__start_date__lte=today) & Q(membership_periods__end_date__isnull=True) | Q(membership_periods__start_date__lte=today) & Q(membership_periods__end_date__gte=today) 
         )
     if country and country != 'All':
-        groups = Group.objects.filter(country__name = country)
+        groups = Group.objects.filter(country__name=country)
         institutes = Institute.objects.filter(group__in=groups)
         member_ids = MembershipPeriod.objects.filter(end_date=None, institute__in=institutes).values_list('member', flat=True)
         members = members.filter(id__in=member_ids)
     if group and group != 'All':
-        groups = Group.objects.filter(name = group)
+        groups = Group.objects.filter(name=group)
         institutes = Institute.objects.filter(group__in=groups)
         member_ids = MembershipPeriod.objects.filter(end_date=None, institute__in=institutes).values_list('member', flat=True)
         members = members.filter(id__in=member_ids)
@@ -413,13 +416,13 @@ def api_member(request): # Finish this ! Here you have a issue with the filters.
             members = members.filter(id__in=member_ids)
         else:
             members = members.exclude(id__in=member_ids)
-    if cf and cf != 'All': 
-        member_ids = [element.member.id for element in CommonFound.objects.all() if not element.end_date or element.end_date>= datetime.now().date()]       
+    if cf and cf != 'All':
+        member_ids = [element.member.id for element in CommonFound.objects.all() if not element.end_date or element.end_date >= datetime.now().date()]
         if cf == 'Yes':
             members = members.filter(id__in=member_ids)
         else:
             members = members.exclude(id__in=member_ids)
-        
+
     # Search logic
     if search_value:
         query = Q(
@@ -467,11 +470,11 @@ def api_member(request): # Finish this ! Here you have a issue with the filters.
             and (authorship_period.end_date is None or authorship_period.end_date >= today)
         )
         # Determine if the member will be an author within the next 6 months
-        will_become_author = (
-            authorship_period
-            and authorship_period.start_date > today
-            and authorship_period.start_date <= six_months_future
-        )
+        # will_become_author = (
+        #     authorship_period
+        #     and authorship_period.start_date > today
+        #     and authorship_period.start_date <= six_months_future
+        # )
         # Adjusted logic for CF contribution
         data.append({
             'pk': member.pk,
@@ -498,6 +501,7 @@ def api_member(request): # Finish this ! Here you have a issue with the filters.
         'data': data,
     }
     return JsonResponse(response)
+
 
 class MemberRecord(LoginRequiredMixin, View):
     def get(self, request, pk=None):
@@ -531,14 +535,14 @@ class MemberRecord(LoginRequiredMixin, View):
 
             # Get historical duties if any
             today = datetime.now()
-            start_year_last = datetime(today.year-1, 1, 1)
+            start_year_last = datetime(today.year - 1, 1, 1)
             start_year = datetime(today.year, 1, 1)
             end_year = datetime(today.year, 12, 31)
-            end_next_year = datetime(today.year+1, 12, 31)
+            end_next_year = datetime(today.year + 1, 12, 31)
 
             permanentDuties = MemberDuty.objects.filter(member=member).filter(
                 Q(start_date__lte=today, end_date__gte=today, duty__duty_type=DutyType.objects.get(name='permanent')) |
-                Q(start_date__lte=today, end_date__isnull=True, duty__duty_type=DutyType.objects.get(name='permanent')) 
+                Q(start_date__lte=today, end_date__isnull=True, duty__duty_type=DutyType.objects.get(name='permanent'))
             ).order_by('-start_date')
             temporaryDuties = MemberDuty.objects.filter(member=member).filter(
                 Q(start_date__gte=start_year_last, end_date__lte=end_year, duty__duty_type=DutyType.objects.get(name='temporary')) |
@@ -583,6 +587,7 @@ class MemberRecord(LoginRequiredMixin, View):
             })
             return render(request, 'member_record.html', context)
 
+
 class AddMember(LoginRequiredMixin, View):
     def get(self, request):
         context = {
@@ -601,7 +606,13 @@ class AddMember(LoginRequiredMixin, View):
         context['roles'] = Member.ROLE_CHOICES
         context['institutes'] = Institute.objects.all()
         duties = Duty.objects.all().order_by('name')
-        duties = [duty for duty in duties if duty.duty_type.name == 'permanent' and (duty.get_active_members()+duty.get_future_members()) < duty.maximum_members or duty.duty_type.name == 'temporary' and duty.get_short_active_members() < duty.maximum_members]
+        duties = [
+            duty for duty in duties
+            if duty.duty_type.name == "permanent"
+            and (duty.get_active_members() + duty.get_future_members()) < duty.maximum_members
+            or duty.duty_type.name == "temporary"
+            and duty.get_short_active_members() < duty.maximum_members
+        ]
         context['selectOptions'] = duties
         return render(request, 'manage_member.html', context)
 
@@ -624,12 +635,12 @@ class AddMember(LoginRequiredMixin, View):
             logger.info(f'Handling institute change for Member ID={member.id}, Old Institute: {old_institute}, New Institute: {new_institute} at {membership_start_date} with is_cf={is_cf}, cf_start={cf_start}, cf_end={cf_end}')
             # Step 1: Handle current membership
             current_membership = member.current_membership(include_inactive=False)
-            if current_membership and current_membership.is_active() and current_membership.end_date == None:
+            if current_membership and current_membership.is_active() and current_membership.end_date is None:
                 logger.info(f"Setting end date to membership: {previous_end_date}")
                 current_membership.end_date = previous_end_date
                 current_membership.save()
 
-             # Step 2: Adjust authorship if `is_cf` is unchecked (member was an author)
+            # Step 2: Adjust authorship if `is_cf` is unchecked (member was an author)
             if not is_cf:  # If `is_cf` is unchecked
                 common_found = CommonFound.objects.filter(member=member, end_date__isnull=True).first()
                 if common_found:
@@ -637,15 +648,15 @@ class AddMember(LoginRequiredMixin, View):
                         if common_found.end_date != cf_end:
                             common_found.end_date = cf_end
                     else:
-                        common_found.end_date = previous_end_date #End date same as membership end date
-                    common_found.save() # Save the updated common_found period
+                        common_found.end_date = previous_end_date  # End date same as membership end date
+                    common_found.save()  # Save the updated common_found period
                 authorship = member.current_authorship()
                 if authorship:
                     lastEndedDuty = MemberDuty.objects.filter(member=member, duty__duty_type__name='temporary').order_by('-end_date').first()
                     permanentEnd = previous_end_date + relativedelta(months=6)  # 6 months after the membership end date
                     if lastEndedDuty:
-                        temporaryEnd = date(lastEndedDuty.end_date.year+1, 12, 31)
-                        if  temporaryEnd > permanentEnd:
+                        temporaryEnd = date(lastEndedDuty.end_date.year + 1, 12, 31)
+                        if temporaryEnd > permanentEnd:
                             authorship.end_date = permanentEnd
                         else:
                             authorship.end_date = temporaryEnd
@@ -670,16 +681,15 @@ class AddMember(LoginRequiredMixin, View):
                 new_membership.save()
                 AuthorInstituteAffiliation.objects.filter(author_details__member=member).delete()
                 AuthorInstituteAffiliation.objects.create(
-                    author_details = AuthorDetails.objects.filter(member=member).first(),
+                    author_details=AuthorDetails.objects.filter(member=member).first(),
                     institute=new_institute,
                     order=1,
-                    creation_date=membership_start_date
+                    creation_date=membership_start_date,
                 )
 
-            
             # Step 4: Handle new authorship period if `is_cf` is checked (before was not)
             if is_cf:
-                today = datetime.now()
+                #today = datetime.now()
                 common_found = CommonFound.objects.filter(member=member, end_date__isnull=True).first()
                 if common_found:
                     if cf_end:
@@ -689,7 +699,6 @@ class AddMember(LoginRequiredMixin, View):
                 if not member.is_active_author() and member.has_active_duty():
                     # Case 4.1: If there is no future authorship, create a new one
                     if not member.future_authorship():
-                        "Creating a new authorship period on instute change"
                         # Create a new authorship period starting from the membership start date for the member if he is not a student
                         self.handleAuthorshipCreation(member, cf_start)
                     else:
@@ -704,7 +713,7 @@ class AddMember(LoginRequiredMixin, View):
             # Step 5: Update future authorship if applicable
             if future_authorship:
                 if not is_cf:  # If `is_cf` is unchecked,  end the future authorship
-                    future_authorship.end_date = previous_end_date + relativedelta(months=6) #??
+                    future_authorship.end_date = previous_end_date + relativedelta(months=6)  # ??
                     future_authorship.save()
             logger.info(f"These are the values after institute change: {member.current_authorship()}, {member.future_authorship()}")
             return True  # Member/authorship was updated
@@ -746,11 +755,10 @@ class AddMember(LoginRequiredMixin, View):
                                 authorship.end_date = end_date + relativedelta(months=6) if end_date + relativedelta(months=6) < authorship.end_date else authorship.end_date
                                 authorship.save()
 
-                
                 if member.is_active_cf():
                     current_cf = member.current_cf(include_inactive=False)
                     if current_cf:
-                        current_cf.end_date= end_date
+                        current_cf.end_date = end_date
                         current_cf.save()
 
                 # Step 3: Stop future authorship 6 months later if it exists
@@ -763,14 +771,14 @@ class AddMember(LoginRequiredMixin, View):
                         if future_authorship.end_date > end_date + relativedelta(months=6):
                             future_authorship.end_date = end_date + relativedelta(months=6)
                             future_authorship.save()
-                
+
                 for duty in MemberDuty.objects.filter(member=member, end_date__isnull=True):
                     duty.end_date = end_date
                     duty.save()
             else:
                 logger.info("Member is not current author")
                 logger.info(f'This is teh value of the dated authorship: {member.dated_authorship(end_date)}')
-                
+
         else:  # Restart or adjust membership
             if current_membership:
                 logger.debug(f"Current membership exists for Member ID={member.id}")
@@ -788,7 +796,7 @@ class AddMember(LoginRequiredMixin, View):
                 )
                 new_membership.save()
 
-    def handleAuthorshipCreation(self, member, cf_start, isStopingMember = None):
+    def handleAuthorshipCreation(self, member, cf_start, isStopingMember=None):
         '''Handle authorship periods based on the member's duties and CF start date.'''
         if cf_start < member.current_membership().start_date:
             cf_start = member.current_membership().start_date
@@ -797,29 +805,39 @@ class AddMember(LoginRequiredMixin, View):
         if len(AuthorDetails.objects.filter(member=member)) == 0:
             AuthorDetails.objects.create(member=member)
         if member.role != 'student':
-            if MemberDuty.objects.filter(member=member, start_date__gte=datetime(cf_start.year-1, 1, 1), start_date__lte=datetime(cf_start.year, 12, 31)).exists():
+            if MemberDuty.objects.filter(
+                member=member,
+                start_date__gte=datetime(cf_start.year - 1, 1, 1),
+                start_date__lte=datetime(cf_start.year, 12, 31),
+            ).exists():
                 logger.info('Member has a temporary duty in the last year, creating a new authorship')
-                lastDuty = MemberDuty.objects.filter(member=member).filter(Q(start_date__gte=datetime(cf_start.year-1, 1, 1)) & Q(start_date__lte=datetime(cf_start.year, 12, 31))).order_by('start_date').first()
+                lastDuty = (
+                    MemberDuty.objects.filter(member=member)
+                    .filter(
+                        Q(start_date__gte=datetime(cf_start.year - 1, 1, 1))
+                        & Q(start_date__lte=datetime(cf_start.year, 12, 31))
+                    )
+                    .order_by("start_date")
+                    .first()
+                )
                 logger.info(f"This is the last duty: {lastDuty}")
                 if lastDuty:
                     yearStart = date(lastDuty.start_date.year, 1, 1)
-                    yearEnd = date(yearStart.year+1, 12, 31)
+                    yearEnd = date(yearStart.year + 1, 12, 31)
                     authorship = None
                     if lastDuty.start_date + relativedelta(months=6) < cf_start:
                         authorship = AuthorshipPeriod.objects.create(
-                            member = member,
-                            start_date = cf_start,
-                            end_date = None
+                            member=member, start_date=cf_start, end_date=None
                         )
                     elif lastDuty.start_date + relativedelta(months=6) >= cf_start:
                         authorship = AuthorshipPeriod.objects.create(
-                            member = member,
-                            start_date = lastDuty.start_date + relativedelta(months=6),
-                            end_date = None
+                            member=member,
+                            start_date=lastDuty.start_date + relativedelta(months=6),
+                            end_date=None,
                         )
                     if authorship:
                         if isStopingMember:
-                            yearEnd = yearEnd if yearEnd < MembershipPeriod.objects.filter(member = member).order_by("-start_date").first().end_date + relativedelta(months=6) else MembershipPeriod.objects.filter(member = member).order_by("-start_date").first().end_date + relativedelta(months=6)
+                            yearEnd = yearEnd if yearEnd < MembershipPeriod.objects.filter(member=member).order_by("-start_date").first().end_date + relativedelta(months=6) else MembershipPeriod.objects.filter(member=member).order_by("-start_date").first().end_date + relativedelta(months=6)
                         if not MemberDuty.objects.filter(member=member, end_date__isnull=True).exists() and lastDuty.end_date and lastDuty.end_date < yearEnd:
                             authorship.end_date = yearEnd
                         authorship.save()
@@ -829,29 +847,28 @@ class AddMember(LoginRequiredMixin, View):
                 duty = MemberDuty.objects.filter(member=member, start_date__lt=cf_start, end_date__isnull=True).first()
                 logger.info(f'Duty start date: {duty.start_date}, cf_start: {cf_start}')
                 AuthorshipPeriod.objects.create(
-                    member = member,
-                    start_date = cf_start if cf_start > duty.start_date + relativedelta(months=6) else duty.start_date + relativedelta(months=6),
-                    end_date = None
+                    member=member,
+                    start_date=cf_start
+                    if cf_start > duty.start_date + relativedelta(months=6) else duty.start_date + relativedelta(months=6),
+                    end_date=None,
                 )
             elif MemberDuty.objects.filter(member=member, start_date__gt=cf_start, end_date__isnull=True).exists():
                 logger.info('Member has a duty AFTER cf start, creating a new authorship')
                 lastDuty = MemberDuty.objects.filter(member=member, start_date__gte=cf_start, end_date__isnull=True).order_by('start_date').first()
                 logger.info(f'Last duty type: {lastDuty.duty.duty_type.name}')
                 yearStart = date(lastDuty.start_date.year, 1, 1)
-                yearEnd = date(yearStart.year+1, 12, 31)
+                yearEnd = date(yearStart.year + 1, 12, 31)
                 authorship = None
                 logger.info(f'Last duty start date: {lastDuty.start_date}, cf_start: {cf_start}')
                 if lastDuty and lastDuty.start_date + relativedelta(months=6) < cf_start:
                     authorship = AuthorshipPeriod.objects.create(
-                        member = member,
-                        start_date = cf_start,
-                        end_date = None
+                        member=member, start_date=cf_start, end_date=None
                     )
                 elif lastDuty and lastDuty.start_date + relativedelta(months=6) >= cf_start:
                     authorship = AuthorshipPeriod.objects.create(
-                        member = member,
-                        start_date = lastDuty.start_date + relativedelta(months=6),
-                        end_date = None
+                        member=member,
+                        start_date=lastDuty.start_date + relativedelta(months=6),
+                        end_date=None,
                     )
                 if authorship:
                     if lastDuty.end_date and lastDuty.end_date < yearEnd:
@@ -865,19 +882,17 @@ class AddMember(LoginRequiredMixin, View):
                 lastDuty = MemberDuty.objects.filter(member=member, start_date__gte=cf_start).order_by('start_date').first()
                 if lastDuty:
                     yearStart = date(lastDuty.start_date.year, 1, 1)
-                    yearEnd = date(yearStart.year+1, 12, 31)
+                    yearEnd = date(yearStart.year + 1, 12, 31)
                     authorship = None
                     if lastDuty.start_date + relativedelta(months=6) < cf_start:
                         authorship = AuthorshipPeriod.objects.create(
-                            member = member,
-                            start_date = cf_start,
-                            end_date = None
+                            member=member, start_date=cf_start, end_date=None
                         )
                     elif lastDuty.start_date + relativedelta(months=6) >= cf_start:
                         authorship = AuthorshipPeriod.objects.create(
-                            member = member,
-                            start_date = lastDuty.start_date + relativedelta(months=6),
-                            end_date = None
+                            member=member,
+                            start_date=lastDuty.start_date + relativedelta(months=6),
+                            end_date=None,
                         )
                     if authorship:
                         if lastDuty.end_date and lastDuty.end_date < yearEnd:
@@ -890,7 +905,7 @@ class AddMember(LoginRequiredMixin, View):
             current_membership = member.current_membership()
             duty = MemberDuty.objects.filter(member=member, start_date__gte=current_membership.start_date).order_by("start_date").first()
             yearStart = date(duty.start_date.year, 1, 1)
-            yearEnd = date(yearStart.year+1, 12, 31)
+            yearEnd = date(yearStart.year + 1, 12, 31)
             logger.info(f"This is the member first duty: {duty}")
             logger.info(f"Does the member has an authorship in {duty.start_date}? {member.dated_authorship(duty.start_date)}")
             if duty and not member.dated_authorship(duty.start_date):
@@ -899,56 +914,53 @@ class AddMember(LoginRequiredMixin, View):
                     if member.has_valid_duty_dated(cf_start):
                         logger.info(f"Start date should be cf start: {cf_start}")
                         authorship = AuthorshipPeriod.objects.create(
-                                    member = member,
-                                    start_date = cf_start,
-                                    end_date = None
-                                )
+                            member=member, start_date=cf_start, end_date=None
+                        )
                     elif member.has_valid_duty_dated(current_membership.start_date + relativedelta(months=6)):
                         logger.info(f"Start date should be member start +6: {current_membership.start_date + relativedelta(months=6)}")
                         authorship = AuthorshipPeriod.objects.create(
-                                        member = member,
-                                        start_date = current_membership.start_date + relativedelta(months=6),
-                                        end_date = None
-                                    )
+                            member=member,
+                            start_date=current_membership.start_date + relativedelta(months=6),
+                            end_date=None,
+                        )
                     else:
                         if MemberDuty.objects.all().order_by("-start_date").exists():
                             if MemberDuty.objects.all().order_by("-start_date").first().duty.duty_type.name == 'temporary':
                                 logger.info("The last duty is temporary")
                                 logger.info(f'This is the last duty: {duty}, started in {duty.start_date} and ended on: {duty.end_date}')
-                                if cf_start < member.current_membership().start_date + relativedelta(months=6):
+                                if (cf_start < member.current_membership().start_date + relativedelta(months=6)):
                                     authorship = AuthorshipPeriod.objects.create(
-                                        member = member,
-                                        start_date = member.current_membership().start_date + relativedelta(months=6),
-                                        end_date = None
+                                        member=member,
+                                        start_date=member.current_membership().start_date + relativedelta(months=6),
+                                        end_date=None,
                                     )
                                 else:
                                     authorship = AuthorshipPeriod.objects.create(
-                                        member = member,
-                                        start_date = cf_start,
-                                        end_date = None
+                                        member=member,
+                                        start_date=cf_start,
+                                        end_date=None,
                                     )
                             else:
                                 logger.info("The last duty is permanent")
                                 logger.info(f'This is the last duty: {duty}, started in {duty.start_date} and ended on: {duty.end_date}')
                                 if duty.start_date < member.current_membership().start_date + relativedelta(months=6):
                                     authorship = AuthorshipPeriod.objects.create(
-                                        member = member,
-                                        start_date = member.current_membership().start_date + relativedelta(months=6),
-                                        end_date = None
+                                        member=member,
+                                        start_date=member.current_membership().start_date + relativedelta(months=6),
+                                        end_date=None,
                                     )
                                 else:
                                     authorship = AuthorshipPeriod.objects.create(
-                                        member = member,
-                                        start_date = duty.start_date,
-                                        end_date = None
+                                        member=member,
+                                        start_date=duty.start_date,
+                                        end_date=None,
                                     )
-                        
+
                     if authorship:
                         if not MemberDuty.objects.filter(member=member, end_date__isnull=True).exists() and duty.end_date:
                             authorship.end_date = duty.end_date + relativedelta(months=6)
                         authorship.save()
-            
-            
+
     def post(self, request, pk=None):
         resp = {'status': 'failed', 'msg': ''}
         if request.method == 'POST':
@@ -1021,7 +1033,7 @@ class AddMember(LoginRequiredMixin, View):
                     logger.info(f"Membership changed: {membership_changed}, Stopping membership: {is_stopping_membership}, Start date changed: {start_date_changed}, Institute changed: {institute_changed}")
                     if membership_changed:
                         self.handle_membership_change(member, is_stopping_membership, end_date, start_date, institute_id)
-                        
+
                     # Create the CF period
                     if not is_stopping_membership:
                         if is_cf:
@@ -1035,7 +1047,7 @@ class AddMember(LoginRequiredMixin, View):
                                 self.handleAuthorshipCreation(member, cf_start)
                             try:
                                 logger.info(f"Creating or updating CommonFound for Member ID={member.id} with start_date={cf_start} and end_date={cf_end}")
-                                common_found= CommonFound.objects.filter(
+                                common_found = CommonFound.objects.filter(
                                     member=member,
                                     end_date__isnull=True
                                 ).order_by("-start_date").first()
@@ -1061,7 +1073,7 @@ class AddMember(LoginRequiredMixin, View):
                                         if not authorship.end_date or authorship.end_date > cf_end + relativedelta(months=6):
                                             authorship.end_date = cf_end + relativedelta(months=6)
                                             authorship.save()
-                                    
+
                                 if common_found:
                                     common_found.save()
 
@@ -1079,7 +1091,7 @@ class AddMember(LoginRequiredMixin, View):
                                 elif not authorship.end_date:
                                     authorship.end_date = cf_end + relativedelta(months=6)
                                     authorship.save()
-                                
+
                                 cf = member.current_cf()
                                 if cf:
                                     cf.end_date = cf_end
@@ -1096,7 +1108,7 @@ class AddMember(LoginRequiredMixin, View):
                                     elif not authorship.end_date:
                                         authorship.end_date = end_date + relativedelta(months=6)
                                         authorship.save()
-                                
+
                                 cf = member.current_cf()
                                 if cf:
                                     cf.end_date = end_date
@@ -1118,10 +1130,11 @@ class AddMember(LoginRequiredMixin, View):
                         logger.debug(f"Extra duties data: {extra_duties}")
                         for duty_data in extra_duties:
                             MemberDuty.objects.get_or_create(
-                                member = member,
-                                duty = Duty.objects.get(pk=duty_data['duty']),
-                                start_date = duty_data['start_date'],
-                                end_date = duty_data['end_date'] if 'end_date' in duty_data and duty_data['end_date'] else None,
+                                member=member,
+                                duty=Duty.objects.get(pk=duty_data["duty"]),
+                                start_date=duty_data["start_date"],
+                                end_date=duty_data["end_date"]
+                                if "end_date" in duty_data and duty_data["end_date"] else None,
                             )
                     except json.JSONDecodeError:
                         pass
@@ -1150,7 +1163,7 @@ class AddMember(LoginRequiredMixin, View):
                 elif not member.is_active_author() and not member.has_active_duty() and is_cf and member.has_valid_duty():
                     logger.info(f'This is the authorship: {member.current_authorship()}, {member.future_authorship()}')
                     if not member.current_authorship() and not member.future_authorship():
-                        logger.info(f"Creating authorship since the user does not have any")
+                        logger.info("Creating authorship since the user does not have any")
                         self.handleAuthorshipCreation(member, cf_start)
                 else:
                     logger.info("User has no valid or active duty and is not a member")
@@ -1167,6 +1180,7 @@ class AddMember(LoginRequiredMixin, View):
         else:
             resp['msg'] = 'No data has been sent.'
         return HttpResponse(json.dumps(resp), content_type='application/json')
+
 
 class ManageMember(LoginRequiredMixin, View):
     def get(self, request, pk=None):
@@ -1200,7 +1214,7 @@ class ManageMember(LoginRequiredMixin, View):
                     context['membership_start'] = None
                     context['membership_end'] = None
                 # Check if the member is an active author
-                context['is_cf'] = member.is_active_cf() if member.is_active_cf() else current_cf != None
+                context['is_cf'] = member.is_active_cf() if member.is_active_cf() else current_cf is not None
                 if current_cf:
                     context['cf_start'] = current_cf.start_date
                     context['cf_end'] = current_cf.end_date
@@ -1220,7 +1234,7 @@ class ManageMember(LoginRequiredMixin, View):
                 end_year = datetime(today.year, 12, 31)
                 permanentDuties = MemberDuty.objects.filter(member=member, duty__duty_type=DutyType.objects.get(name="permanent")).exclude(end_date__isnull=False, end_date__lt=today).order_by('-start_date')
                 temporaryDuties = MemberDuty.objects.filter(member=member, duty__duty_type=DutyType.objects.get(name="temporary")).filter(
-                    Q(start_date__gte=start_year-relativedelta(years=1)) & Q(start_date__lte=end_year)
+                    Q(start_date__gte=start_year - relativedelta(years=1)) & Q(start_date__lte=end_year)
                 ).order_by('-start_date')
                 totalDuties = len(MemberDuty.objects.filter(member=member))
                 context['permanentDuties'] = permanentDuties
@@ -1266,7 +1280,7 @@ class Statistics(TemplateView):
             start_date__lte=today
         )
         valid_members = MembershipPeriod.objects.filter(
-            Q(end_date__isnull=True) | Q(end_date__gt=today-relativedelta(months=6)),
+            Q(end_date__isnull=True) | Q(end_date__gt=today - relativedelta(months=6)),
             start_date__lte=today
         )
         member_ids = [element.member.id for element in valid_members]
@@ -1298,7 +1312,7 @@ class Statistics(TemplateView):
                 membership_periods__start_date__lte=today,
             )
             valid_country_members = Member.objects.filter(
-                Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=today-relativedelta(months=6)),
+                Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=today - relativedelta(months=6)),
                 membership_periods__institute__group__country=country,
                 membership_periods__start_date__lte=today,
             )
@@ -1306,7 +1320,6 @@ class Statistics(TemplateView):
             country_members = total_country_members.count()
 
             # Current authors in each country as of today (used in table)
-            membership_periods__institute__group__country=country,
             country_author = AuthorshipPeriod.objects.filter(
                 Q(end_date__isnull=True) | Q(end_date__gt=today),
                 start_date__lte=today,
@@ -1323,7 +1336,7 @@ class Statistics(TemplateView):
             avg_members_12 = calculate_12_months_avg(
                 queryset,
                 'membership_periods',
-                today, 
+                today,
                 country
             )
 
@@ -1355,7 +1368,7 @@ class Statistics(TemplateView):
                 membership_periods__start_date__lte=today,
             )
             valid_group_members = Member.objects.filter(
-                Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=today-relativedelta(months=6)),
+                Q(membership_periods__end_date__isnull=True) | Q(membership_periods__end_date__gt=today - relativedelta(months=6)),
                 membership_periods__institute__group=group,
                 membership_periods__start_date__lte=today,
             )
@@ -1452,9 +1465,7 @@ def get_filtered_chart_data(request):
         avg_members = calculate_averages(queryset, "membership_periods", year, current_year, today.month)
 
         # Average authors
-        avg_authors = calculate_averages(queryset,
-                                         "common_found", year, current_year, today.month)
-
+        avg_authors = calculate_averages(queryset, "common_found", year, current_year, today.month)
         filtered_data['members'].append(avg_members)
         filtered_data['authors'].append(avg_authors)
 
@@ -1562,19 +1573,22 @@ class AuthorList(LoginRequiredMixin, View):
     def get(self, request):
         today = now().date()
 
-        author_details_qs = AuthorDetails.objects.prefetch_related(
-            Prefetch('author_institute_affiliations', queryset=AuthorInstituteAffiliation.objects.all())
-        )
+        #author_details_qs = AuthorDetails.objects.prefetch_related(Prefetch('author_institute_affiliations', queryset=AuthorInstituteAffiliation.objects.all()))
         # Fetch members with active authorships
-        authors = Member.objects.prefetch_related(
-            'membership_periods__institute__group__country',
-            'authorship_periods'
-        ).select_related(
-            'author_details'
-        ).filter(
-            Q(authorship_periods__start_date__lte=today) &
-            (Q(authorship_periods__end_date__isnull=True) | Q(authorship_periods__end_date__gte=today))
-        ).distinct()
+        authors = (
+            Member.objects.prefetch_related(
+                "membership_periods__institute__group__country", "authorship_periods"
+            )
+            .select_related("author_details")
+            .filter(
+                Q(authorship_periods__start_date__lte=today)
+                & (
+                    Q(authorship_periods__end_date__isnull=True)
+                    | Q(authorship_periods__end_date__gte=today)
+                )
+            )
+            .distinct()
+        )
 
         authors_missing_details = []
         authors_missing_full_name = []
@@ -1582,15 +1596,18 @@ class AuthorList(LoginRequiredMixin, View):
 
         for author in authors:
             # Active membership
-            membership = author.current_membership(include_inactive=True)
-            current_institute = membership.institute if membership else None
+            #membership = author.current_membership(include_inactive=True)
+            #current_institute = membership.institute if membership else None
 
             # Active authorship period
             authorship_period = author.current_authorship()
             is_author = (
-                authorship_period and
-                authorship_period.start_date <= today and
-                (authorship_period.end_date is None or authorship_period.end_date >= today)
+                authorship_period
+                and authorship_period.start_date <= today
+                and (
+                    authorship_period.end_date is None
+                    or authorship_period.end_date >= today
+                )
             )
 
             if not is_author:
@@ -1639,6 +1656,7 @@ class AuthorList(LoginRequiredMixin, View):
         }
         return render(request, 'author_list.html', context)
 
+
 def api_author(request):
     country = request.GET.get('country', None)
     group = request.GET.get('group', None)
@@ -1646,7 +1664,7 @@ def api_author(request):
     draw = int(request.GET.get('draw', 1))  # DataTable Index
     start = int(request.GET.get('start', 0))  # Start of the data
     length = int(request.GET.get('length', 10))  # Rows per page
-    search_value = request.GET.get('search[value]', '').strip() 
+    search_value = request.GET.get('search[value]', '').strip()
     today = timezone.now().date()
     # First fetch
     authors = Member.objects.order_by('name', 'surname').distinct()
@@ -1655,12 +1673,12 @@ def api_author(request):
     authors = authors.filter(id__in=member_ids)
     # Apply filters
     if country and country != 'All':
-        groups = Group.objects.filter(country__name = country)
+        groups = Group.objects.filter(country__name=country)
         institutes = Institute.objects.filter(group__in=groups)
         member_ids = MembershipPeriod.objects.filter(end_date=None, institute__in=institutes).values_list('member', flat=True)
         authors = authors.filter(id__in=member_ids)
     if group and group != 'All':
-        groups = Group.objects.filter(name = group)
+        groups = Group.objects.filter(name=group)
         institutes = Institute.objects.filter(group__in=groups)
         member_ids = MembershipPeriod.objects.filter(end_date=None, institute__in=institutes).values_list('member', flat=True)
         authors = authors.filter(id__in=member_ids)
@@ -1668,7 +1686,7 @@ def api_author(request):
         institutes = Institute.objects.filter(name=institute)
         member_ids = MembershipPeriod.objects.filter(end_date=None, institute__in=institutes).values_list('member', flat=True)
         authors = authors.filter(id__in=member_ids)
-        
+
     # Search logic
     if search_value:
         query = Q(
@@ -1692,7 +1710,7 @@ def api_author(request):
 
     # Set the item information
     author_list = []
-    
+
     for author in current_page:
         # Set permissions
         is_admin = user_groups.filter(name='admin').exists()
@@ -1707,7 +1725,10 @@ def api_author(request):
         is_author = (
             authorship_period
             and authorship_period.start_date <= today
-            and (authorship_period.end_date is None or authorship_period.end_date >= today)
+            and (
+                authorship_period.end_date is None
+                or authorship_period.end_date >= today
+            )
         )
 
         if is_author:
@@ -1742,10 +1763,11 @@ def api_author(request):
         'draw': draw,
         'recordsTotal': total_records,
         'recordsFiltered': total_records,
-        'start': start,  
+        'start': start,
         'data': author_list,
     }
     return JsonResponse(response)
+
 
 class AuthorRecord(LoginRequiredMixin, View):
     def get(self, request, pk=None):
@@ -1902,7 +1924,7 @@ class AddAuthor(LoginRequiredMixin, View):
                                     foundAffiliation.creation_date = aware_datetime_utc
                                     foundAffiliation.save()
                                 if foundAffiliation.order != i + 1:
-                                    foundAffiliation.order=i + 1
+                                    foundAffiliation.order = i + 1
                                     foundAffiliation.save()
                             else:
                                 logger.info("Creating affiliation")
@@ -1910,12 +1932,11 @@ class AddAuthor(LoginRequiredMixin, View):
                                     author_details=author_details,
                                     institute=institute,
                                     order=i + 1,
-                                    creation_date= aware_datetime_utc
+                                    creation_date=aware_datetime_utc
                                 )
                 author_details.save()
                 resp = {'status': 'success'}
                 messages.success(request, "Author details updated successfully.")
-                #return redirect('author_list')
             else:
                 # Log and return form errors
                 logger.error(f"Form is invalid. Errors: {form.errors}")
@@ -1974,7 +1995,7 @@ def generate_aa_email(request):
             author_details=author,
             id__in=Subquery(latest_affiliations)
         ).order_by('order', '-creation_date').distinct('order')
-    
+
         if author.member.name == 'AaaTest':
             logger.info(f"This is the affiliation: {affiliations}")
 
@@ -2172,7 +2193,7 @@ def generate_apj(request):
 
         # Build author string
         author_name = author.author_name.replace("  ", " ").replace(" ", "~")
-        orcid = getattr(author, 'orcid', None)  # Assuming `orcid` is a field in the author model
+        orcid = getattr(author, 'orcid', None)
         if orcid:
             author_string = f"\\author[{orcid}]{{{author_name}}}\n"
         else:
@@ -2732,6 +2753,7 @@ class InstituteList(LoginRequiredMixin, View):
         }
         return render(request, 'institute_list.html', context)
 
+
 def api_institute(request):
     country = request.GET.get('country', None)
     group = request.GET.get('group', None)
@@ -2741,7 +2763,7 @@ def api_institute(request):
     draw = int(request.GET.get('draw', 1))  # DataTable Index
     start = int(request.GET.get('start', 0))  # Start of the data
     length = int(request.GET.get('length', 10))  # Rows per page
-    search_value = request.GET.get('search[value]', '').strip() 
+    search_value = request.GET.get('search[value]', '').strip()
     # First fetch
     institutes = Institute.objects.order_by('name').all()
     # Filter out non-LST institutes if show_all is False
@@ -2751,16 +2773,16 @@ def api_institute(request):
 
     # Apply filters
     if country and country != 'All':
-        groups = Group.objects.filter(country__name = country)
+        groups = Group.objects.filter(country__name=country)
         institutes = institutes.filter(group__in=groups)
     if group and group != 'All':
-        groups = Group.objects.filter(name = group)
+        groups = Group.objects.filter(name=group)
         institutes = institutes.filter(group__in=groups)
     if institute and institute != 'All':
         institutes = institutes.filter(name=institute)
     if official and official != 'All':
         institutes = institutes.filter(is_lst=official.lower() == 'yes')
-        
+
     # Search logic
     if search_value:
         query = Q(
@@ -2807,16 +2829,17 @@ def api_institute(request):
             'is_lst': "Yes" if institute.is_lst else "No",
             'actions': render_to_string('institute_actions.html', {'author': institute, 'is_admin': is_admin, 'is_sapo': is_sapo}),
         })
-    
+
     # JSON Response for the DataTable
     response = {
         'draw': draw,
         'recordsTotal': total_records,
         'recordsFiltered': total_records,
-        'start': start,  
+        'start': start,
         'data': institute_list,
     }
     return JsonResponse(response)
+
 
 class InstituteRecord(LoginRequiredMixin, View):
     def get(self, request, pk=None):
@@ -2825,13 +2848,13 @@ class InstituteRecord(LoginRequiredMixin, View):
 
         if pk is None:
             messages.error(request, "Institute ID is not recognized")
-            return redirect('institute_list')  # Adjust 'institute_list' to your relevant URL name
+            return redirect('institute_list')
 
         try:
             institute = Institute.objects.get(id=pk)
         except Institute.DoesNotExist:
             messages.error(request, "Institute not found")
-            return redirect('institute_list')  # Adjust 'institute_list' to your relevant URL name
+            return redirect('institute_list')
 
         # Get the related group and country information
         group = institute.group if institute.group else None
@@ -2844,6 +2867,7 @@ class InstituteRecord(LoginRequiredMixin, View):
             'country': country,
         })
         return render(request, 'institute_record.html', context)
+
 
 class ManageInstitute(LoginRequiredMixin, View):
     def get(self, request, pk=None):
@@ -2936,7 +2960,8 @@ class AddInstitute(LoginRequiredMixin, View):
         else:
             resp['msg'] = 'No data has been sent.'
         return HttpResponse(json.dumps(resp), content_type='application/json')
-    
+
+
 class DutyList(LoginRequiredMixin, View):
     def get(self, request):
         show_free = request.GET.get("show_free")
@@ -2968,7 +2993,8 @@ class DutyList(LoginRequiredMixin, View):
             'duty_view': True if dutyFunc else False,
         }
         return render(request, 'duty_list.html', context)
-    
+
+
 def get_member_duty(request):
     draw = int(request.GET.get('draw', 1))  # DataTable Index
     start = int(request.GET.get('start', 0))  # Start of the data
@@ -2986,12 +3012,12 @@ def get_member_duty(request):
     )
 
     if country and country != 'All':
-        groups = Group.objects.filter(country__name = country)
+        groups = Group.objects.filter(country__name=country)
         institutes = Institute.objects.filter(group__in=groups)
         member_ids = MembershipPeriod.objects.filter(end_date=None, institute__in=institutes).values_list('member', flat=True)
         members = members.filter(id__in=member_ids)
     if group and group != 'All':
-        groups = Group.objects.filter(name = group)
+        groups = Group.objects.filter(name=group)
         institutes = Institute.objects.filter(group__in=groups)
         member_ids = MembershipPeriod.objects.filter(end_date=None, institute__in=institutes).values_list('member', flat=True)
         members = members.filter(id__in=member_ids)
@@ -3056,7 +3082,7 @@ def get_member_duty(request):
         if len(foundDuty) > 0:
             dutiesStr = ""
             for duty in foundDuty:
-                dutiesStr += duty.duty.name+", "
+                dutiesStr += duty.duty.name + ", "
             foundDuty = dutiesStr[:-2]
         else:
             foundDuty = None
@@ -3077,10 +3103,11 @@ def get_member_duty(request):
         'draw': draw,
         'recordsTotal': total_records,
         'recordsFiltered': total_records,
-        'start': start,  
+        'start': start,
         'data': data,
     }
     return JsonResponse(response)
+
 
 def get_duty_list(request):
     draw = int(request.GET.get('draw', 1))  # DataTable Index
@@ -3092,12 +3119,10 @@ def get_duty_list(request):
     showFree = request.GET.get('showFree', None)
 
     # First fetch
-    duties = Duty.objects.annotate(
-                active_members_count=Count('assignments')
-            ).order_by('name')
+    duties = Duty.objects.annotate(active_members_count=Count("assignments")).order_by("name")
 
     if category and category != '-1':
-        category = Category.objects.get(pk = int(category))
+        category = Category.objects.get(pk=int(category))
         duties = duties.filter(category=category)
     if type and type != '-1':
         type = DutyType.objects.get(pk=int(type))
@@ -3115,7 +3140,7 @@ def get_duty_list(request):
             description__icontains=search_value
         ) | Q(
             duty_type__name__icontains=search_value
-        ) 
+        )
 
         if search_value.isdigit():
             query |= Q(active_members_count=int(search_value))
@@ -3154,10 +3179,11 @@ def get_duty_list(request):
         'draw': draw,
         'recordsTotal': total_records,
         'recordsFiltered': total_records,
-        'start': start,  
+        'start': start,
         'data': data,
     }
     return JsonResponse(response)
+
 
 def end_duty(request):
     resp = {'status': 'failed', 'msg': ''}
@@ -3178,7 +3204,7 @@ def end_duty(request):
         activeDuties = MemberDuty.objects.filter(member=member_duty.member, end_date=None)
         if not activeDuties and authorship and not authorship.end_date:
             if member_duty.duty.duty_type.name == 'temporary':
-                nextYear = endDate.year+1
+                nextYear = endDate.year + 1
                 authValidity = date(nextYear, 12, 31)
                 authorship.end_date = authValidity
                 authorship.save()
@@ -3188,7 +3214,7 @@ def end_duty(request):
                 logger.info(f'This is the endDate value: {endDate}')
                 permanentEnd = date(endDate.year, endDate.month, endDate.day) + relativedelta(months=6)
                 if lastEndedDuty:
-                    temporaryEnd = date(lastEndedDuty.start_date.year+1, 12, 31)
+                    temporaryEnd = date(lastEndedDuty.start_date.year + 1, 12, 31)
                     logger.info(f"Temporary end date: {temporaryEnd}, Permanent end date: {permanentEnd}")
                     logger.info(f'the condition is: {temporaryEnd > permanentEnd}')
                     if temporaryEnd > permanentEnd:
@@ -3211,16 +3237,16 @@ def end_duty(request):
         activeDuties = MemberDuty.objects.filter(member=member_duty.member, end_date=None)
         if not activeDuties and authorship and not authorship.end_date:
             if member_duty.duty.duty_type.name == 'temporary':
-                nextYear = today.year+1
+                nextYear = today.year + 1
                 authValidity = date(nextYear, 12, 31)
                 authorship.end_date = authValidity
                 authorship.save()
             else:
                 lastEndedDuty = MemberDuty.objects.filter(member=member_duty.member, duty__duty_type__name='temporary').order_by('-end_date').first()
-                permanentEnd = date(today.year, today.month+6, today.day)
+                permanentEnd = date(today.year, today.month + 6, today.day)
                 if lastEndedDuty:
-                    temporaryEnd = date(lastEndedDuty.end_date.year+1, 12, 31)
-                    if  temporaryEnd > permanentEnd:
+                    temporaryEnd = date(lastEndedDuty.end_date.year + 1, 12, 31)
+                    if temporaryEnd > permanentEnd:
                         authorship.end_date = temporaryEnd
                     else:
                         authorship.end_date = permanentEnd
@@ -3230,6 +3256,7 @@ def end_duty(request):
                     authorship.save()
 
     return HttpResponse(json.dumps(resp), content_type="application/json")
+
 
 def add_duty(request):
     resp = {'status': 'failed', 'msg': ''}
@@ -3249,20 +3276,20 @@ def add_duty(request):
         #We create the member duty relation
         if start_date and end_date:
             memberDuty = MemberDuty.objects.create(
-                member = member,
+                member=member,
                 duty=duty,
-                start_date= datetime.strptime(start_date, "%Y-%m-%d"),
-                end_date= datetime.strptime(end_date, "%Y-%m-%d"),
+                start_date=datetime.strptime(start_date, "%Y-%m-%d"),
+                end_date=datetime.strptime(end_date, "%Y-%m-%d"),
             )
         elif start_date:
             memberDuty = MemberDuty.objects.create(
-                member = member,
+                member=member,
                 duty=duty,
                 start_date=datetime.strptime(start_date, "%Y-%m-%d"),
             )
         else:
             memberDuty = MemberDuty.objects.create(
-                member = member,
+                member=member,
                 duty=duty,
                 start_date=today,
             )
@@ -3279,23 +3306,27 @@ def add_duty(request):
                 if not member.dated_authorship(yearStart) and len(prevDuties) > 1 and not member.dated_authorship(start_date):
                     if duty.duty_type.name == 'temporary':
                         logger.info(f"This are the member authorships: {AuthorshipPeriod.objects.filter(member=member)}")
-                        logger.info(f"There is a new authorship needed to be created with start date: {yearStart}. And end date: {yearStart+relativedelta(years=1)+relativedelta(month=12)+relativedelta(day=31)}")
+                        logger.info(f"There is a new authorship needed to be created with start date: {yearStart}. And end date: {yearStart + relativedelta(years=1) + relativedelta(month=12) + relativedelta(day=31)}")
                         AuthorshipPeriod.objects.create(
                             member=member,
-                            start_date = yearStart,
-                            end_date = yearStart+relativedelta(years=1)+relativedelta(month=12)+relativedelta(day=31)
+                            start_date=yearStart,
+                            end_date=yearStart + relativedelta(years=1) + relativedelta(month=12) + relativedelta(day=31),
                         )
                     else:
                         AuthorshipPeriod.objects.create(
                             member=member,
-                            start_date = start_date,
+                            start_date=start_date,
                         )
                 else:
                     logger.info(f'Previous Duties: {prevDuties}')
                     if len(prevDuties) > 1:
                         logger.info(f"Duty type is: {duty.duty_type.name}")
                         if duty.duty_type.name == 'temporary':
-                            foundPermanent = MemberDuty.objects.filter(member = memberDuty.member, duty__duty_type__name='permanent', end_date__isnull=True)
+                            foundPermanent = MemberDuty.objects.filter(
+                                member=memberDuty.member,
+                                duty__duty_type__name="permanent",
+                                end_date__isnull=True,
+                            )
                             logger.info(f'The authorship start is: {authorship.start_date}')
                             logger.info(f'The year start is: {yearStart}')
                             logger.info(f'The current cf start is: {currentCf.start_date}')
@@ -3314,7 +3345,10 @@ def add_duty(request):
                         else:
                             if member.role != 'student':
                                 if not authorship.start_date or authorship.start_date == today:
-                                    authorship.start_date = datetime.strptime(start_date, "%Y-%m-%d")+relativedelta(months=6) if datetime.strptime(start_date, "%Y-%m-%d")+relativedelta(months=6) > currentCf.start_date else currentCf.start_date
+                                    authorship.start_date = (
+                                        datetime.strptime(start_date, "%Y-%m-%d") + relativedelta(months=6)
+                                        if datetime.strptime(start_date, "%Y-%m-%d") + relativedelta(months=6) > currentCf.start_date else currentCf.start_date
+                                    )
                                 if authorship and authorship.end_date:
                                     authorship.end_date = None
                                     authorship.save()
@@ -3328,7 +3362,7 @@ def add_duty(request):
                     else:
                         if authorship:
                             logger.info(authorship)
-                            authorship.start_date =memberDuty.start_date+ relativedelta(months=6)
+                            authorship.start_date = (memberDuty.start_date + relativedelta(months=6))
                             if memberDuty.end_date and not authorship.end_date:
                                 if duty.duty_type.name == 'temporary':
                                     authorship.end_date = datetime(memberDuty.start_date.year + 1, 12, 31)
@@ -3345,25 +3379,37 @@ def add_duty(request):
                                     logger.info(member.current_membership().start_date + relativedelta(years=1) + relativedelta(month=1) + relativedelta(day=1) if member.current_membership().start_date + relativedelta(months=6) > member.current_cf().start_date else member.current_cf().start_date + relativedelta(years=1) + relativedelta(month=1) + relativedelta(day=1))
                                     AuthorshipPeriod.objects.create(
                                         member=member,
-                                        start_date = member.current_membership().start_date + relativedelta(months=6) if member.current_membership().start_date + relativedelta(months=6) > member.current_cf().start_date else member.current_cf().start_date,
-                                        end_date = memberDuty.start_date + relativedelta(years=1) + relativedelta(month=12) + relativedelta(day=31) if memberDuty.start_date.date() + relativedelta(months=6) > member.current_cf().start_date else member.current_cf().start_date + relativedelta(years=1) + relativedelta(month=12) + relativedelta(day=31)
+                                        start_date=member.current_membership().start_date + relativedelta(months=6)
+                                        if member.current_membership().start_date + relativedelta(months=6) > member.current_cf().start_date
+                                        else member.current_cf().start_date,
+                                        end_date=memberDuty.start_date + relativedelta(years=1) + relativedelta(month=12) + relativedelta(day=31)
+                                        if memberDuty.start_date.date() + relativedelta(months=6) > member.current_cf().start_date
+                                        else member.current_cf().start_date + relativedelta(years=1) + relativedelta(month=12) + relativedelta(day=31),
                                     )
                                 else:
                                     AuthorshipPeriod.objects.create(
                                         member=member,
-                                        start_date = memberDuty.start_date + relativedelta(months=6) if memberDuty.start_date.date() + relativedelta(months=6) > member.current_cf().start_date else member.current_cf().start_date,
-                                        end_date = memberDuty.start_date + relativedelta(years=1) + relativedelta(month=12) + relativedelta(day=31) if memberDuty.start_date.date() + relativedelta(months=6) > member.current_cf().start_date else member.current_cf().start_date + relativedelta(years=1) + relativedelta(month=12) + relativedelta(day=31)
+                                        start_date=memberDuty.start_date + relativedelta(months=6)
+                                        if memberDuty.start_date.date() + relativedelta(months=6) > member.current_cf().start_date
+                                        else member.current_cf().start_date,
+                                        end_date=memberDuty.start_date + relativedelta(years=1) + relativedelta(month=12) + relativedelta(day=31)
+                                        if memberDuty.start_date.date() + relativedelta(months=6) > member.current_cf().start_date
+                                        else member.current_cf().start_date + relativedelta(years=1) + relativedelta(month=12) + relativedelta(day=31),
                                     )
                             else:
                                 if member.role == 'student':
                                     AuthorshipPeriod.objects.create(
                                         member=member,
-                                        start_date = member.current_membership().start_date + relativedelta(months=6) if member.current_membership().start_date + relativedelta(months=6) > member.current_cf().start_date else member.current_cf().start_date,
+                                        start_date=member.current_membership().start_date + relativedelta(months=6)
+                                        if member.current_membership().start_date + relativedelta(months=6) > member.current_cf().start_date
+                                        else member.current_cf().start_date,
                                     )
                                 else:
                                     AuthorshipPeriod.objects.create(
                                         member=member,
-                                        start_date = memberDuty.start_date + relativedelta(months=6) if memberDuty.start_date.date() + relativedelta(months=6) > member.current_cf().start_date else member.current_cf().start_date,
+                                        start_date=memberDuty.start_date + relativedelta(months=6)
+                                        if memberDuty.start_date.date() + relativedelta(months=6) > member.current_cf().start_date
+                                        else member.current_cf().start_date,
                                     )
             else:
                 futureAuthorship = member.future_authorship()
@@ -3371,10 +3417,10 @@ def add_duty(request):
                     if futureAuthorship.end_date and futureAuthorship.end_date < datetime(memberDuty.start_date.year, 1, 1).date():
                         authorship_period = AuthorshipPeriod.objects.create(
                             member=member,
-                            start_date = datetime(memberDuty.start_date.year, 1, 1),
+                            start_date=datetime(memberDuty.start_date.year, 1, 1),
                         )
                         if memberDuty.end_date:
-                            authorship_period.end_date = datetime(memberDuty.start_date.year+1, 12, 31)
+                            authorship_period.end_date = datetime(memberDuty.start_date.year + 1, 12, 31)
                             authorship_period.save()
                 else:
                     currentAuthorship = member.current_authorship()
@@ -3382,8 +3428,8 @@ def add_duty(request):
                     if not member.has_valid_duty():
                         if currentAuthorship.start_date != yearStart if yearStart > member.current_cf().start_date + relativedelta(months=6) else member.current_cf().start_date + relativedelta(months=6):
                             currentAuthorship.start_date = yearStart if yearStart > member.current_cf().start_date + relativedelta(months=6) else member.current_cf().start_date + relativedelta(months=6)
-                        if currentAuthorship.end_date != yearStart+relativedelta(years=1)+relativedelta(month=12)+relativedelta(day=31):
-                            currentAuthorship.end_date = yearStart+relativedelta(years=1)+relativedelta(month=12)+relativedelta(day=31)
+                        if currentAuthorship.end_date != yearStart + relativedelta(years=1) + relativedelta(month=12) + relativedelta(day=31):
+                            currentAuthorship.end_date = (yearStart + relativedelta(years=1) + relativedelta(month=12) + relativedelta(day=31))
                         currentAuthorship.save()
         if authorship and authorship.end_date:
             logger.info(f"The member has active and valid duty? {member.has_active_duty(), member.has_valid_duty()}")
@@ -3399,14 +3445,15 @@ def add_duty(request):
 
         resp['status'] = 'success'
         resp['msg'] = 'Duty added to member!'
-    except Exception as e:
+    except Exception:
         if memberDuty:
             memberDuty.delete()
         logger.error("Error in add_duty: %s", traceback.format_exc())
     return HttpResponse(json.dumps(resp), content_type="application/json")
 
+
 class AddDuty(LoginRequiredMixin, View):
-    def get(self, request, pk = None):
+    def get(self, request, pk=None):
         if not pk:
             context = {
                 'page_title': "Manage Duty",
@@ -3425,7 +3472,7 @@ class AddDuty(LoginRequiredMixin, View):
                 'duty': duty,
             }
             return render(request, 'manage_duty.html', context)
-    
+
     def post(self, request, pk=None):
         resp = {'status': 'failed', 'msg': ''}
         if request.method == 'POST':
@@ -3482,7 +3529,8 @@ class AddDuty(LoginRequiredMixin, View):
                 else:
                     resp['msg'] = 'Duty not found'
             return HttpResponse(json.dumps(resp), content_type="application/json")
-    
+
+
 class DutyRecord(LoginRequiredMixin, View):
     def get(self, request, pk=None):
         context = {}
@@ -3490,13 +3538,13 @@ class DutyRecord(LoginRequiredMixin, View):
 
         if pk is None:
             messages.error(request, "Duty ID is not recognized")
-            return redirect('duty_list')  # Adjust 'institute_list' to your relevant URL name
+            return redirect('duty_list')
 
         try:
             duty = Duty.objects.get(id=pk)
         except Duty.DoesNotExist:
             messages.error(request, "Duty not found")
-            return redirect('duty_list')  # Adjust 'institute_list' to your relevant URL name
+            return redirect('duty_list')
         if duty:
             today = datetime.now().date()
             if duty.duty_type.name == 'permanent':
@@ -3513,12 +3561,12 @@ class DutyRecord(LoginRequiredMixin, View):
             'duty': duty,
             'members': members.order_by('start_date'),
             'available_members': availableMembers,
-            'curent_members': duty.get_active_members()+duty.get_future_members() if duty.duty_type.name == 'permanent' else duty.get_short_active_members()
+            'curent_members': duty.get_active_members() + duty.get_future_members() if duty.duty_type.name == 'permanent' else duty.get_short_active_members()
         })
         return render(request, 'duty_record.html', context)
+
 
 def show_end_modal(request):
     context = {}
     context['today'] = datetime.now().date()
     return render(request, 'end_duty.html', context)
-
