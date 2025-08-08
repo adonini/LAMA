@@ -889,10 +889,6 @@ class AddMember(LoginRequiredMixin, View):
         else:
             current_membership = member.current_membership()
             duty = MemberDuty.objects.filter(member=member, start_date__gte=current_membership.start_date).order_by("start_date").first()
-            yearStart = date(duty.start_date.year, 1, 1)
-            yearEnd = date(yearStart.year+1, 12, 31)
-            logger.info(f"This is the member first duty: {duty}")
-            logger.info(f"Does the member has an authorship in {duty.start_date}? {member.dated_authorship(duty.start_date)}")
             if duty and not member.dated_authorship(duty.start_date):
                 if cf_start >= current_membership.start_date + relativedelta(months=6):
                     logger.info(f"Does the user has a valid duty on {cf_start}? {member.has_valid_duty_dated(cf_start)}")
@@ -913,8 +909,6 @@ class AddMember(LoginRequiredMixin, View):
                     else:
                         if MemberDuty.objects.all().order_by("-start_date").exists():
                             if MemberDuty.objects.all().order_by("-start_date").first().duty.duty_type.name == 'temporary':
-                                logger.info("The last duty is temporary")
-                                logger.info(f'This is the last duty: {duty}, started in {duty.start_date} and ended on: {duty.end_date}')
                                 if cf_start < member.current_membership().start_date + relativedelta(months=6):
                                     authorship = AuthorshipPeriod.objects.create(
                                         member = member,
@@ -928,8 +922,6 @@ class AddMember(LoginRequiredMixin, View):
                                         end_date = None
                                     )
                             else:
-                                logger.info("The last duty is permanent")
-                                logger.info(f'This is the last duty: {duty}, started in {duty.start_date} and ended on: {duty.end_date}')
                                 if duty.start_date < member.current_membership().start_date + relativedelta(months=6):
                                     authorship = AuthorshipPeriod.objects.create(
                                         member = member,
@@ -941,8 +933,7 @@ class AddMember(LoginRequiredMixin, View):
                                         member = member,
                                         start_date = duty.start_date,
                                         end_date = None
-                                    )
-                        
+                                    )   
                     if authorship:
                         if not MemberDuty.objects.filter(member=member, end_date__isnull=True).exists() and duty.end_date:
                             authorship.end_date = duty.end_date + relativedelta(months=6)
