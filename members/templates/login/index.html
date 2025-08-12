@@ -10,6 +10,12 @@
             <div class="text-center">
                 <p class="fw-light fs-5">This application helps manage members of the collaboration.</p>
                 <p class="fw-light fs-5">Only authorized users can log in to view and manage member information.</p>
+                <div class="col-12 text-center mb-4">
+                    <p class="fw-light">
+                        Do you want to know more?
+                        Check the user manual <a href="{% static 'LST_LAMA_manual.pdf' %}" class="btn btn-sm btn-outline-primary shadow ms-2" download>Download User Manual</a>
+                    </p>
+                </div>
                 <br/>
                 <a href="{% url 'login' %}" class="btn btn-primary p-4 fs-5 font-weight-bold rounded shadow">Log In To Get Started!</a>
             </div>

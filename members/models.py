@@ -212,11 +212,21 @@ class Member(models.Model):
         
     def dated_authorship(self, date):
         """
-        Get the current active authorship period or the most recent authorship if include_inactive=True.
+        Returns if the member will be author at the given date.
         """
         
         # Return only the active authorship
         return self.authorship_periods.filter(
+            Q(start_date__lte=date) & (Q(end_date__isnull=True) | Q(start_date__lte=date) & Q(end_date__gte=date))
+        ).order_by('-start_date').first()
+    
+    def dated_common_found(self, date):
+        """
+        Returns if the member will be cf at the given date.
+        """
+        
+        # Return only the active authorship
+        return self.common_found.filter(
             Q(start_date__lte=date) & (Q(end_date__isnull=True) | Q(start_date__lte=date) & Q(end_date__gte=date))
         ).order_by('-start_date').first()
     

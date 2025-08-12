@@ -691,11 +691,18 @@ class AddMember(LoginRequiredMixin, View):
             if is_cf:
                 #today = datetime.now()
                 common_found = CommonFound.objects.filter(member=member, end_date__isnull=True).first()
-                if common_found:
+                if common_found and common_found.start_date >= member.current_membership().start_date:
                     if cf_end:
                         if common_found.end_date != cf_end:
                             common_found.end_date = cf_end
                     common_found.save()
+                elif common_found and common_found.start_date < member.current_membership().start_date:
+                    logger.info("Ending previous common found")
+                    common_found.end_date = member.current_membership().start_date-relativedelta(days=1)
+                    common_found.save()
+                    common_found=None
+                    cf_start=member.current_membership().start_date
+                    cf_end=None
                 if not member.is_active_author() and member.has_active_duty():
                     # Case 4.1: If there is no future authorship, create a new one
                     if not member.future_authorship():
@@ -705,16 +712,19 @@ class AddMember(LoginRequiredMixin, View):
                         # Case 4.2: If a future authorship already exists, do nothing
                         pass
                 if not common_found:
-                    CommonFound.objects.create(
+                    logger.info(f"Creating new common found for member: {member} starting {cf_start} and ending {cf_end}")
+                    common_found = CommonFound.objects.create(
                         member=member,
                         start_date=cf_start,
                         end_date=cf_end if cf_end else None,
                     )
+                    logger.info(f"This is the created CF: {common_found}")
             # Step 5: Update future authorship if applicable
             if future_authorship:
                 if not is_cf:  # If `is_cf` is unchecked,  end the future authorship
                     future_authorship.end_date = previous_end_date + relativedelta(months=6)  # ??
                     future_authorship.save()
+            logger.info(f"This is the common found: {common_found}")
             logger.info(f"These are the values after institute change: {member.current_authorship()}, {member.future_authorship()}")
             return True  # Member/authorship was updated
 
@@ -1026,9 +1036,9 @@ class AddMember(LoginRequiredMixin, View):
                         self.handle_membership_change(member, is_stopping_membership, end_date, start_date, institute_id)
 
                     # Create the CF period
-                    if not is_stopping_membership:
+                    if not is_stopping_membership and not institute_changed:
                         if is_cf:
-                            if not institute_changed and member.current_authorship() and cf_start != member.current_authorship().start_date or member.future_authorship():
+                            if member.current_authorship() and cf_start != member.current_authorship().start_date or member.future_authorship():
                                 if member.current_authorship():
                                     member.current_authorship().delete()
                                 if member.future_authorship():
@@ -1047,11 +1057,16 @@ class AddMember(LoginRequiredMixin, View):
                                     if common_found.start_date != cf_start:
                                         common_found.start_date = cf_start
                                 if not common_found:
-                                    logger.info(f"Creating new CommonFound for Member ID={member.id} with start_date={cf_start}")
-                                    common_found = CommonFound.objects.create(
-                                        member=member,
-                                        start_date=cf_start
-                                    )
+                                    common_found = CommonFound.objects.filter(
+                                       member=member,
+                                        start_date=cf_start 
+                                    ).order_by("-start_date").first()
+                                    if not common_found:
+                                        logger.info(f"Creating new CommonFound for Member ID={member.id} with start_date={cf_start}")
+                                        common_found = CommonFound.objects.create(
+                                            member=member,
+                                            start_date=cf_start
+                                        )
                                 if cf_end and common_found:
                                     logger.info(f"Updating CommonFound end_date for Member ID={member.id} to {cf_end}")
                                     if common_found.end_date != cf_end:
@@ -1059,11 +1074,18 @@ class AddMember(LoginRequiredMixin, View):
                                     authorship = member.current_authorship()
                                     if not authorship:
                                         authorship = member.future_authorship()
-                                        authorship.delete()
+                                        if authorship:
+                                            authorship.delete()
                                     if authorship:
                                         if not authorship.end_date or authorship.end_date > cf_end + relativedelta(months=6):
                                             authorship.end_date = cf_end + relativedelta(months=6)
                                             authorship.save()
+                                    else:
+                                        AuthorshipPeriod.objects.create(
+                                            member=member,
+                                            start_date=cf_end,
+                                            end_date=cf_end + relativedelta(months=6),
+                                        )
 
                                 if common_found:
                                     common_found.save()
@@ -1099,6 +1121,12 @@ class AddMember(LoginRequiredMixin, View):
                                     elif not authorship.end_date:
                                         authorship.end_date = end_date + relativedelta(months=6)
                                         authorship.save()
+                                else:
+                                    AuthorshipPeriod.objects.create(
+                                        member=member,
+                                        start_date = end_date,
+                                        end_date = end_date + relativedelta(months=6)
+                                    )
 
                                 cf = member.current_cf()
                                 if cf:
@@ -1154,7 +1182,7 @@ class AddMember(LoginRequiredMixin, View):
                 elif not member.is_active_author() and not member.has_active_duty() and is_cf and member.has_valid_duty():
                     logger.info(f'This is the authorship: {member.current_authorship()}, {member.future_authorship()}')
                     if not member.current_authorship() and not member.future_authorship():
-                        logger.info("Creating authorship since the user does not have any")
+                        logger.info(f"Creating authorship since the user does not have any with cf start {cf_start}")
                         self.handleAuthorshipCreation(member, cf_start)
                 else:
                     logger.info("User has no valid or active duty and is not a member")
@@ -3432,6 +3460,27 @@ def add_duty(request):
             elif member.has_active_duty() and member.has_valid_duty() and memberDuty.duty.duty_type.name == 'temporary':
                 authorship.end_date = datetime(memberDuty.start_date.year + 1, 12, 31).date()
                 authorship.save()
+            if member.dated_common_found(memberDuty.start_date):
+                if authorship.end_date >= memberDuty.start_date.date():
+                    if memberDuty.duty.duty_type.name == 'permanent':
+                        authorship.end_date = None
+                        authorship.save()
+                    elif memberDuty.duty.duty_type.name == 'temporary':
+                        authorship.end_date = datetime(memberDuty.start_date.year + 1, 12, 31).date()
+                        authorship.save()
+                else:
+                    authorship = AuthorshipPeriod.objects.create(
+                        member=member,
+                        start_date=memberDuty.start_date,
+                        end_date=None
+                    )
+                    if memberDuty.duty.duty_type.name == 'permanent':
+                        authorship.end_date = None
+                        authorship.save()
+                    elif memberDuty.duty.duty_type.name == 'temporary':
+                        authorship.end_date = datetime(memberDuty.start_date.year + 1, 12, 31).date()
+                        authorship.save()
+
             logger.info(f"The authorship after revision end date is: {authorship.end_date}")
 
         resp['status'] = 'success'
