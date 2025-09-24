@@ -76,7 +76,7 @@ def send_digest(added_members, removed_authors, list):
         print(f"Removed IDs: {removed_ids}")
         print(f"Removed Members: {removed_members}")
 
-    #if added_ids or removed_ids:
-        #send_digest(added_members, removed_members, current_qs)
+        if added_ids or removed_ids:
+            send_digest(added_members, removed_members, current_qs)
 
     print("Done !")
