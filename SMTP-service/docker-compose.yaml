@@ -1,0 +1,23 @@
+services:
+  postfix:
+    image: mwader/postfix-relay
+    container_name: postfix_brevo
+    environment:
+      - POSTFIX_myhostname=mailer.tu-dominio.com
+      - POSTFIX_inet_protocols=ipv4
+
+      - POSTFIX_relayhost=[smtp-relay.brevo.com]:587
+
+      - POSTFIX_smtp_use_tls=yes
+      - POSTFIX_smtp_tls_security_level=encrypt
+      - POSTFIX_smtp_tls_CAfile=/etc/ssl/certs/ca-certificates.crt
+      - POSTFIX_smtp_sasl_auth_enable=yes
+      - POSTFIX_smtp_sasl_security_options=noanonymous
+      - POSTFIX_smtp_sasl_password_maps=texthash:/etc/postfix/sasl_passwd
+
+      - |
+        POSTMAP_sasl_passwd=[smtp-relay.brevo.com]:587 963381001@smtp-brevo.com:6zVsGBcN8DOIqmA3
+
+    ports:
+      - "2525:25"
+    restart: unless-stopped

@@ -1,68 +1,81 @@
-from ..models import ( AuthorshipPeriod, AuthorDetails,
-                     AuthorInstituteAffiliation, DutyType)
-from datetime import timedelta, datetime
-from pytz import UTC
-from django.utils.timezone import make_aware
+from ..models import ( AuthorshipPeriod, Member)
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 import os
-from datetime import datetime
-from django.db.models import Q
 from dateutil.relativedelta import relativedelta
+from django.utils import timezone
 
-def send_mal(list):
-    # First, render the plain text content.
-    text_content = render_to_string(
-        "templates/emails/my_email.txt",
-        context={"new_authors": list},
-    )
+LIST_PATH = "endingAuthorsList.txt"
+TO_ADDRESS = "jpenuela@ujaen.es" #lst-telescope-manager@cta-observatory.org 
 
-    # Secondly, render the HTML content.
-    html_content = render_to_string(
-        "templates/emails/my_email.html",
-        context={"new_authors": list},
-    )
+def send_digest(added_members, removed_authors, list):
+    """Send email with text+HTML if there are changes."""
+    if not added_members and not removed_authors:
+        return
 
-    # Then, create a multipart email instance.
+    context = {
+        "added_members": added_members,
+        "removed_members": removed_authors,
+        "list": list,
+        "count_added": len(added_members),
+        "count_removed": len(removed_authors),
+        "count_list": len(list),
+    }
+
+    text_content = render_to_string("emails/email.txt", context)
+    html_content = render_to_string("emails/email.html", context)
+
     msg = EmailMultiAlternatives(
-        "Subject here",
-        text_content,
-        "from@example.com",
-        ["to@example.com"],
+        subject="List of authors ending authorship in 6 months",
+        body=text_content,
+        from_email=None,                 # uses DEFAULT_FROM_EMAIL from settings
+        to=[TO_ADDRESS],
         headers={"List-Unsubscribe": "<mailto:unsub@example.com>"},
     )
-
-    # Lastly, attach the HTML content to the email instance and send.
     msg.attach_alternative(html_content, "text/html")
-    msg.send()
+    msg.send(fail_silently=False)
 
 def run():
-    with open("endingAuthorsList.txt", "r+") as f:
-        names = set(line.strip().lower() for line in f)
-        original_names = names.copy()
-        removed_users = []
-        added_users = []
-        today = datetime.now()
-        six_months_future = today + relativedelta(months=6)
-        currentEndingAuthors = AuthorshipPeriod.objects.filter(
-            end_date__gte=today, end_date__lte=six_months_future
-        )
-        print(len(currentEndingAuthors))
-        print(len(names))
-        f.seek(0)
-        f.truncate(0)
-        for author in currentEndingAuthors:
-            name_str = author.member.name+" "+author.member.surname
-            if name_str not in names:
-                f.write(name_str+"\n")
-                added_users.append(name_str)
-            else:
-                f.write(name_str+"\n")
-        if len(names) != len(currentEndingAuthors):
-            for name in names:
-                name_parts = name.split(" ")
-                if not currentEndingAuthors.filter(member__name=name_parts[0], member__surname=name_parts[1]).exists():
-                    removed_users.append(name)
-        print(len(removed_users))
+    print("Running Script...")
+    if not os.path.exists(LIST_PATH):
+        open(LIST_PATH, "w").close()
 
-            
+    with open(LIST_PATH, "r") as f:
+        previous_ids = set()
+        for line in f:
+            s = line.strip()
+            if not s:
+                continue
+            try:
+                previous_ids.add(int(s))
+            except ValueError:
+                continue
+    now = timezone.now()
+    six_months = now + relativedelta(months=6)
+    current_qs = (
+        AuthorshipPeriod.objects
+        .select_related("member")
+        .filter(end_date__gte=now, end_date__lte=six_months).order_by("end_date")
+    )
+    current_ids = set(a.member_id for a in current_qs)
+
+    added_ids = sorted(current_ids - previous_ids)
+    removed_ids = sorted(previous_ids - current_ids)
+
+    with open(LIST_PATH, "w") as f:
+        for mid in sorted(current_ids):
+            f.write(f"{mid}\n")
+
+    added_members = list(AuthorshipPeriod.objects.filter(member__in=Member.objects.filter(pk__in=added_ids)))
+    removed_members = list(AuthorshipPeriod.objects.filter(member__in=Member.objects.filter(pk__in=removed_ids)))
+
+    print(f"Date:")
+    print(f"Added IDs: {added_ids}")
+    print(f"Added Members: {added_members}")
+    print(f"Removed IDs: {removed_ids}")
+    print(f"Removed Members: {removed_members}")
+
+    if added_ids or removed_ids:
+        send_digest(added_members, removed_members, current_qs)
+
+    print("Done !")

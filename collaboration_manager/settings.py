@@ -187,6 +187,16 @@ LOGIN_URL = '/login'
 # replace default admin url
 ADMIN_URL = os.getenv('DJANGO_ADMIN_URL')
 
+#Email configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = "host.docker.internal"
+EMAIL_PORT = 2525
+EMAIL_USE_TLS = False
+EMAIL_HOST_USER = ""
+EMAIL_HOST_PASSWORD = ""
+DEFAULT_FROM_EMAIL = "LAMA Monitoring <noreply.lamamonitoring@gmail.com>"
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

@@ -39,6 +39,8 @@ services:
       - POSTGRES_HOST=${POSTGRES_HOST}
       - POSTGRES_PORT=${POSTGRES_PORT}
       - DJANGO_ADMIN_URL=${DJANGO_ADMIN_URL}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - db
 

@@ -1,0 +1,26 @@
+Summary of ending authorships
+
+List of members:
+
+{% for member in list %}
+    {% if member in added_members %}
+    - {{member.member.name}} {{member.member.surname}} | END DATE: {{member.end_date}} [NEW]
+    {% else %}
+    - {{member.member.name}} {{member.member.surname}} | END DATE: {{member.end_date}}
+    {% endif %}
+{% endfor %}
+
+Total members on the list: {{count_list}}
+
+
+Number of added members: {{count_added}}
+Number of removed members: {{count_removed}}
+{% if count_removed > 0 %}
+    List of removed members:
+        {% for member in removed_members %}
+        - {{member.member.name}} {{member.member.surname}} | END DATE: {{member.end_date}}
+        {% endfor %}
+{% endif %}
+
+{% now "d-m-Y" %}
+
