@@ -3,8 +3,8 @@ set -Eeuo pipefail
 
 week="$(date +%V)"
 week=$((10#$week))
-if $((week % 2)); then
-    PROJECT_DIR="/run/media/antonio/DD_Antonio3/github/LAMA"
+if ((week % 2)); then
+    PROJECT_DIR="/home/lst1/lama/LAMA"
     {
 
         if [[ -f "${PROJECT_DIR%/}/.env" ]]; then
