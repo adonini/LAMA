@@ -3461,7 +3461,7 @@ def add_duty(request):
                 authorship.end_date = datetime(memberDuty.start_date.year + 1, 12, 31).date()
                 authorship.save()
             if member.dated_common_found(memberDuty.start_date):
-                if authorship.end_date >= memberDuty.start_date.date():
+                if authorship.end_date and authorship.end_date >= memberDuty.start_date.date():
                     if memberDuty.duty.duty_type.name == 'permanent':
                         authorship.end_date = None
                         authorship.save()

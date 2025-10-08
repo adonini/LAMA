@@ -6,7 +6,7 @@ from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 
 LIST_PATH = "endingAuthorsList.txt"
-TO_ADDRESS = "jpenuela@ujaen.es" #lst-telescope-manager@cta-observatory.org 
+TO_ADDRESS = "lst-telescope-manager@cta-observatory.org"
 
 def send_digest(added_members, removed_authors, list):
     """Send email with text+HTML if there are changes."""
