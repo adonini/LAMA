@@ -244,6 +244,30 @@ class Member(models.Model):
             return self.common_found.filter(
                 (Q(end_date__isnull=True) | Q(end_date__gte=today))
             ).order_by('-start_date').first()
+        
+    def cf_start(self):
+        """
+        Get the CF start date.
+        """
+        cf_periods = self.common_found.order_by('-start_date')
+        latest_period = None
+        for period in cf_periods:
+            if not latest_period:
+                latest_period = period
+            else:
+                if period.end_date:
+                    delta = latest_period.start_date - period.end_date
+                    if delta.days == 1:
+                        latest_period = period
+                    else:
+                        return latest_period.start_date
+                else:
+                    return latest_period.start_date
+        if latest_period:    
+            return latest_period.start_date
+        else:
+            return latest_period
+        
 
     def future_membership(self):
         """
