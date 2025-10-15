@@ -458,6 +458,8 @@ def api_member(request):  # Finish this ! Here you have a issue with the filters
         membership = active_membership or future_membership  # Use future membership if no active membership
         current_institute = membership.institute if membership else None
         authorship_period = member.current_authorship(include_inactive=show_all) or member.future_authorship()
+        future_authorshipPeriod = member.future_authorship()
+        logger.info(future_authorshipPeriod)
         # Set permissions
         is_admin = user_groups.filter(name='admin').exists()
         is_sapo = user_groups.filter(name='sapo').exists()
@@ -469,6 +471,12 @@ def api_member(request):  # Finish this ! Here you have a issue with the filters
             and authorship_period.start_date <= today
             and (authorship_period.end_date is None or authorship_period.end_date >= today)
         )
+        if authorship_period and authorship_period.end_date and not future_authorshipPeriod:
+            finalEndDate = authorship_period.end_date.strftime('%Y-%m-%d')  
+        elif authorship_period and future_authorshipPeriod and  abs((authorship_period.end_date - future_authorshipPeriod.start_date).days) == 1:
+            finalEndDate = future_authorshipPeriod.end_date.strftime('%Y-%m-%d')
+        else:
+            finalEndDate = '-'
         # Determine if the member will be an author within the next 6 months
         # will_become_author = (
         #     authorship_period
@@ -485,7 +493,7 @@ def api_member(request):  # Finish this ! Here you have a issue with the filters
             'is_author': "Yes" if is_author else "No",
             'is_cf': "Yes" if member.is_active_cf() else "No",
             'authorship_start': authorship_period.start_date.strftime('%Y-%m-%d') if authorship_period else '-',
-            'authorship_end': authorship_period.end_date.strftime('%Y-%m-%d') if authorship_period and authorship_period.end_date else '-',
+            'authorship_end': finalEndDate,
             'group_name': current_institute.group.name if current_institute and current_institute.group else 'No Group',
             'country_name': current_institute.group.country.name if current_institute and current_institute.group and current_institute.group.country else 'No Country',
             'institute_name': current_institute.name if current_institute else 'No Institute',
@@ -3381,6 +3389,7 @@ def add_duty(request):
                     else:
                         if authorship:
                             logger.info(authorship)
+                            logger.info(f'The authorship start is: {authorship.start_date}')
                             authorship.start_date = (memberDuty.start_date + relativedelta(months=6))
                             if memberDuty.end_date and not authorship.end_date:
                                 if duty.duty_type.name == 'temporary':
@@ -3453,6 +3462,7 @@ def add_duty(request):
         if authorship and authorship.end_date:
             logger.info(f"The member has active and valid duty? {member.has_active_duty(), member.has_valid_duty()}")
             logger.info(f"The new duty is permanent? {memberDuty.duty.duty_type.name == 'permanent'}")
+            logger.info(f'The authorship start is: {authorship.start_date}')
             logger.info(f"The authorship end date is: {authorship.end_date}")
             if member.has_active_duty() and member.has_valid_duty() and memberDuty.duty.duty_type.name == 'permanent':
                 authorship.end_date = None
@@ -3478,9 +3488,12 @@ def add_duty(request):
                         authorship.end_date = None
                         authorship.save()
                     elif memberDuty.duty.duty_type.name == 'temporary':
+                        logger.info(f"The duty is temporary, checking the start date to see if the periods are continous, this is the day difference: {abs((date(memberDuty.start_date.year, 1, 1) - currentAuthorship.end_date).days)}")
+                        if abs((date(memberDuty.start_date.year, 1, 1) - currentAuthorship.end_date).days) == 1:
+                            authorship.start_date = datetime(memberDuty.start_date.year, 1, 1)
                         authorship.end_date = datetime(memberDuty.start_date.year + 1, 12, 31).date()
                         authorship.save()
-
+            logger.info(f'The authorship after revision start is: {authorship.start_date}')
             logger.info(f"The authorship after revision end date is: {authorship.end_date}")
 
         resp['status'] = 'success'
