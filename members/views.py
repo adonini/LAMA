@@ -373,7 +373,7 @@ class MemberList(LoginRequiredMixin, View):
         return render(request, 'member_list.html', context)
 
 
-def api_member(request):  # Finish this ! Here you have a issue with the filters... and also with the information sent on the data...
+def api_member(request):
     country = request.GET.get('country', None)
     group = request.GET.get('group', None)
     institute = request.GET.get('institute', None)
@@ -471,9 +471,10 @@ def api_member(request):  # Finish this ! Here you have a issue with the filters
             and authorship_period.start_date <= today
             and (authorship_period.end_date is None or authorship_period.end_date >= today)
         )
-        if authorship_period and authorship_period.end_date and not future_authorshipPeriod:
+        #Calculation of the authorship end date displayed
+        if authorship_period and authorship_period.end_date and not future_authorshipPeriod or authorship_period and authorship_period.end_date and abs((authorship_period.end_date - future_authorshipPeriod.start_date).days) > 1:
             finalEndDate = authorship_period.end_date.strftime('%Y-%m-%d')  
-        elif authorship_period and future_authorshipPeriod and  abs((authorship_period.end_date - future_authorshipPeriod.start_date).days) == 1:
+        elif authorship_period and future_authorshipPeriod and abs((authorship_period.end_date - future_authorshipPeriod.start_date).days) == 1:
             finalEndDate = future_authorshipPeriod.end_date.strftime('%Y-%m-%d')
         else:
             finalEndDate = '-'
