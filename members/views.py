@@ -3489,17 +3489,19 @@ def add_duty(request):
                         authorship.end_date = datetime(memberDuty.start_date.year + 1, 12, 31).date()
                         authorship.save()
                 else:
-                    authorship = AuthorshipPeriod.objects.create(
-                        member=member,
-                        start_date=memberDuty.start_date,
-                        end_date=None
-                    )
+                    if not authorship or authorship.end_date < memberDuty.start_date.date():
+                        authorship = AuthorshipPeriod.objects.create(
+                            member=member,
+                            start_date=memberDuty.start_date,
+                            end_date=None
+                        )
                     if memberDuty.duty.duty_type.name == 'permanent':
                         authorship.end_date = None
                         authorship.save()
                     elif memberDuty.duty.duty_type.name == 'temporary':
                         currentAuthorship = member.current_authorship()
-                        if currentAuthorship and currentAuthorship.end_date and abs((date(memberDuty.start_date.year, 1, 1) - currentAuthorship.end_date).days) == 1:
+                        logger.info(len(prevDuties) > 1)
+                        if len(prevDuties) > 1 and currentAuthorship and currentAuthorship.end_date and abs((date(memberDuty.start_date.year, 1, 1) - currentAuthorship.end_date).days) == 1:
                             logger.info(f"The duty is temporary, checking the start date to see if the periods are continous, this is the day difference: {abs((date(memberDuty.start_date.year, 1, 1) - currentAuthorship.end_date).days)}")
                             authorship.start_date = datetime(memberDuty.start_date.year, 1, 1)
                         authorship.end_date = datetime(memberDuty.start_date.year + 1, 12, 31).date()

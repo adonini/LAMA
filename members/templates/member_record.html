@@ -62,7 +62,7 @@
                 <p class="text-dark w-100 text-center">This member is not contributing to CF</p>
             {% endif %}
     </div>
-    {% if current_authorship %}
+    {% if current_authorship or authorship_periods %}
         <div class="mt-3">
             <h5 class="text-dark section-title">Authorship</h5>
             {% if current_authorship %}
