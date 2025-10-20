@@ -4,9 +4,10 @@ from django.template.loader import render_to_string
 import os
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
+from django.db.models import Max, OuterRef, Subquery, F
 
 LIST_PATH = "endingAuthorsList.txt"
-TO_ADDRESS = "lst-telescope-manager@cta-observatory.org"
+TO_ADDRESS = "jpenuela@ujaen.es" #lst-telescope-manager@cta-observatory.org
 
 def send_digest(added_members, removed_authors, list):
     """Send email with text+HTML if there are changes."""
@@ -50,14 +51,34 @@ def run():
                 previous_ids.add(int(s))
             except ValueError:
                 continue
+
     now = timezone.now()
     six_months = now + relativedelta(months=6)
-    current_qs = (
+
+    last_end = (
         AuthorshipPeriod.objects
-        .select_related("member")
-        .filter(end_date__gte=now, end_date__lte=six_months).order_by("end_date")
+        .values("member_id")
+        .annotate(last_end=Max("end_date"))
+        .filter(last_end__gte=now, last_end__lte=six_months)
     )
-    current_ids = set(a.member_id for a in current_qs)
+
+    latest_pk_sq = (
+        AuthorshipPeriod.objects
+        .filter(member_id=OuterRef("member_id"))
+        .order_by("-end_date")
+        .values("pk")[:1]
+    )
+
+    periods_qs = (
+        AuthorshipPeriod.objects
+        .filter(member_id__in=last_end.values("member_id"))
+        .annotate(latest_pk=Subquery(latest_pk_sq))
+        .filter(pk=F("latest_pk"))
+        .select_related("member")
+        .order_by("end_date")
+    )
+
+    current_ids = set(periods_qs.values_list("member_id", flat=True))
 
     added_ids = sorted(current_ids - previous_ids)
     removed_ids = sorted(previous_ids - current_ids)
@@ -66,10 +87,17 @@ def run():
         for mid in sorted(current_ids):
             f.write(f"{mid}\n")
 
-    added_members = list(current_qs.filter(member_id__in=added_ids))
-    removed_members = list(AuthorshipPeriod.objects.filter(member__in=Member.objects.filter(pk__in=removed_ids)))
+    added_members = list(periods_qs.filter(member_id__in=added_ids))
 
-    print(f"Date:")
+    removed_members = list(
+        AuthorshipPeriod.objects
+        .annotate(latest_pk=Subquery(latest_pk_sq))
+        .filter(pk=F("latest_pk"), member_id__in=removed_ids)
+        .select_related("member")
+        .order_by("end_date")
+    )
+
+    print("Date:")
     print(f"Added IDs: {added_ids}")
     print(f"Added Members: {added_members}")
     print(f"Count Added Members: {len(added_members)}")
@@ -77,6 +105,6 @@ def run():
     print(f"Removed Members: {removed_members}")
 
     if added_ids or removed_ids:
-        send_digest(added_members, removed_members, current_qs)
+        send_digest(added_members, removed_members, periods_qs)
 
     print("Done !")
