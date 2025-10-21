@@ -3400,13 +3400,14 @@ def add_duty(request):
                         if authorship:
                             logger.info(authorship)
                             logger.info(f'The authorship start is: {authorship.start_date}')
-                            authorship.start_date = (memberDuty.start_date + relativedelta(months=6))
-                            if memberDuty.end_date and not authorship.end_date:
-                                if duty.duty_type.name == 'temporary':
-                                    authorship.end_date = datetime(memberDuty.start_date.year + 1, 12, 31)
-                                else:
-                                    authorship.end_date = memberDuty.end_date.date() + relativedelta(months=6)
-                                authorship.save()
+                            if authorship and authorship.end_date and authorship.end_date > memberDuty.start_date.date():
+                                authorship.start_date = (memberDuty.start_date + relativedelta(months=6))
+                                if memberDuty.end_date and not authorship.end_date:
+                                    if duty.duty_type.name == 'temporary':
+                                        authorship.end_date = datetime(memberDuty.start_date.year + 1, 12, 31)
+                                    else:
+                                        authorship.end_date = memberDuty.end_date.date() + relativedelta(months=6)
+                                    authorship.save()
                         else:
                             logger.info(f"member has no authorship, creating one with a duty {memberDuty}, type: {memberDuty.duty.duty_type.name}")
                             if memberDuty.duty.duty_type.name == 'temporary':
@@ -3415,11 +3416,14 @@ def add_duty(request):
                                     logger.info(member.current_cf().start_date)
                                     logger.info(f'For non student the start is: {memberDuty.start_date}')
                                     logger.info(member.current_membership().start_date + relativedelta(years=1) + relativedelta(month=1) + relativedelta(day=1) if member.current_membership().start_date + relativedelta(months=6) > member.current_cf().start_date else member.current_cf().start_date + relativedelta(years=1) + relativedelta(month=1) + relativedelta(day=1))
+                                    logger.info(member.current_membership().start_date + relativedelta(months=6)
+                                        if member.current_membership().start_date + relativedelta(months=6) > member.current_cf().start_date
+                                        else member.current_cf().start_date if memberDuty.start_date.date() < member.current_cf().start_date else memberDuty.start_date.date())
                                     AuthorshipPeriod.objects.create(
                                         member=member,
-                                        start_date=member.current_membership().start_date + relativedelta(months=6)
-                                        if member.current_membership().start_date + relativedelta(months=6) > member.current_cf().start_date
-                                        else member.current_cf().start_date if memberDuty.start_date.date() < member.current_cf().start_date else memberDuty.start_date.date(),
+                                        start_date=member.current_membership().start_date + relativedelta(years=1) + relativedelta(month=1) + relativedelta(day=1) 
+                                        if member.current_membership().start_date + relativedelta(months=6) > member.current_cf().start_date 
+                                        else member.current_cf().start_date + relativedelta(years=1) + relativedelta(month=1) + relativedelta(day=1),
                                         end_date=memberDuty.start_date + relativedelta(years=1) + relativedelta(month=12) + relativedelta(day=31)
                                         if memberDuty.start_date.date() + relativedelta(months=6) > member.current_cf().start_date
                                         else member.current_cf().start_date + relativedelta(years=1) + relativedelta(month=12) + relativedelta(day=31),
@@ -3427,8 +3431,8 @@ def add_duty(request):
                                 else:
                                     AuthorshipPeriod.objects.create(
                                         member=member,
-                                        start_date=memberDuty.start_date + relativedelta(months=6)
-                                        if memberDuty.start_date.date() + relativedelta(months=6) > member.current_cf().start_date
+                                        start_date=yearStart + relativedelta(months=6)
+                                        if yearStart + relativedelta(months=6) > member.current_cf().start_date
                                         else member.current_cf().start_date,
                                         end_date=memberDuty.start_date + relativedelta(years=1) + relativedelta(month=12) + relativedelta(day=31)
                                         if memberDuty.start_date.date() + relativedelta(months=6) > member.current_cf().start_date
@@ -3451,6 +3455,7 @@ def add_duty(request):
                                     )
             else:
                 futureAuthorship = member.future_authorship()
+                logger.info(f"This is the future authorship: {futureAuthorship}")
                 if futureAuthorship:
                     if futureAuthorship.end_date and futureAuthorship.end_date < datetime(memberDuty.start_date.year, 1, 1).date():
                         authorship_period = AuthorshipPeriod.objects.create(
@@ -3500,10 +3505,16 @@ def add_duty(request):
                         authorship.save()
                     elif memberDuty.duty.duty_type.name == 'temporary':
                         currentAuthorship = member.current_authorship()
-                        logger.info(len(prevDuties) > 1)
-                        if len(prevDuties) > 1 and currentAuthorship and currentAuthorship.end_date and abs((date(memberDuty.start_date.year, 1, 1) - currentAuthorship.end_date).days) == 1:
-                            logger.info(f"The duty is temporary, checking the start date to see if the periods are continous, this is the day difference: {abs((date(memberDuty.start_date.year, 1, 1) - currentAuthorship.end_date).days)}")
-                            authorship.start_date = datetime(memberDuty.start_date.year, 1, 1)
+                        if len(prevDuties) > 1:
+                            if currentAuthorship and currentAuthorship.end_date and abs((date(memberDuty.start_date.year, 1, 1) - currentAuthorship.end_date).days) == 1:
+                                logger.info(f"The duty is temporary, checking the start date to see if the periods are continous, this is the day difference: {abs((date(memberDuty.start_date.year, 1, 1) - currentAuthorship.end_date).days)}")
+                                authorship.start_date = datetime(memberDuty.start_date.year, 1, 1)
+                        else:
+                            if member.role != 'student':
+                                authorship.start_date = datetime(memberDuty.start_date.year, 1, 1) + relativedelta(months=6)
+                            else:
+                                authorship.start_date = datetime(memberDuty.start_date.year, 1, 1)
+
                         authorship.end_date = datetime(memberDuty.start_date.year + 1, 12, 31).date()
                         authorship.save()
             logger.info(f'The authorship after revision start is: {authorship.start_date}')
