@@ -5,37 +5,46 @@ from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from django.db.models import Max, OuterRef, Subquery, F
 import subprocess
+import json, tempfile, time
+from uuid import uuid4
 
 LIST_PATH = "endingAuthorsList.txt"
 TO_ADDRESS = "lst-telescope-manager@cta-observatory.org"
+MAILDROP_DIR = "maildrop"
+def _write_mail_json(payload: dict):
+    os.makedirs(MAILDROP_DIR, exist_ok=True)
+    # Escritura atómica
+    tmp_path = os.path.join(MAILDROP_DIR, f".tmp-{uuid4().hex}.json")
+    final_path = os.path.join(MAILDROP_DIR, f"{int(time.time())}-{uuid4().hex}.json")
+    with open(tmp_path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False)
+    os.replace(tmp_path, final_path)
 
 def send_digest(added_members, removed_authors, lst):
     if not added_members and not removed_authors:
         return
 
-    context = {
+    subject = "List of authors ending authorship in 6 months"
+    html_content = render_to_string("emails/email.html", {
         "added_members": added_members,
         "removed_members": removed_authors,
         "list": lst,
         "count_added": len(added_members),
         "count_removed": len(removed_authors),
         "count_list": len(lst),
+    })
+    payload = {
+        "to": "lst-telescope-manager@cta-observatory.org",
+        "from": "LAMA@cta-observatory.org",
+        "subject": subject,
+        "headers": {
+            "MIME-Version": "1.0",
+            "Content-Type": "text/html; charset=UTF-8",
+            "List-Unsubscribe": "<mailto:unsub@example.com>"
+        },
+        "body_html": html_content
     }
-
-    subject = "List of authors ending authorship in 6 months"
-    html_content = render_to_string("emails/email.html", context)
-
-    cmd = [
-        "mail",
-        "-s", subject,
-        "-r", "LAMA@cta-observatory.org",
-        "-a", "MIME-Version: 1.0",
-        "-a", "Content-Type: text/html; charset=UTF-8",
-        "-a", "List-Unsubscribe: <mailto:unsub@example.com>",
-        TO_ADDRESS,
-    ]
-
-    subprocess.run(cmd, input=html_content.encode("utf-8"), check=True)
+    _write_mail_json(payload)
 
 def run():
     print("Running Script...")
