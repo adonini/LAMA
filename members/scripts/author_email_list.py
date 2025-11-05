@@ -1,40 +1,41 @@
 from ..models import ( AuthorshipPeriod, Member)
-from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 import os
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from django.db.models import Max, OuterRef, Subquery, F
+import subprocess
 
 LIST_PATH = "endingAuthorsList.txt"
 TO_ADDRESS = "lst-telescope-manager@cta-observatory.org"
 
-def send_digest(added_members, removed_authors, list):
-    """Send email with text+HTML if there are changes."""
+def send_digest(added_members, removed_authors, lst):
     if not added_members and not removed_authors:
         return
 
     context = {
         "added_members": added_members,
         "removed_members": removed_authors,
-        "list": list,
+        "list": lst,
         "count_added": len(added_members),
         "count_removed": len(removed_authors),
-        "count_list": len(list),
+        "count_list": len(lst),
     }
 
-    text_content = render_to_string("emails/email.txt", context)
+    subject = "List of authors ending authorship in 6 months"
     html_content = render_to_string("emails/email.html", context)
 
-    msg = EmailMultiAlternatives(
-        subject="List of authors ending authorship in 6 months",
-        body=text_content,
-        from_email=None,                 # uses DEFAULT_FROM_EMAIL from settings
-        to=[TO_ADDRESS],
-        headers={"List-Unsubscribe": "<mailto:unsub@example.com>"},
-    )
-    msg.attach_alternative(html_content, "text/html")
-    msg.send(fail_silently=False)
+    cmd = [
+        "mail",
+        "-s", subject,
+        "-r", "LAMA@cta-observatory.org",
+        "-a", "MIME-Version: 1.0",
+        "-a", "Content-Type: text/html; charset=UTF-8",
+        "-a", "List-Unsubscribe: <mailto:unsub@example.com>",
+        TO_ADDRESS,
+    ]
+
+    subprocess.run(cmd, input=html_content.encode("utf-8"), check=True)
 
 def run():
     print("Running Script...")
