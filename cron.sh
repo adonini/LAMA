@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 week="$(date +%V)"
 week=$((10#$week))
-if true; then
+if ((week % 2)); then
     PROJECT_DIR="/home/lst1/lama/LAMA"
     {
 
