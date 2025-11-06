@@ -3494,7 +3494,7 @@ def add_duty(request):
                         authorship.end_date = datetime(memberDuty.start_date.year + 1, 12, 31).date()
                         authorship.save()
                 else:
-                    if not authorship or authorship.end_date < memberDuty.start_date.date():
+                    if not authorship or (authorship.end_date and authorship.end_date < memberDuty.start_date.date()):
                         authorship = AuthorshipPeriod.objects.create(
                             member=member,
                             start_date=memberDuty.start_date,
