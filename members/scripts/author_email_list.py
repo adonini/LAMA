@@ -4,27 +4,12 @@ import os
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from django.db.models import Max, OuterRef, Subquery, F
+from django.core.mail import EmailMultiAlternatives
 import subprocess
 import json, tempfile, time
 from uuid import uuid4
 
 LIST_PATH = "endingAuthorsList.txt"
-TO_ADDRESS = "lst-telescope-manager@cta-observatory.org"
-MAILDROP_DIR = "maildrop"
-def _write_mail_file(to_addr: str, from_addr: str, subject: str, headers: dict, body: str):
-    os.makedirs(MAILDROP_DIR, exist_ok=True)
-    tmp_path = os.path.join(MAILDROP_DIR, f".tmp-{uuid4().hex}.mail")
-    final_path = os.path.join(MAILDROP_DIR, f"{int(time.time())}-{uuid4().hex}.mail")
-    with open(tmp_path, "w", encoding="utf-8", newline="\n") as f:
-        f.write(f"TO={to_addr}\n")
-        f.write(f"FROM={from_addr}\n")
-        f.write(f"SUBJECT={subject}\n")
-        for k, v in (headers or {}).items():
-            f.write(f"HEADER={k}: {v}\n")
-        f.write("\n")
-        f.write(body or "")
-    os.replace(tmp_path, final_path)
-
 def send_digest(added_members, removed_authors, lst):
     if not added_members and not removed_authors:
         return
@@ -39,19 +24,20 @@ def send_digest(added_members, removed_authors, lst):
         "count_list": len(lst),
     })
 
-    headers = {
-        "MIME-Version": "1.0",
-        "Content-Type": "text/html; charset=UTF-8",
-        "List-Unsubscribe": "<mailto:unsub@example.com>",
-    }
+    to_addr = "lst-telescope-manager@cta-observatory.org" #lst-telescope-manager@cta-observatory.org
+    from_addr = "LAMA@cta-observatory.org"
 
-    _write_mail_file(
-        to_addr=TO_ADDRESS,
-        from_addr="LAMA@cta-observatory.org",
+    msg = EmailMultiAlternatives(
         subject=subject,
-        headers=headers,
-        body=html_content,
+        body="This email requires an HTML-capable client.",
+        from_email=from_addr,
+        to=[to_addr],
+        headers={
+            "List-Unsubscribe": "<mailto:unsub@example.com>",
+        },
     )
+    msg.attach_alternative(html_content, "text/html")
+    msg.send()
 
 def run():
     print("Running Script...")

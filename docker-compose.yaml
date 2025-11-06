@@ -32,7 +32,6 @@ services:
     volumes:
       - .:/code
       - static:/code/staticfiles
-      - ./maildrop:/code/maildrop
     environment:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -55,6 +54,14 @@ services:
     depends_on:
       - web
     restart: always
+
+  mailer:
+    image: boky/postfix
+    container_name: mailer_lama
+    environment:
+      ALLOW_EMPTY_SENDER_DOMAINS: "yes"
+      MYNETWORKS: "127.0.0.0/8 172.22.0.0/16"
+    restart: unless-stopped  
 
 volumes:
   static:

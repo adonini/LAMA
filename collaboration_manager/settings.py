@@ -189,13 +189,11 @@ ADMIN_URL = os.getenv('DJANGO_ADMIN_URL')
 
 #Email configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = "host.docker.internal"
-EMAIL_PORT = 2525
-EMAIL_USE_TLS = False
-EMAIL_HOST_USER = ""
-EMAIL_HOST_PASSWORD = ""
-DEFAULT_FROM_EMAIL = "LAMA Monitoring <noreply.lamamonitoring@gmail.com>"
-SERVER_EMAIL = DEFAULT_FROM_EMAIL
+EMAIL_HOST = "mailer"
+EMAIL_PORT = 25
+EMAIL_USE_TLS =False
+EMAIL_USE_SSL = False
+DEFAULT_FROM_EMAIL = "LAMA@cta-observatory.org"
 
 LOGGING = {
     'version': 1,
