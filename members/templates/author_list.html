@@ -1,0 +1,367 @@
+{% extends 'login/base.html' %}
+
+{% block content %}
+{% load custom_filter %}
+{% load humanize %}
+<div class="container-fluid">
+    {% if authors_missing_details %}
+        <div class="alert alert-warning alert-dismissible" role="alert">
+            <strong>Attention:</strong> There are authors missing author details. Please update them.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
+    {% if authors_missing_full_name %}
+    <div class="alert alert-warning alert-dismissible">
+        <strong>Warning:</strong> The following authors are missing full names: {{ authors_missing_full_name|join:", " }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+    {% if authors_missing_affiliation%}
+        <div class="alert alert-warning alert-dismissible">
+            <strong>Warning:</strong> The following authors are missing affiliation information: {{ authors_missing_affiliation|join:", " }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
+    <div class="header position-relative d-flex align-items-center">
+        <div class="d-flex align-items-center w-100 mt-0 mb-2">
+            <div class="tools d-flex align-items-center">
+                <!-- Dropdown for selecting journal -->
+                <div class="dropdown me-2">
+                    <select class="form-select form-select-sm" id="journalDropdown">
+                        <option selected disabled>Select Journal</option>
+                        <option value="aa">AA</option>
+                        <option value="aa_w_e">AA with email</option>
+                        <option value="apj">ApJ</option>
+                        <option value="arxiv">ArXiv</option>
+                        <option value="mnras">MNRAS</option>
+                        <option value="pos">POS</option>
+                        <option value="nature">Nature</option>
+                        <option value="science">Science</option>
+                    </select>
+                </div>
+
+                <!-- Date selectors -->
+                <input type="date" class="form-control form-control-sm me-2" id="Date" placeholder="Select Date">
+
+                <!-- Export Button -->
+                <button type="button" class="btn btn-primary btn-sm" id="exportList">
+                    <i class="fa fa-download me-2"></i> Export List
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="body">
+        <div class="table-wrapper">
+            <table class="table table-sm table-hover" id="author-list">
+                <thead>
+                    <tr>
+                        <th class="text-center dark-text">#</th>
+                        <th class="text-center dark-text">First Name</th>
+                        <th class="text-center dark-text">Last Name</th>
+                        <th class="text-center dark-text">Institute</th>
+                        <th class="text-center dark-text">Group</th>
+                        <th class="text-center dark-text">Country</th>
+                        <th class="text-center dark-text">Authorship Start</th>
+                        <th class="text-center dark-text">Authorship End</th>
+                        <th class="text-center dark-text">Main Affiliation</th>
+                        <th class="text-center dark-text">{% if user|has_group:"admin" or user|has_group:"sapo" %}
+                            Actions {% else %} Details {% endif %}</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block ScriptBlock %}
+<script>
+    let institutes = {{ institutes|safe }};
+    let groups = {{ groups|safe }};
+    let countries = {{ countries|safe }};
+    let filters = {{ filters|safe }};
+    $(function() {
+        //remove the default 'Search' text for all DataTable search boxes
+        $.extend(true, $.fn.dataTable.defaults, {
+            language: {
+                search: ""
+            }
+        });
+
+        let table = $('#author-list').DataTable({
+            serverSide: true,
+            ajax: {
+                url: '/api/authors/',
+                type: 'GET',
+                data: function(d) {
+                    d.country = $('#Country').val();
+                    d.group = $('#Group').val();
+                    d.institute = $('#Institute').val();
+                }
+            },
+            // Assign values to each row
+            columns: [
+                { data: null },
+                { data: 'name' },
+                { data: 'surname' },
+                { data: 'institute_name' },
+                { data: 'group_name' },
+                { data: 'country_name' },
+                { data: 'authorship_start' },
+                { data: 'authorship_end' },
+                { data: 'main_affiliation' },
+                { data: 'actions' },
+
+            ],
+            responsive: true,
+            scrollX: true, // Only the table itself will scroll horizontally
+            dom: '<"top1"<"top1Start"f><"top1End"B>>t<"bottom"<"bottomStart"i><"bottomCenter"l><"bottomEnd"p>>',
+            buttons: [{extend: 'copy', exportOptions: {columns: ':not(:last-child)'} // Exclude the last column (Actions/Details)
+                },
+                {extend: 'csv', exportOptions: {columns: ':not(:last-child)'}
+                },
+                {extend: 'excel',exportOptions: {columns: ':not(:last-child)'}
+                },
+                {extend: 'print',exportOptions: {columns: ':not(:last-child)'}
+                }
+            ],
+            order: [[1, 'asc']],
+            columnDefs: [
+                { orderable: false, targets: [0,1,2,3,4,5,6,7,8,9] }, // Disable ordering
+                {targets: 0, searchable: false,
+                    render: function(data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1; // Row numbering
+                    }
+                },
+            ],
+            drawCallback: function(settings) {
+                let api = this.api();
+                api.rows({ page: 'current' }).every(function(rowIdx, tableLoop, rowLoop) {
+                    $('td:eq(0)', this.node()).html(rowLoop + 1); // Update row numbers
+                });
+            }
+        });
+
+        // Define custom filter elements and behavior
+        let data = table.data().toArray()
+        let filterLabels = ['Country: ', 'Group: ', 'Institute: '];
+        let mainDiv = document.querySelector('.top1Start');
+        let generalDiv = document.createElement('div');
+        generalDiv.classList.add('d-flex', 'flex-wrap');
+        mainDiv.classList.add('filters');
+        let countryDropdown, groupDropdown, instituteDropdown; // Variables to store dropdowns
+
+        // Create a container for Country, Group, and Institute filters
+        let filtersContainer = document.createElement('div');
+        filtersContainer.classList.add('d-flex', 'flex-wrap');
+
+        // Helper function to update options dynamically
+        function updateDropdown(dropdown, options, selectedValue) {
+            dropdown.innerHTML = ''; // Clear existing options
+            // Sort options alphabetically
+            options.sort((a, b) => a.localeCompare(b));
+            // If there's only one option, select it automatically
+            if (options.length === 1) {
+                let opt = document.createElement('option');
+                opt.value = options[0];
+                opt.textContent = options[0];
+                opt.selected = true;
+                dropdown.appendChild(opt);
+            } else {
+                let defaultOption = document.createElement('option');
+                defaultOption.value = 'All';
+                defaultOption.textContent = 'All';
+                dropdown.appendChild(defaultOption);
+                // Add options
+                options.forEach(option => {
+                    let opt = document.createElement('option');
+                    opt.value = option;
+                    opt.textContent = option;
+                    // Maintain the selected value if it's available in the options
+                    if (option === selectedValue) {
+                        opt.selected = true;
+                    }
+                    dropdown.appendChild(opt);
+                });
+            }
+        }
+
+        // Update other dropdowns based on current selections
+        function updateFilters(triggeredBy) {
+            let selectedCountry = countryDropdown.value;
+            let selectedGroup = groupDropdown.value;
+            let selectedInstitute = instituteDropdown.value;
+
+            let validCountries = new Set();
+            let validGroups = new Set();
+            let validInstitutes = new Set();
+
+            // Calculate valid options based on the selections
+            for (let country in filters) {
+                let countryData = filters[country];
+                let countryGroups = countryData.groups;
+
+                for (let group in countryGroups) {
+                    let groupInstitutes = countryGroups[group];
+                    let matchesCountry = selectedCountry === 'All' || selectedCountry === country;
+                    let matchesGroup = selectedGroup === 'All' || selectedGroup === group;
+                    let matchesInstitute = selectedInstitute === 'All' || groupInstitutes.includes(selectedInstitute);
+
+                    // If the combination matches, add to the valid lists
+                    if (matchesCountry && matchesGroup && matchesInstitute) {
+                        validCountries.add(country);
+                        validGroups.add(group);
+                        groupInstitutes.forEach(institute => validInstitutes.add(institute));
+                    }
+                }
+            }
+
+            // Convert Sets to Arrays for dropdown updates
+            validCountries = Array.from(validCountries);
+            validGroups = Array.from(validGroups);
+            validInstitutes = Array.from(validInstitutes);
+
+            // Update dropdowns based on valid options
+            if (triggeredBy !== 'country') updateDropdown(countryDropdown, validCountries, selectedCountry);
+            if (triggeredBy !== 'group') updateDropdown(groupDropdown, validGroups, selectedGroup);
+
+            // Show only the selected institute if one is chosen
+            if (selectedInstitute !== 'All' && triggeredBy === 'institute') {
+                updateDropdown(instituteDropdown, [selectedInstitute], selectedInstitute);
+            } else {
+                if (triggeredBy !== 'institute') updateDropdown(instituteDropdown, validInstitutes, selectedInstitute);
+            }
+
+            // Apply filters to the table
+            table.column(5).search(selectedCountry !== 'All' ? selectedCountry : '').draw();
+            table.column(4).search(selectedGroup !== 'All' ? selectedGroup : '').draw();
+            table.column(3).search(selectedInstitute !== 'All' ? selectedInstitute : '').draw();
+        }
+
+        for (let label of filterLabels) {
+            let divInput = document.createElement('div');
+            divInput.classList.add('filterInput');
+            divInput.style.marginTop = '5px';
+
+            let input = document.createElement('select');
+            input.classList.add('rounded-pill', 'form-select');
+            let defaultOption = document.createElement('option');
+            defaultOption.appendChild(document.createTextNode('All'));
+            input.appendChild(defaultOption);
+            input.setAttribute('id', label.replace(": ", ""));
+
+            // Filter by Country
+            if (label.toLowerCase().includes('country')) {
+                countryDropdown = input;
+                input.addEventListener('change', () => updateFilters('country'));
+                // Populate with all countries initially
+                for (let country in filters) {
+                    let option = document.createElement('option');
+                    option.value = country;
+                    option.appendChild(document.createTextNode(country));
+                    input.appendChild(option);
+                }
+                filtersContainer.appendChild(divInput);
+            }
+
+            // Filter by Group
+            if (label.toLowerCase().includes('group')) {
+                groupDropdown = input;
+                input.addEventListener('change', () => updateFilters('group'));
+                // Initially empty; will be populated dynamically
+                filtersContainer.appendChild(divInput);
+            }
+
+            // Filter by Institute
+            if (label.toLowerCase().includes('institute')) {
+                instituteDropdown = input;
+                input.addEventListener('change', () => updateFilters('institute'));
+                // Initially empty; will be populated dynamically
+                filtersContainer.appendChild(divInput);
+            }
+
+            // Set up the label and input for each filter
+            let inputLabel = document.createElement('label');
+            inputLabel.appendChild(document.createTextNode(label));
+            inputLabel.setAttribute('for', label);
+            divInput.appendChild(inputLabel);
+            divInput.appendChild(input);
+        }
+
+        // Append the other filters container
+        mainDiv.appendChild(filtersContainer);
+
+        // Initialize dropdowns with valid options
+        updateFilters();
+
+        let top1End = document.querySelector('.top1End');
+        let clearFilterButton = document.createElement('div');
+        clearFilterButton.classList.add('btn', 'btn-clear', 'rounded-xl');
+        clearFilterButton.appendChild(document.createTextNode('Clear filters'));
+        clearFilterButton.addEventListener('click', function() {
+            let inputs = document.querySelectorAll('.filterInput > select');
+
+            // Reset all dropdowns to "All"
+            inputs.forEach(input => {
+                input.value = 'All';
+            });
+
+            // Sequentially update filters
+            updateFilters('country'); // Reset country
+            updateFilters('group');   // Reset group
+            updateFilters('institute'); // Reset institute explicitly
+
+            // Force repopulation of the institute dropdown
+            updateDropdown(instituteDropdown, Array.from(new Set(Object.values(filters).flatMap(country => {
+                return Object.values(country.groups).flat();
+            }))), 'All');
+
+            // Clear any custom searches on the table
+            table.search('').draw();
+        });
+
+        top1End.appendChild(clearFilterButton);
+
+        // Custom Search placeholders and Clear Filter button
+        $('[type=search]').each(function () {
+            $(this).attr("placeholder", "Search...");
+            $(this).attr("autocomplete", "off");
+            $(this).before('<span class="fa fa-search"></span>');
+        });
+
+        $(document).on('click', '#exportList', function () {
+            const journal = $('#journalDropdown').val();
+            const selectedDate = $('#Date').val();
+
+            if (!selectedDate) {
+                alert('Please select a date.');
+                return;
+            }
+
+            // Format the date in YYYY-MM-DD format
+            const formattedDate = new Date(selectedDate).toISOString().split('T')[0];
+
+            if (journal === 'aa') {
+                window.location.href = `/export-aa/?date=${formattedDate}`;
+            } else if (journal === 'aa_w_e') {
+                window.location.href = `/export-aa-with-emails/?date=${formattedDate}`;
+            } else if (journal === 'apj') {
+                window.location.href = `/export-apj/?date=${formattedDate}`;
+            } else if (journal === 'arxiv') {
+                window.location.href = `/export-arxiv/?date=${formattedDate}`;
+            } else if (journal === 'mnras') {
+                window.location.href = `/export-mnras/?date=${formattedDate}`;
+            } else if (journal === 'pos') {
+                window.location.href = `/export-pos/?date=${formattedDate}`;
+            } else if (journal === 'nature') {
+                window.location.href = `/export-nature/?date=${formattedDate}`;
+            } else if (journal === 'science') {
+                window.location.href = `/export-science/?date=${formattedDate}`;
+            } else {
+                alert('Selected journal is not yet implemented.');
+            }
+        })
+
+});
+</script>
+{% endblock ScriptBlock %}

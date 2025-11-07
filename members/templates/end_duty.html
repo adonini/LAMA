@@ -1,0 +1,10 @@
+{% load humanize %}
+{% load custom_filter %}
+
+<div>
+    <p class="text-center"><strong>Note:</strong> If you don't select an end date, {{today}} will be set.</p>
+    <div class="endDateContainer mt-1 w-100 d-flex justify-content-center">
+        <label for="endDate" class="me-1">End Date</label>
+        <input type="date" class="date me-3" name="dutyEndDate" id="endDate">
+    </div>
+</div>

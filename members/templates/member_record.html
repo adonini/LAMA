@@ -1,0 +1,150 @@
+{% load humanize %}
+{% load custom_filter %}
+
+<div class="">
+    <h5 class="text-dark section-title">General</h5>
+    <div class="affiliation-section">
+        <ul class="list-group list-group-flush ul-left">
+            <li class="list-group-item"><strong class="text-dark fw-bold">First Name</strong> <br> {{ member.name|default:"-" }}</li>
+            <li class="list-group-item"><strong class="text-dark fw-bold">Email</strong> <br> {{ member.primary_email|default:"-" }}</li>
+        </ul>
+        <ul class="list-group list-group-flush ul-right">
+            <li class="list-group-item"><strong class="text-dark fw-bold">Second Name</strong> <br> {{ member.surname|default:"-" }}</li>
+            <li class="list-group-item"><strong class="text-dark fw-bold">Role</strong> <br> {{ member.get_role_display|default:"-" }}</li>
+        </ul>
+    </div>
+    <div class="mt-3">
+        <h5 class="text-dark section-title">Current Affiliation</h5>
+        <div class="affiliation-section">
+            {% if member.current_institute %}
+                <ul class="list-group list-group-flush affiliation-list">
+                    <li class="list-group-item"><strong class="text-dark fw-bold">Institute</strong> <br> {{ member.current_institute.name|default:"-" }}</li>
+                    <li class="list-group-item"><strong class="text-dark fw-bold">Group</strong> <br> {{ member.current_institute.group.name|default:"-" }}</li>
+                    <li class="list-group-item"><strong class="text-dark fw-bold">Country</strong> <br> {{ member.current_institute.group.country.name|default:"-" }}</li>
+                </ul>
+            {% else %}
+                <p class="text-dark w-100 text-center">No current affiliation</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="mt-3">
+        <h5 class="text-dark section-title">Membership</h5>
+        {% if membership_periods %}
+            <table class="table table-bordered table-hover styled-table">
+                <thead>
+                    <tr>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Institute</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for period in membership_periods %}
+                        <tr>
+                            <td>{{ period.start_date|date:"Y-m-d" }}</td>
+                            <td>{{ period.end_date|date:"Y-m-d"|default:"Active" }}</td>
+                            <td>{{ period.institute.name|default:"-" }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="text-dark w-100 text-center">No membership periods available</p>
+        {% endif %}
+    </div>
+    <div class="mt-3">
+       <h5 class="text-dark section-title">Common Fund</h5>
+            {% if is_cf  %}
+                <p class="text-dark w-100 text-center">
+                    This member is contributing to CF since {{member.cf_start|date:"Y-m-d"}}
+                </p>
+            {% else %}
+                <p class="text-dark w-100 text-center">This member is not contributing to CF</p>
+            {% endif %}
+    </div>
+    {% if current_authorship or authorship_periods %}
+        <div class="mt-3">
+            <h5 class="text-dark section-title">Authorship</h5>
+            {% if current_authorship %}
+                <table class="table table-bordered table-hover styled-table">
+                    <thead>
+                        <tr>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for period in authorship_periods %}
+                            <tr>
+                                <td>{{ period.start_date|date:"Y-m-d" }}</td>
+                                <td>{{ period.end_date|date:"Y-m-d"|default:"Active" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% elif authorship_periods %}
+                {% if authorship_period_status == "future" %}
+                    <p class="text-dark">
+                        No active authorship period, but a future authorship period exists and will start on
+                        {{ authorship_periods.0.start_date|date:"Y-m-d" }}.
+                    </p>
+                {% else %}
+                    <p class="text-dark w-100 text-center">No authorship period</p>
+                {% endif %}
+            {% else %}
+                <p class="text-dark w-100 text-center">No authorship period</p>
+            {% endif %}
+        </div>
+    {% endif %}
+    <div class="mt-3">
+        <h5 class="text-dark section-title">Active Duties</h5>
+        {% if temporaryDuties or permanentDuties or totalDuties %}
+            <table class="table table-bordered table-hover styled-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for duty in permanentDuties %}
+                        <tr>
+                            <td>{{ duty.duty.name }}</td>
+                            <td>{{ duty.start_date|date:"Y-m-d" }}</td>
+                            <td>{{ duty.end_date|date:"Y-m-d"|default:"Active" }}</td>
+                        </tr>
+                    {% endfor %}
+                    {% for duty in temporaryDuties %}
+                        <tr>
+                            <td>{{ duty.duty.name }}</td>
+                            <td>{{ duty.start_date|date:"Y-m-d" }}</td>
+                            <td>{{ duty.end_date|date:"Y-m-d"|default:"Active" }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <p class="text-dark w-100 text-center">Showing {{showingDuties}} of {{totalDuties}}</p>
+        {% else %}
+            <p class="text-dark w-100 text-center">No duties have been assigned to this member</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Duty History Section
+<h4>Duty History</h4>
+<div class="dutyHistory">
+    {% if member.duty_history.all %}
+        <ul class="list-group list-group-flush">
+            {% for duty in member.duty_history.all %}
+                <li class="list-group-item">
+                    <strong>{{ duty.duty.name }}</strong> <br>
+                    <em>From {{ duty.start_date|date:"Y-m-d" }} to
+                    {% if duty.end_date %} {{ duty.end_date|date:"Y-m-d" }} {% else %} ongoing {% endif %}</em>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No duty history available for this member.</p>
+    {% endif %}
+</div> -->

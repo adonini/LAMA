@@ -1,0 +1,529 @@
+First Name,Last Name,Member,Author,CF/SS,Member Start,Member End,Author Start,Author End,Duty,Role,Email,Country,Institute,Group,Comment,Member List
+Martin,Makariev,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"Shift 2024, Optics",Scientist,makariev@inrne.bas.bg,Bulgaria,"INRNE, BAS",BULGARIA,,y
+Petar,Temnikov,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"ESC, SCP",Scientist,petar.temnikov@gmail.com,Bulgaria,"INRNE, BAS",BULGARIA,,y
+Ulisses,Barres de Almeida,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"ESC, SCP",Scientist,ulisses@cbpf.br,Brazil,CBPF,CBPF,,y
+Rodrigo Félix,de Araujo Cardoso,yes,no,no,"Jan 1, 2018",,,,,Technician,rfelix@cbpf.br,Brazil,CBPF,CBPF,,n
+Joao,Giesbrecht Paiva,yes,yes,yes,"Jan 1, 2022",,"Jul 1, 2022",,Shift 2024,Student,joao.giesbrecht@gmail.com,Brazil,CBPF,CBPF,,y
+Juan,Bernete Medrano,yes,yes,yes,"Feb 20, 2022",,"Aug 20, 2022",,FOA 2024,Student,juan.bernete@ciemat.es,Spain,CIEMAT,CIEMAT,,y
+Alejo,Cifuentes,yes,yes,yes,"Dec 9, 2021",,"Jun 9, 2022",,Shift 2023,Student,alejo.cifuentes@ciemat.es,Spain,CIEMAT,CIEMAT,,y
+Juan,Cortina,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,ESC,Scientist,juan.cortina@ciemat.es,Spain,CIEMAT,CIEMAT,,y
+Sergio,Cuadrado Calzada,no,no,no,"Jan 1, 2018","May 31, 2023",,,,Technician,sergio.cuadrado@ciemat.es,Spain,CIEMAT,CIEMAT,left May 2023,n
+Carlos,Delgado,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,ESC,Scientist,carlos.delgado@ciemat.es,Spain,CIEMAT,CIEMAT,,y
+Carlos,Díaz,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"Camera, SCP",Engineer,carlos.diaz@ciemat.es,Spain,CIEMAT,CIEMAT,,y
+Lluis,Freixas,yes,no,no,"Jan 1, 2018",,"Jul 1, 2018","Oct 31, 2024",,Engineer,lluis.freixas@ciemat.es,Spain,CIEMAT,CIEMAT,author end Oct 2024,y
+Silvia,Garcia Soto,yes,no,yes,"Jun 1, 2024",,"Dec 1, 2024",,,Student,silvia.garcia@ciemat.es,Spain,CIEMAT,CIEMAT,joined Jun 2024,y
+Tarek,Hassan,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,Camera (Calibration automatic),Scientist,tarek.hassan@ciemat.es,Spain,CIEMAT,CIEMAT,,y
+Iñigo,Jorge Rodrigo,yes,yes,yes,"Mar 15, 2024",,"Sep 15, 2024",,Camera (Backplane Network Maintenance),Engineer,inigo.jorge@ciemat.es,Spain,CIEMAT,CIEMAT,joined Mar 2024,y
+Gustavo,Martínez,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,Camera,Engineer,gustavo.martinez@ciemat.es,Spain,CIEMAT,CIEMAT,,y
+Javier,Morales,yes,no,no,"Jan 1, 2018",,,,,Technician,javier.morales@ciemat.es,Spain,CIEMAT,CIEMAT,,y
+Miguel,Polo,yes,yes,yes,"May 1, 2024",,"Nov 1, 2024",,Camera,Engineer,miguel.polo@ciemat.es,Spain,CIEMAT,CIEMAT,"left May 2023, returned May 2024",y
+Jordi,Delgado Mengual,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"EB, Onsite IT",Engineer,jordidem@pic.es,Spain,CIEMAT-PIC,CIEMAT,,y
+Gonzalo,Merino,yes,no,no,"Jun 15, 2022",,,,,Engineer,merino@pic.es,Spain,CIEMAT-PIC,CIEMAT,,y
+William,Assal,yes,no,no,"Apr 26, 2024",,,,Camera,Engineer,assal@cppm.in2p3.fr,France,"CPPM, CNRS-IN2P3, Aix-Marseille Université",CPPM,joined Apr 2024,y
+Malaury,Bertin,yes,no,no,"Sep 1, 2022",,,,,Student,mbertin@cppm.in2p3.fr,France,"CPPM, CNRS-IN2P3, Aix-Marseille Université",CPPM,,y
+Alessandra,Briscioli,yes,no,yes,"Oct 1, 2024",,"Apr 1, 2025",,,Student,brisciolI@cppm.in2p3.fr,France,"CPPM, CNRS-IN2P3, Aix-Marseille Université",CPPM,joined Oct 2024,y
+Marie-Sophie,Carrasco,yes,yes,yes,"Oct 1, 2022",,"Apr 1, 2023",,Shift 2023,Student,carrasco@cppm.in2p3.fr,France,"CPPM, CNRS-IN2P3, Aix-Marseille Université",CPPM,,y
+Franca,Cassol,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,Camera (Calibration),Scientist,cassol@cppm.in2p3.fr,France,"CPPM, CNRS-IN2P3, Aix-Marseille Université",CPPM,,y
+Heide,Costantini,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"ESC, Phys",Scientist,costant@cppm.in2p3.fr,France,"CPPM, CNRS-IN2P3, Aix-Marseille Université",CPPM,,y
+Gabriel,Emery,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"Shift 2023, Analysis",Scientist,gabriel.emery@unige.ch,France,"CPPM, CNRS-IN2P3, Aix-Marseille Université",CPPM,,y
+Lorenzo,Feligioni,yes,no,yes,"Oct 1, 2024",,"Apr 1, 2025",,,Scientist,lorenzo@cppm.in2p3.fr,France,"CPPM, CNRS-IN2P3, Aix-Marseille Université",CPPM,joined Oct 2024,y
+Dirk,Hoffmann,yes,yes,yes,"Jan 1, 2018",,"Dec 1, 2020",,"Camera, SCP",Engineer,hoffmann@cppm.in2p3.fr,France,"CPPM, CNRS-IN2P3, Aix-Marseille Université",CPPM,,y
+Julien,Houles,yes,yes,yes,"Jan 1, 2018",,"Dec 1, 2020",,Camera,Engineer,houles@cppm.in2p3.fr,France,"CPPM, CNRS-IN2P3, Aix-Marseille Université",CPPM,,y
+Cédric,Champion,yes,no,no,"Apr 1, 2021",,,,Camera,Engineer,cedric.champion@apc.univ-paris7.fr,France,"U de Paris, APC",CPPM,,y
+Michael,Punch,yes,no,no,"Apr 1, 2021",,,,Camera,Scientist,punch@in2p3.fr,France,"U de Paris, APC",CPPM,,y
+Nikola,Godinovic,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"ESC, Pointing",Scientist,nikola.godinovic@fesb.hr,Croatia,FESB,CROATIA,,y
+Toni,Šarić,yes,yes,yes,"Oct 1, 2020",,"Apr 1, 2021",,"Pointing, Shift 2024",Student,tosaric@fesb.hr,Croatia,FESB,CROATIA,,y
+Dario,Hrupec,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"ESC, Shift 2024",Scientist,dario.hrupec@irb.hr,Croatia,U Osijek,CROATIA,,y
+Jelena,Strišković,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"EB, Shift 2023, Shift 2024, SE",Student,jelena.striskovic@gmail.com,Croatia,U Osijek,CROATIA,,y
+Dijana,Dominis Prester,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,ESC,Scientist,dijana@phy.uniri.hr,Croatia,U Rijeka,CROATIA,,y
+Marina,Manganaro,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,Daily Check 2024,Scientist,marina.manganaro@phy.uniri.hr,Croatia,U Rijeka,CROATIA,,y
+Sasa,Micanovic,no,yes,yes,"Jan 1, 2018","Aug 31, 2024","Jul 1, 2018","Feb 28, 2025",SCP,Scientist,sasa.micanovic@phy.uniri.hr,Croatia,U Rijeka,CROATIA,left Aug 2024,n
+Dijana,Pavlovic,no,no,no,"Jan 10, 2022","Oct 31, 2023",,,,Student,dijana164201@gmail.com,Croatia,U Rijeka,CROATIA,left Oct 2023,n
+Mario,Pecimotika,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"Camera, SAPO",Student,mpecimotika@gmail.com,Spain,IFAE-BIST,IFAE,,y
+Tomislav,Terzic,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,Phys,Scientist,tterzic@phy.uniri.hr,Croatia,U Rijeka,CROATIA,,y
+Vladimir,Karas,yes,yes,yes,"Nov 1, 2020",,"May 1, 2021",,SAPO,Scientist,vladimir.karas@cuni.cz,Czechia,ASU,CZECHIA,,y
+Martina,Bohacova,yes,no,no,"Nov 1, 2020",,,,,Scientist,bohacova@fzu.cz,Czechia,FZU,CZECHIA,,y
+Jan,Ebr,yes,no,no,"Nov 1, 2020",,,,,Scientist,ebr@fzu.cz,Czechia,FZU,CZECHIA,,y
+Petr,Janecek,yes,no,no,"Nov 1, 2020",,,,ESC,Scientist,janecekp@fzu.cz,Czechia,FZU,CZECHIA,,y
+Vlastimil,Jilek,yes,no,no,"Nov 1, 2023",,,,,Student,vlastimil.jilek01@upol.cz,Czechia,FZU,CZECHIA,joined Nov 2023,y
+Jakub,Jurysek,yes,yes,yes,"Nov 1, 2020",,"May 1, 2021",,"Schedule, Phys, Shift 2023, Shift 2024",Scientist,jurysek@fzu.cz,Czechia,FZU,CZECHIA,,y
+Dusan,Mandat,yes,yes,yes,"Nov 1, 2020",,"May 1, 2021",,"ESC, SCP, Optics",Scientist,mandat@fzu.cz,Czechia,FZU,CZECHIA,,y
+Miroslav,Palatka,yes,no,no,"Nov 1, 2020",,,,,Scientist,miroslav.palatka@upol.cz,Czechia,FZU,CZECHIA,,y
+Miroslav,Pech,yes,yes,yes,"Nov 1, 2020",,"May 1, 2021",,Optics,Scientist,miroslav.pech@upol.cz,Czechia,FZU,CZECHIA,,y
+Michael,Prouza,yes,yes,yes,"Nov 1, 2020",,"May 1, 2021",,,Scientist,prouza@fzu.cz,Czechia,FZU,CZECHIA,,y
+Petr,Schovanek,yes,no,no,"Nov 1, 2020",,,,,Scientist,petr.schovanek@upol.cz,Czechia,FZU,CZECHIA,,y
+Thomas,Tavernier,yes,yes,yes,"Jul 1, 2023",,"Jan 1, 2024",,FOA 2024,Scientist,tavernier@fzu.cz,Czechia,FZU,CZECHIA,joined Jul 2023,y
+Petr,Travnicek,yes,yes,yes,"Nov 1, 2020",,"May 1, 2021",,,Scientist,travnick@fzu.cz,Czechia,FZU,CZECHIA,,y
+Karel,Cerny,yes,no,no,"Nov 1, 2020",,,,,Scientist,karel.cerny@upol.cz,Czechia,U Olomouc,CZECHIA,,y
+Ladislav,Chytka,yes,yes,yes,"Nov 1, 2020",,"May 1, 2021",,"EB, Optics",Scientist,ladislav.chytka@upol.cz,Czechia,U Olomouc,CZECHIA,,y
+Miroslav,Hrabovsky,yes,yes,yes,"Nov 1, 2020",,"May 1, 2021",,,Scientist,miroslav.hrabovsky@upol.cz,Czechia,U Olomouc,CZECHIA,,y
+Martin,Vacula,yes,yes,yes,"Nov 1, 2020",,"May 1, 2021",,Shift 2023,Student,martin.vacula@jointlab.upol.cz,Czechia,U Olomouc,CZECHIA,,y
+Dalibor,Nosek,yes,yes,yes,"Nov 1, 2020",,"May 1, 2021",,,Scientist,nosek@ipnp.troja.mff.cuni.cz,Czechia,U Prague,CZECHIA,,y
+Vladimir,Novotny,yes,yes,yes,"Jul 1, 2023",,"Jan 1, 2024",,,Scientist,vladimir.novotny@mff.cuni.cz,Czechia,U Prague,CZECHIA,joined Jul 2023,y
+Victor,Barbosa Martins,yes,no,yes,"Nov 1, 2024",,"May 1, 2025",,,Student,victor.barbosamartins@ruhr-uni-bochum.de,Germany,RUB,DORTMUND,joined Nov 2024,y
+Lukas,Beiske,yes,no,no,"Jul 1, 2024",,,,,Student,Lukas.Beiske-x5n@ruhr-uni-bochum.de,Germany,RUB,DORTMUND,joined Jul 2024,y
+Vandad,Fallah Ramazani,no,yes,yes,"Aug 1, 2022","Nov 1, 2024","Feb 1, 2023","May 1, 2025",,Scientist,vandad.fallahramazani@cta-consortium.org,Germany,RUB,DORTMUND,left Nov 2024,n
+Lucas,Greaux,yes,no,yes,"Nov 1, 2024",,"May 1, 2025",,,Scientist,lucas.greaux@cta-consortium.org,Germany,RUB,DORTMUND,joined Nov 2024,y
+Jonas,Hackfeld,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,Optics,Student,Jonas.Hackfeld@rub.de,Germany,RUB,DORTMUND,,y
+Maria,Kherlakian,yes,no,yes,"Nov 1, 2024",,"May 1, 2025",,,Student,kherlakian@astro.ruhr-uni-bochum.de,Germany,RUB,DORTMUND,joined Nov 2024,y
+Noah,Biederbeck,no,no,no,"Jan 1, 2018","Jun 30, 2023","Jul 1, 2018","Dec 30, 2023",,Student,noah.biederbeck@tu-dortmund.de,Germany,TU Dortmund,DORTMUND,left June 2023,n
+Mirko,Bunse,yes,yes,no,"Jan 1, 2024","Dec 31, 2024","Jul 1, 2024","Jul 1, 2025",Shift 2024,Student,mirko.bunse@cs.tu-dortmund.de,Germany,TU Dortmund,DORTMUND,joined Jan 2024,y
+Luca,Di Bella,yes,no,no,"Jun 1, 2024",,,,Optics,Student,luca.dibella@tu-dortmund.de,Germany,TU Dortmund,DORTMUND,joined Jun 2024,y
+Rune Michael,Dominik,no,yes,yes,"Jan 1, 2021","Oct 31, 2024","Jul 1, 2021","May 1, 2025",Analysis,Student,rune.dominik@tu-dortmund.de,Germany,TU Dortmund,DORTMUND,"left Oct, 2024",n
+Matthias,Domke,yes,no,no,"Jan 1, 2018",,,,SCP,Engineer,matthias.domke@tu-dortmund.de,Germany,TU Dortmund,DORTMUND,,y
+Dominik,Elsaesser,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,ESC,Scientist,dominik.elsaesser@tu-dortmund.de,Germany,TU Dortmund,DORTMUND,,y
+Stefan,Fröse,yes,yes,no,"Mar 1, 2022","Dec 31, 2024","Sep 1, 2022","Jul 1, 2025","Structure Monitoring, Optics",Student,stefan.froese@tu-dortmund.de,Germany,TU Dortmund,DORTMUND,left Dec 2024,y
+Felix,Geyer,no,yes,yes,"Sep 1, 2021","Oct 31, 2024","Mar 1, 2022","May 1, 2025",,Student,felix.geyer@tu-dortmund.de,Germany,TU Dortmund,DORTMUND,left Oct 2024,n
+Tristan,Gradetzke,yes,yes,yes,"Mar 1, 2024",,"Sep 1, 2024",,Structure Monitoring,Student,tristan.gradetzke@tu-dortmund.de,Germany,TU Dortmund,DORTMUND,joined Mar 2024,y
+Maximilian,Linhoff,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"Shift 2024, Analysis",Scientist,maximilian.linhoff@tu-dortmund.de,Germany,TU Dortmund,DORTMUND,,y
+Nikola,Mang ,no,no,no,"Nov 1, 2021","Apr 30, 2023",,,,Student,nikola.mang@tu-dortmund.de,Germany,TU Dortmund,DORTMUND,left April 2023,n
+Lukas,Nickel,no,yes,yes,"Sep 1, 2021","May 31, 2024","Mar 1, 2022","Nov 30, 2024",,Student,lukas.nickel@tu-dortmund.de,Germany,TU Dortmund,DORTMUND,left May 2024,n
+Wolfgang,Rhode,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,wolfgang.rhode@tu-dortmund.de,Germany,TU Dortmund,DORTMUND,,y
+Jan Lukas,Schubert,no,yes,yes,"Feb 1, 2021","Oct 31, 2024","Aug 1, 2021","Apr 30, 2025",Shift 2023,Student,jan-lukas.schubert@tu-dortmund.de,Germany,TU Dortmund,DORTMUND,left Oct 2024,n
+Oleg,Kalashev,yes,yes,yes,"Sep 1, 2023",,"Mar 1, 2024",,,Scientist,oleg.kalashev@epfl.ch,Switzerland,EPFL,EPFL,joined Sep 2023,y
+Pavlo,Kashko,no,no,no,"Feb 15, 2023","Aug 31, 2023",,,,Student,pavlo.kashko@epfl.ch,Switzerland,EPFL,EPFL,"joined Feb 2023, left Aug 2023",n
+Valentin,Meier,no,no,no,"Sep 1, 2023","Aug 31, 2024",,,,Student,valentin.meier@epfl.ch,Switzerland,EPFL,EPFL,"joined Sep 2023, left Aug 2024",n
+Andrii,Neronov,yes,yes,yes,"Oct 20, 2022",,"Apr 20, 2023",,ESC,Scientist,andrii.neronov@epfl.ch,Switzerland,EPFL,EPFL,,y
+Volodymyr,Savchenko,yes,yes,yes,"Oct 20, 2022",,"Apr 20, 2023",,"Shift 2024, Offsite IT",Scientist,volodymyr.savchenko@epfl.ch,Switzerland,EPFL,EPFL,,y
+Ali,Baktash,yes,yes,yes,"Dec 1, 2020",,"Jun 1, 2021",,Pointing,Student,ali.baktash@desy.de,Germany,U Hamburg,HAMBURG,,y
+Dieter,Horns,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,ESC,Scientist,dieter.horns@desy.de,Germany,U Hamburg,HAMBURG,,y
+Martin,Tluczykont,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,SCP,Scientist,martin.tluczykont@desy.de,Germany,U Hamburg,HAMBURG,,y
+Ivan,Agudo,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"ESC, SCP",Scientist,iagudo@iaa.es,Spain,"IAA, Granada",IAA-CSIC,,y
+Olmo,Arquero Peinazo,yes,no,no,"Apr 1, 2024",,,,,Student,oap00@correo.ugr.es,Spain,"IAA, Granada",IAA-CSIC,Joined Apr 2024,y
+Juan,Escudero Pedrosa,yes,yes,yes,"Nov 1, 2020",,"May 1, 2021",,Shift 2023,Student,jescudero@iaa.es,Spain,"IAA, Granada",IAA-CSIC,,y
+Jorge,Garcia Garcia,yes,no,no,"Oct 1, 2024",,,,,Student,jorge.garcia@cta-consortium.org,Spain,"IAA, Granada",IAA-CSIC,joined Oct 2024,y
+José Manuel,Gavilán Sánchez,yes,no,no,"Jan 15, 2024",,,,,Student,f72gasaj@correo.ugr.es,Spain,"IAA, Granada",IAA-CSIC,joined Jan 2024,y
+Leonardo,Gavira,no,no,no,"Feb 1, 2023","Jun 30, 2023",,,,Student,leogabcz@gmail.com,Spain,"IAA, Granada",IAA-CSIC,left Feb 2023,n
+Pablo,Guzmán Sánchez,yes,no,no,"Apr 25, 2024",,,,Analysis (DPPS),Scientist,pguzman@iaa.es,Spain,"IAA, Granada",IAA-CSIC,joined Apr 2024,y
+Paula,Kornecki,yes,no,yes,"Jul 1, 2024",,"Jan 1, 2025",,,Scientist,pkornecki@iaa.es,Spain,"IAA, Granada",IAA-CSIC,joined Jul 2024,y
+Ruben,López-Coto,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"EB, Analysis",Scientist,rlopezcoto@iaa.es,Spain,"IAA, Granada",IAA-CSIC,,y
+Stefano,Menchiari,yes,no,no,"May 1, 2024",,,,,Scientist,smenchiari@iaa.es,Spain,"IAA, Granada",IAA-CSIC,joined May 2024,y
+Javier,Méndez Gallego,yes,yes,yes,"Nov 1, 2023",,"May 1, 2024",,FOA 2024,Student,jmendez@iaa.es,Spain,"IAA, Granada",IAA-CSIC,"joined Nov, 2023",y
+Daniel,Morcuende,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"OSA, FOA coord",Scientist,dmorcuende@iaa.es,Spain,"IAA, Granada",IAA-CSIC,"joined IAA Jun 16, 2023",y
+Marta,Moreno Hernández,yes,no,no,"Nov 18, 2024",,,,,Student,marta.morenohernandez@cta-consortium.org,Spain,"IAA, Granada",IAA-CSIC,joined Nov 2024,y
+Carlos,Ortega Hunter,yes,no,no,"Feb 15, 2024",,,,,Student,cohunter@correo.ugr.es,Spain,"IAA, Granada",IAA-CSIC,joined Feb 2024,y
+Jorge,Otero Santos,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,Phys,Scientist,joteros@iaa.es,Spain,"IAA, Granada",IAA-CSIC,"left Dec 2022, joined IAA Jun 2023",y
+José Antonio,Pérez Calderón,no,no,no,"Jun 15, 2023","Oct 31, 2023",,,,Student,japrz@correo.ugr.es,Spain,"IAA, Granada",IAA-CSIC,"joined Jun 2023, left Oct 2023",n
+Cristian,Pozo Gonzalez,yes,no,no,"Feb 15, 2024",,,,,Student,cristianpozogonzalez@gmail.com,Spain,"IAA, Granada",IAA-CSIC,joined Feb 2024,y
+Denise,Sammartino,yes,no,no,"Oct 1, 2024",,,,,Student,denise.sammartino@cta-consortium.org,Spain,"IAA, Granada",IAA-CSIC,joined Oct 2024,y
+Fabio,Acero,yes,yes,yes,"Apr 1, 2023",,"Sep 1, 2023",,"Optics, LST2-4 (camera)",Scientist,fabio.acero@cea.fr,Spain,IAC,IAC,joined April 2023,y
+Fernando,Frías García-Lago,yes,no,yes,"Aug 1, 2024",,"Feb 1, 2025",,,Student,fernando.frias@iac.es,Spain,IAC,IAC,joined August 2024,y
+Javier,Aragunde Gutierrez,no,no,no,"Jan 1, 2018","Mar 31, 2023",,,,Engineer,aragunde@iac.es,Spain,IAC,IAC,left March 2023,n
+Tora Therese Høiland,Arnesen,yes,yes,yes,"Jan 15, 2024",,"Jul 15, 2024",,FOA 2024,Student,tarnesen@iac.es,Spain,IAC,IAC,joined Jan 2024,y
+Luis,Barrios Jiménez,yes,yes,yes,"Aug 1, 2023",,"Feb 1, 2024",,,Student,luis.barrios@iac.es,Spain,IAC,IAC,joined August 2023,y
+Josefa,Becerra,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,Safety,Scientist,jbecerra@iac.es,Spain,IAC,IAC,,y
+Juan,Calvo,no,no,no,"Jan 1, 2018","Jun 30, 2023",,,,Engineer,jct@iac.es,Spain,IAC,IAC,Left Jun 2023,n
+Ramon,Garcia Lopez,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,LST2-4,Scientist,rgl@iac.es,Spain,IAC,IAC,,y
+Javier,Herrera Llorente,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"EB, SCP",Engineer,jaherllo@iac.es,Spain,IAC,IAC,,y
+Alicia,Lopez Oramas,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,LST2-4 (camera),Scientist,alicia.lopez@iac.es,Spain,IAC,IAC,,y
+Miguel,Molero Gonzalez,yes,yes,yes,"Jan 1, 2022",,"Jul 1, 2022",,"Shift 2023, Shift 2024",Scientist,miguel.molero@iac.es,Spain,IAC,IAC,,y
+Edgar,Molina,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,emolina@iac.es,Spain,IAC,IAC,moved from UB to IAC Feb 2023,y
+Mireia,Nievas Rosillo,yes,yes,yes,"Aug 1, 2020",,"Feb 1, 2021",,"Phys, Shift 2024",Scientist,mnievas@iac.es,Spain,IAC,IAC,,y
+Roberto,Pérez López,no,no,no,"Jul 22, 2022","Dec 31, 2023",,,,Engineer,roberto.perez@iac.es,Spain,IAC,IAC,left Dec 2023,n
+Ruggero,Piazzolla,no,no,no,"Jul 22, 2022","Dec 31, 2023",,,,Engineer,ruggero.piazzolla@iac.es,Spain,IAC,IAC,left Dec 2023,n
+Monica,Vazquez Acosta,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,ESC,Scientist,monica.vazquez.acosta@cern.ch,Spain,IAC,IAC,,y
+Pau,Ballber,no,no,no,"Nov 1, 2021","Mar 31, 2023",,,,Engineer,ballber@ieec.cat,Spain,ICE-CSIC,ICE,left Mar 2023,n
+Pedro Jose,Bauzá Ruiz,no,no,no,"May 1, 2022","Mar 31, 2023",,,,Engineer,bauza@ieec.cat,Spain,ICE-CSIC,ICE,left Mar 2023,n
+Enrique,Mestre Guillen,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,Shift 2024,Scientist,mestre@ice.csic.es,Spain,ICE-CSIC,ICE,moved from Jaen to ICE in Jan 2023,y
+David,Solevilla,yes,no,no,"Jan 1, 2023",,,,,Engineer,soldevila@ice.csic.es,Spain,ICE-CSIC,ICE,joined Jan 2023,n
+Diego F.,Torres,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,ESC,Scientist,dtorres@ieec.uab.es,Spain,ICE-CSIC,ICE,,y
+Ramon,Valles,yes,no,no,"Jan 1, 2023",,,,,Engineer,valles@ice.csic.es,Spain,ICE-CSIC,ICE,joined Jan 2023,n
+Wei,Zhang,yes,yes,yes,"Sep 1, 2022",,"Mar 1, 2023",,Shift 2024,Student,zhang@ice.csic.es,Spain,ICE-CSIC,ICE,,y
+Carlos,Arteche,yes,no,no,"Jan 1, 2018",,,,,Technician,carteche@ifae.es,Spain,IFAE-BIST,IFAE,,n
+Manuel,Artero,no,no,no,"Jan 1, 2018","Jul 21, 2023","Jul 1, 2018","Jan 21, 2024",,Student,martero@ifae.es,Spain,IFAE-BIST,IFAE,left July 2023,n
+Otger,Ballester,yes,no,no,"Jan 1, 2018",,,,,Engineer,otger@ifae.es,Spain,IFAE-BIST,IFAE,,y
+Oscar,Blanch,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"ESC, EB, Camera, CF",Scientist,blanch@ifae.es,Spain,IFAE-BIST,IFAE,,y
+Juan,Boix,yes,no,no,"Jan 1, 2018",,,,,Engineer,jboix@ifae.es,Spain,IFAE-BIST,IFAE,,y
+Laia,Cardiel,yes,no,no,"Jan 1, 2018",,,,,Engineer,cardiel@ifae.es,Spain,IFAE-BIST,IFAE,,y
+Lucia,Castillo,no,no,no,"Mar 15, 2023","Oct 31, 2023",,,,Scientist,lcastillo@ifae.es,Spain,IFAE-BIST,IFAE,"joined March 2023, left Oct 2023",n
+Mathilde,Croisonnier,yes,no,yes,"Nov 1, 2024",,"May 1, 2025",,,Student,mcroisonnier@ifae.es,Spain,IFAE-BIST,IFAE,joined Nov 2024,y
+Noel,Delgado,yes,no,no,"Jan 1, 2018",,,,,Technician,ndelgado@ifae.es,Spain,IFAE-BIST,IFAE,,n
+Deborah,Dore,no,yes,yes,"Jan 1, 2024","Aug 22, 2024","Jul 1, 2024","Feb 22, 2025",,Student,ddore@ifae.es,Spain,IFAE-BIST,IFAE,"joined Jan 2024, left Aug 2024",n
+Isaac,Esparbe,yes,no,no,"Jan 1, 2018",,,,,Administrator,iesparbe@ifae.es,Spain,IFAE-BIST,IFAE,,n
+Rafael,Garcia,yes,no,no,"Jan 1, 2018",,,,,Engineer,rgarcia@ifae.es,Spain,IFAE-BIST,IFAE,,y
+Javier,Gaweda,yes,no,no,"Jan 1, 2018",,,,,Technician,gaweda@ifae.es,Spain,IFAE-BIST,IFAE,,y
+Roger,Grau,yes,yes,yes,"Mar 1, 2022",,"Sep 1, 2022",,FOA 2024,Student,rgrau@ifae.es,Spain,IFAE-BIST,IFAE,,y
+Juan,Jimenez,yes,yes,yes,"Oct 1, 2022",,"Sep 1, 2023",,"Camera, Analysis",Student,juan.jimenez@ifae.es,Spain,IFAE-BIST,IFAE,author starting Sep 2023,y
+Daniel,Kerszberg,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,Camera,Scientist,dkerszberg@ifae.es,Spain,IFAE-BIST,IFAE,,y
+Manel,Martínez,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,Camera,Scientist,martinez@ifae.es,Spain,IFAE-BIST,IFAE,,y
+Oscar,Martínez,no,no,no,"Jan 1, 2018","Apr 30, 2023",,,,Engineer,omartinez@ifae.es,Spain,IFAE-BIST,IFAE,left April 2023,n
+Abelardo,Moralejo,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"EB, SCP, Analysis",Scientist,moralejo@ifae.es,Spain,IFAE-BIST,IFAE,,y
+Julià,Mundet,yes,no,no,"Jan 1, 2018",,,,,Engineer,jmundet@ifae.es,Spain,IFAE-BIST,IFAE,,y
+Cristobal,Pio García,yes,no,no,"Sep 1, 2022",,,,,Engineer,cgarcia@ifae.es,Spain,IFAE-BIST,IFAE,,y
+Chaitanya,Priyadarshi,yes,no,no,"Jan 1, 2018",,"Jul 1, 2018","Apr 26, 2024",Analysis,Student,cpriyadarshi@ifae.es,Spain,IFAE-BIST,IFAE,,y
+Emma,Sanchez Villegas,yes,no,no,"Apr 1, 2024",,,,,Student,esanchez@ifae.es,Spain,IFAE-BIST,IFAE,Joined Apr 2024,y
+Monica,Seglar,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"Phys, Transient Handler",Scientist,mseglar@ifae.es,Spain,IFAE-BIST,IFAE,,y
+Júlia,Tartera Barberà,yes,no,no,"Apr 1, 2024",,,,,Student,jtartera@ifae.es,Spain,IFAE-BIST,IFAE,Joined Apr 2024,y
+Martina,Cardillo,yes,yes,yes,"Nov 1, 2020",,"May 1, 2021",,,Scientist,martina.cardillo@inaf.it,Italy,IAPS Roma,INAF,,y
+Luca,Foffano,yes,yes,yes,"Oct 1, 2022",,"Apr 1, 2023",,Schedule,Scientist,luca.foffano@inaf.it,Italy,IAPS Roma,INAF,,y
+Carlo,Lefevre,yes,no,no,"Nov 23, 2022",,,,,Engineer,carlo.lefevre@inaf.it,Italy,IAPS Roma,INAF,,y
+Francesco,Santoli,no,no,no,"Nov 23, 2022","Nov 30, 2023",,,,Engineer,francesco.santoli@inaf.it,Italy,IAPS Roma,INAF,left Nov 2023,n
+Marco,Mastrofini,yes,no,no,"Dec 1, 2023",,,,,Engineer,marco.mastrofini@inaf.it,Italy,INAF,INAF,joined Dec 2023,n
+Sweta,Menon,yes,yes,yes,"Jan 1, 2024",,"Jul 1, 2024",,FOA 2024,Student,sweta.menon@inaf.it,Italy,INAF,INAF,joined Jan 2024,y
+Patrizia,Romano,yes,yes,yes,"Jan 1, 2024",,"Jul 1, 2024",,,Scientist,patrizia.romano@inaf.it,Italy,INAF,INAF,joined Jan 2024,y
+Andrea,Simongini,yes,yes,yes,"Jan 1, 2024",,"Jul 1, 2024",,BA 2024,Student,andrea.simongini@inaf.it,Italy,INAF,INAF,joined Jan 2024,y
+Antonio,Stamerra,yes,yes,yes,"Jan 1, 2024",,"Jul 1, 2024",,,Scientist,antonio.stamerra@inaf.it,Italy,INAF,INAF,joined Jan 2024,y
+Alan,Sunny,yes,yes,yes,"Jan 1, 2024",,"Jul 1, 2024",,Daily Check,Student,alan.sunny@inaf.it,Italy,INAF,INAF,joined Jan 2024,y
+Stefano,Vercellone,yes,yes,yes,"Jan 1, 2024",,"Jul 1, 2024",,,Scientist,stefano.vercellone@inaf.it,Italy,INAF,INAF,joined Jan 2024,y
+Davide,Fierro,yes,no,no,"Nov 23, 2022",,,,,Engineer,davide.fierro@inaf.it,Italy,INAF HQ,INAF,,y
+Gabriele,Minervini,yes,no,no,"Nov 23, 2022",,,,,Engineer,gabriele.minervini@inaf.it,Italy,INAF HQ,INAF,,y
+Giacomo,Bonnoli,yes,yes,yes,"Apr 1, 2021",,"Oct 1, 2021",,,Scientist,giacomo.bonnoli@inaf.it,Italy,OA Brera,INAF,,y
+Giovanni,Pareschi,yes,no,no,"Apr 1, 2022",,,,LST South,Scientist,giovanni.pareschi@brera.inaf.it,Italy,OA Brera,INAF,,y
+Laura,Proserpio,yes,no,no,"Apr 1, 2024",,,,LST South,Engineer,laura.proserpio@inaf.it,Italy,OA Brera,INAF,joined Apr 2024,y
+Chiara,Righi,no,no,no,"Nov 23, 2022","May 1, 2024","May 23, 2023","Nov 1, 2024",Schedule,Scientist,chiara.righi@inaf.it,Italy,OA Brera,INAF,left May 2024,n
+Giorgia,Sironi,yes,no,no,"Apr 1, 2024",,,,LST South,Engineer,giorgia.sironi@inaf.it,Italy,OA Brera,INAF,joined Apr 2024,y
+Enrico,Cascone,yes,no,no,"Apr 1, 2024",,,,LST South,Engineer,enrico.cascone@inaf.it,Italy,OA Capodimonte,INAF,joined Apr 2024,y
+Christian,Eredia,yes,no,no,"Apr 1, 2024",,,,LST South,Engineer,christian.eredia@inaf.it,Italy,OA Capodimonte,INAF,joined Apr 2024,
+Francesco,Perrotta,yes,no,no,"Apr 1, 2024",,,,LST South,Engineer,francesco.perrotta@inaf.it,Italy,OA Capodimonte,INAF,joined Apr 2024,y
+Andrea,Busatta,yes,no,no,"Nov 23, 2022",,,,LST South,Engineer,andrea.busatta@inaf.it,Italy,OA Padova,INAF,,y
+Filippo,Ambrosino,yes,yes,yes,"Apr 1, 2024",,"Oct 1, 2024",,LST South,Engineer,filippo.ambrosino@inaf.it,Italy,OA Roma,INAF,joined Apr 2024,y
+Lucio Angelo,Antonelli,yes,yes,yes,"Nov 1, 2020",,"May 1, 2021",,"ESC, EB",Scientist,angelo.antonelli@oa-roma.inaf.it,Italy,OA Roma,INAF,,y
+Ciro,Bigongiari,yes,yes,yes,"Nov 1, 2020",,"May 1, 2021",,Onsite IT (Commissioning Container),Scientist,ciro.bigongiari@inaf.it,Italy,OA Roma,INAF,,y
+Alessandro,Carosi,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,EB,Scientist,alessandro.carosi@inaf.it,Italy,OA Roma,INAF,,y
+Rosamaria,Carraro,yes,yes,yes,"Feb 1, 2024",,"Aug 1, 2024",,Onsite crew (OSp),Scientist,rosamaria.carraro@inaf.it,Italy,OA Roma,INAF,joined Feb 2024,y
+Francesco,Dazzi,yes,yes,yes,"Nov 23, 2022",,"May 23, 2023",,LST South,Scientist,francesco.dazzi@inaf.it,Italy,OA Roma,INAF,,y
+Alice,Donini,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"EB, Weather Station, TCB, SCP, SE, Onsite Crew, Transient Handler",Scientist,alice.donini@inaf.it,Italy,OA Roma,INAF,,y
+Stefano,Gallozzi,yes,yes,yes,"Apr 1, 2024",,"Oct 1, 2024",,LST South,Engineer,stefano.gallozzi@inaf.it,Italy,OA Roma,INAF,joined Apr 2024,y
+Alessandra,Lamastra,yes,yes,yes,"Nov 1, 2020",,"May 1, 2021",,SAPO,Scientist,alessandra.lamastra@oa-roma.inaf.it,Italy,OA Roma,INAF,,y
+Saverio,Lombardi,yes,yes,yes,"Feb 1, 2024",,"Aug 1, 2024",,Daily Check 2024,Scientist,saverio.lombardi@inaf.it,Italy,OA Roma,INAF,joined Feb 2024,y
+Fabrizio,Lucarelli,yes,yes,yes,"Apr 1, 2024",,"Oct 1, 2024",,LST South,Engineer,fabrizio.lucarelli@inaf.it,Italy,OA Roma,INAF,joined Apr 2024,y
+Dimitrios,Maniadakis,yes,yes,yes,"Feb 1, 2024",,"Aug 1, 2024",,,Student,dim.maniad@gmail.com,Italy,OA Roma,INAF,joined Feb 2024,y
+Stefano,Marchesi,yes,yes,yes,"May 15, 2023",,"Nov 15, 2023",,,Scientist,stefano.marchesi@inaf.it,Italy,OA Roma,INAF,joined March 2023,y
+Massimiliano,Mattioli,yes,no,no,"Nov 23, 2022",,,,,Engineer,massimiliano.mattioli@inaf.it,Italy,OA Roma,INAF,,y
+Michele,Palatiello,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,SAPO,Scientist,michele.palatiello@gmail.com,Italy,OA Roma,INAF,moved from INFN to INAF Oct 2023,y
+Fernando,Pedichini,yes,no,no,"Nov 23, 2022",,,,,Engineer,fernando.pedichini@inaf.it,Italy,OA Roma,INAF,,y
+Francesco Gabriele,Saturni,yes,yes,yes,"Nov 1, 2020",,"May 1, 2021",,SAPO,Scientist,francesco.saturni@inaf.it,Italy,OA Roma,INAF,,y
+Antonio,Tutone,yes,yes,yes,"Mar 1, 2022",,"Sep 1, 2022",,"Shift 2023, Shift 2024, Schedule",Scientist,antonio.tutone@inaf.it,Italy,OA Roma,INAF,,y
+Primo,Attinà,no,no,no,"Apr 1, 2022","Aug 31, 2023",,,,Scientist,primo.attina@inaf.it,Italy,OA Torino,INAF,left Aug 2023,n
+Leonardo,Baroncelli,no,no,no,"Nov 1, 2020","Aug 31, 2023","May 1, 2021","Feb 29, 2024",,Student,leonardo.baroncelli@inaf.it,Italy,OAS Bologna,INAF,left Aug 2023,n
+Ettore,Bronzini,yes,no,no,"Nov 23, 2022",,,,,Student,ettore.bronzini2@unibo.it,Italy,OAS Bologna,INAF,,y
+Giulia,Brunelli,yes,yes,yes,"Feb 15, 2023",,"Aug 15, 2023",,Shift 2024,Student,giulia.brunelli@inaf.it,Italy,OAS Bologna,INAF,joined Feb 2023,y
+Andrea,Bulgarelli,yes,yes,yes,"Nov 1, 2020",,"May 1, 2021",,RTA,Engineer,andrea.bulgarelli@inaf.it,Italy,OAS Bologna,INAF,,y
+Massimo,Cappi,yes,no,no,"Apr 1, 2022",,,,,Scientist,massimo.cappi@inaf.it,Italy,OAS Bologna,INAF,,y
+Paolo,Da Vela,yes,yes,yes,"Jul 1, 2023",,"Jan 1, 2024",,SAPO,Scientist,paolo.davela@inaf.it,Italy,OAS Bologna,INAF,joined in Jul 2023,y
+Ambra,Di Piano,yes,yes,yes,"Jan 1, 2022",,"Jul 1, 2022",,RTA,Student,ambra.dipiano@inaf.it,Italy,OAS Bologna,INAF,,y
+Cristina,Nanci,yes,no,yes,"Nov 1, 2024",,"May 1, 2025",,,Student,cristina.nanci@inaf.it,Italy,OAS Bologna,INAF,joined Nov 2024,
+Gabriele,Panebianco,yes,yes,yes,"Nov 23, 2022",,"Nov 1, 2024",,"Shift 2023, RTA",Student,gabriele.panebianco@inaf.it,Italy,OAS Bologna,INAF,,y
+Nicolò,Parmiggiani,yes,no,no,"Nov 23, 2022",,,,RTA,Engineer,nicolo.parmiggiani@inaf.it,Italy,OAS Bologna,INAF,,y
+Leonardo,Di Venere,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"LST South, Schedule",Scientist,leonardo.divenere@ba.infn.it,Italy,INFN Bari,INFN,,y
+Carmelo,Evoli,yes,no,no,"Oct 15, 2021",,,,,Scientist,carmelo.evoli@gssi.it,Italy,INFN l'Aquila,INFN,,y
+Marco,Iarlori,yes,yes,yes,"Oct 15, 2021",,"Apr 15, 2022",,,Technician,marco.iarlori@aquila.infn.it,Italy,INFN l'Aquila,INFN,,y
+Ermanno,Pietropaolo,yes,yes,yes,"Oct 15, 2021",,"Apr 15, 2022",,,Scientist,ermanno.pietropaolo@aquila.infn.it,Italy,INFN l'Aquila,INFN,,y
+Vincenzo,Rizi,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,vincenzo.rizi@aquila.infn.it,Italy,INFN l'Aquila,INFN,,y
+Daniele,Ambrosino,yes,yes,yes,"Nov 1, 2023",,"May 1, 2024",,Shift 2024,Student,daniele.ambrosino@na.infn.it,Italy,INFN Napoli,INFN,joined Nov 2023,y
+Carla,Aramo,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,LST South,Scientist,aramo@na.infn.it,Italy,INFN Napoli,INFN,,y
+Mario,De Lucia,no,no,no,"Oct 1, 2022","Jun 30, 2023","Apr 1, 2023","Dec 31, 2023",,Scientist,mario.delucia@na.infn.it,Italy,INFN Napoli,INFN,left Jun 2023,n
+Eros,De Simone,no,no,no,"Mar 15, 2022","Jul 31, 2024",,,,Student,ero.desimone@studenti.unina.it,Italy,INFN Napoli,INFN,left July 2024,
+Riccardo,Del Burgo,yes,yes,yes,"Nov 1, 2023",,"May 1, 2024",,LST South,Scientist,delburgo@na.infn.it,Italy,INFN Napoli,INFN,joined Nov 2023,y
+Tristano,Di Girolamo,yes,no,no,"Jan 1, 2024",,,,,Scientist,digirola@na.infn.it,Italy,INFN Napoli,INFN,joined Jan 2024,n
+Antonio,Iuliano,yes,yes,yes,"Sep 1, 2023",,"Mar 1, 2024",,Shift 2024,Scientist,antonio.iuliano@na.infn.it,Italy,INFN Napoli,INFN,joined Sep 2023,y
+Massimiliano,Bitossi,yes,no,no,"Jan 1, 2018",,,,,Engineer,massimiliano.bitossi@pi.infn.it,Italy,INFN Pisa,INFN,,y
+Roberto,Carosi,yes,no,no,"Jan 1, 2018",,,,,Scientist,roberto.carosi@pi.infn.it,Italy,INFN Pisa,INFN,,y
+Andrea,Rugliancich,yes,no,no,"Jan 1, 2018",,"Jul 1, 2018","Apr 15, 2022",,Student,andrea.rugliancich@pi.infn.it,Italy,INFN Pisa,INFN,author end Apr 2022,y
+Stefano,Truzzi,no,no,no,"Jan 1, 2018","Sep 30, 2023","Jul 1, 2018","Feb 29, 2024",,Scientist,stefano.truzzi85@gmail.com,Italy,INFN Pisa,INFN,left Sep 2023,n
+Fabio,Ferrarotto,yes,yes,yes,"May 1, 2022",,"Nov 1, 2022",,Camera (Calibox),Scientist,fabio.ferrarotto@roma1.infn.it,Italy,INFN Roma La Sapienza,INFN,,y
+Maurizio,Iori,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,Camera (Calibox),Scientist,maurizio.iori@roma1.infn.it,Italy,INFN Roma La Sapienza,INFN,,y
+Claudio,Gasbarra,yes,yes,yes,"Oct 15, 2021",,"Apr 15, 2022",,"Shift 2023, Shift 2024",Student,claudio.gasbarra@roma2.infn.it,Italy,INFN Roma Tor Vergata,INFN,,y
+Dario,Gasparrini,yes,yes,yes,"Jul 1, 2021",,"Jan 1, 2022",,,Scientist,dario.gasparrini@roma2.infn.it,Italy,INFN Roma Tor Vergata,INFN,,y
+Aldo,Morselli,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,SAPO,Scientist,aldo.morselli@roma2.infn.it,Italy,INFN Roma Tor Vergata,INFN,,y
+Gonzalo,Rodriguez Fernandez,yes,yes,yes,"Oct 1, 2021",,"Apr 1, 2022",,,Scientist,gonzalo.rodriguez.fernandez@roma2.infn.it,Italy,INFN Roma Tor Vergata,INFN,,y
+Vincenzo,Vitale,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"Shift 2023, Shift 2024",Scientist,vvitale@roma2.infn.it,Italy,INFN Roma Tor Vergata,INFN,,y
+Mario,Buscemi,no,no,no,"Oct 1, 2020","Jan 25, 2024","Apr 1, 2021","Jul 25, 2024",LST South,Student,mario.buscemi@ct.infn.it,Italy,INFN Sezione di Catania,INFN,left July 2024,n
+Giovanna,Ferrara,no,no,no,"Mar 1, 2022","Apr 30, 2023","Sep 1, 2022","Oct 30, 2023",,Scientist,gferrara@lns.infn.it,Italy,INFN Sezione di Catania,INFN,left April 2023,n
+Renato,Iaria,yes,no,no,"Apr 1, 2024",,,,LST South,Technician,renato.iaria@ct.infn.it,Italy,INFN Sezione di Catania,INFN,joined April 2024,y
+Giulio,Manicò,yes,yes,yes,"Oct 15, 2021",,"Apr 15, 2022",,,Scientist,gmanico@dmfci.unict.it,Italy,INFN Sezione di Catania,INFN,,y
+Giovanni,Marsella,yes,yes,yes,"Oct 1, 2020",,"Apr 1, 2021",,LST South,Scientist,giovanni.marsella@le.infn.it,Italy,INFN Sezione di Catania,INFN,,y
+Giovanni,Tripodo,yes,yes,yes,"Apr 1, 2024",,"Oct 1, 2024",,LST South,Scientist,giovanni.tripodo@unipa.it,Italy,INFN Sezione di Catania,INFN,joined Apr 2024,y
+Andrea,Ceccanti,yes,no,no,"Dec 1, 2020",,,,,Engineer,andrea.ceccanti@cnaf.infn.it,Italy,INFN Torino,INFN,,y
+Andrea,Chiavassa,yes,yes,yes,"Jan 1, 2018",,"Apr 15, 2022",,,Scientist,achiavas@to.infn.it,Italy,INFN Torino,INFN,,y
+Raniere,de Menezes,yes,yes,yes,"May 1, 2022",,"Nov 1, 2022",,"Shift 2023, SiPM, LST-MAGIC (software)",Scientist,ranieremaciel.demenezes@unito.it,Italy,INFN Torino,INFN,,y
+Federico,Devoto,yes,no,no,"Mar 15, 2024",,,,,Student,federico.devoto@edu.unito.it,Italy,INFN Torino,INFN,joined Mar 2024,y
+Federico,Di Pierro,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"EB, LST-MAGIC (software), Offsite IT, ESC",Scientist,federico.dipierro@to.infn.it,Italy,INFN Torino,INFN,,y
+Lucia,Morganti,yes,no,no,"Dec 1, 2020",,,,,Engineer,lucia.morganti@cnaf.infn.it,Italy,INFN Torino,INFN,,y
+Isabella,Sofia,yes,no,yes,"Nov 1, 2024",,"May 1, 2025",,,Student,isabella.sofia@cta-consortium.org,Italy,INFN Torino,INFN,joined Nov 2024,y
+Piero,Vallania,no,no,no,"Jan 1, 2018","Nov 30, 2023","Apr 15, 2022","May 31, 2024",,Scientist,piero.vallania@ifsi-torino.inaf.it,Italy,INFN Torino,INFN,retired Nov 2023,n
+Carlo Francesco,Vigorito,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,Camera (Calibox),Scientist,vigorito@to.infn.it,Italy,INFN Torino,INFN,,y
+Elisa,Visentin,yes,yes,yes,"Oct 1, 2022",,"Oct 1, 2023",,LST-MAGIC (software),Student,elisa.visentin@edu.unito.it,Italy,INFN Torino,INFN,author start Oct 2023,y
+Silvia,Vernetto,no,no,no,"Jan 1, 2018","Dec 31, 2023",,,,Scientist,silvia.vernetto@to.infn.it,Italy,O Torino,INFN,left Dec 2023,n
+Elisabetta,Bissaldi,yes,yes,yes,"Oct 15, 2021",,"Apr 15, 2022",,"LST South, SAPO",Scientist,elisabetta.bissaldi@ba.infn.it,Italy,Politecnico and INFN Bari,INFN,,y
+Gaia,De Palma,yes,no,yes,"Jul 1, 2024",,"Jan 1, 2025",,,Student,g.depalma14@phd.poliba.it,Italy,Politecnico and INFN Bari,INFN,joined Jul 2024,y
+Nicola,Giglietto,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"ESC, LST South",Scientist,nicola.giglietto@ba.infn.it,Italy,Politecnico and INFN Bari,INFN,,y
+Serena,Loporchio,yes,yes,yes,"Jul 1, 2021",,"Jan 1, 2022",,Shift 2024,Scientist,serena.loporchio@ba.infn.it,Italy,Politecnico and INFN Bari,INFN,,y
+Francesca Romana,Pantaleo,yes,yes,yes,"Feb 1, 2022",,"Aug 1, 2022",,,Scientist,francesca.pantaleo@ba.infn.it,Italy,Politecnico and INFN Bari,INFN,,y
+Davide,Cerasole,yes,yes,yes,"Nov 1, 2022",,"May 1, 2023",,Shift 2023,Student,davide.cerasole@ba.infn.it,Italy,U and INFN Bari,INFN,,y
+Riccardo,Di Tria,yes,yes,yes,"Jan 1, 2022",,"Jul 1, 2022",,Shift 2023,Scientist,riccardo.ditria@uniba.it,Italy,U and INFN Bari,INFN,,y
+Francesco,Giordano,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,LST South,Scientist,francesco.giordano@ba.infn.it,Italy,U and INFN Bari,INFN,,y
+Silvia,Rainò,yes,yes,yes,"May 1, 2022",,"Jul 1, 2018",,LST South,Scientist,silvia.raino@ba.infn.it,Italy,U and INFN Bari,INFN,,y
+Francesco,Schiavone,yes,yes,yes,"Mar 15, 2023",,"Sep 15, 2023",,Shift 2024,Student,f.schiavone15@studenti.uniba.it,Italy,U and INFN Bari,INFN,joined March 2023,y
+Cornelia,Arcaro,yes,yes,yes,"May 1, 2022",,"Nov 1, 2022",,LST South,Scientist,cornelia.arcaro@gmail.com,Italy,U Padova and INFN,INFN,,y
+Ivana,Batkovic,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,ivana.batkovic@phd.unipd.it,Italy,U Padova and INFN,INFN,,y
+Elisa,Bernardini,yes,yes,yes,"Aug 1, 2021",,"Feb 1, 2022",,,Scientist,elisa.bernardini@unipd.it,Italy,U Padova and INFN,INFN,,y
+Giovanni,Busetto,no,no,no,"Jan 1, 2018","Sep 30, 2023",,,,Scientist,giovanni.busetto@unipd.it,Italy,U Padova and INFN,INFN,Retired Sep 2023,n
+Daniele,Corti,yes,no,no,"Jan 1, 2018",,,,,Technician,corti@pd.infn.it,Italy,U Padova and INFN,INFN,,y
+Alessandro,De Angelis,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,ESC,Scientist,alessandro.deangelis@uniud.it,Italy,U Padova and INFN,INFN,,y
+Gaetano,Di Marco,no,no,no,"Sep 1, 2021","Dec 31, 2023",,,,Student,gaetano.dimarco@studenti.unipd.it,Italy,U Padova and INFN,INFN,Left Dec 2023,n
+Marion,Dib,yes,no,no,"Mar 1, 2023",,,,,Student,marion.dib@studenti.unipd.it,Italy,U Padova and INFN,INFN,joined March 2023,y
+Michele,Doro,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,michele.doro@pd.infn.it,Italy,U Padova and INFN,INFN,,y
+Filippo,Marini,yes,yes,yes,"Mar 15, 2024",,"Sep 15, 2024",,SiPM,Scientist,filippo.marini@pd.infn.it,Italy,U Padova and INFN,INFN,joined Mar 2024,y
+Mosè,Mariotti,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,ESC,Scientist,mariotti@pd.infn.it,Italy,U Padova and INFN,INFN,,y
+Davide,Miceli,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,BA 2024,Scientist,davide.miceli1993@gmail.com,Italy,U Padova and INFN,INFN,,y
+Elisa,Prandini,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,SCP,Scientist,elisa.prandini@pd.infn.it,Italy,U Padova and INFN,INFN,,y
+Riccardo,Rando,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,Pointing,Scientist,rando@pd.infn.it,Italy,U Padova and INFN,INFN,,y
+Dima,Razvan,yes,no,no,"Jun 1, 2020",,,,,Engineer,rdima@pd.infn.it,Italy,U Padova and INFN,INFN,,y
+Marco,Romanato,yes,no,no,"Jan 1, 2018",,,,,Engineer,marco.romanato@pd.infn.it,Italy,U Padova and INFN,INFN,,n
+Arshia,Ruina,yes,yes,no,"Oct 1, 2023","Sep 31, 2025","Apr 1, 2024","Mar 31, 2026",,Scientist,arshia.ruina@pd.infn.it,Italy,U Padova and INFN,INFN,Joined Oct 2023,y
+Giuseppe,Silvestri,yes,yes,yes,"Feb 15, 2023",,"Jul 1, 2024",,,Student,giuseppe.silvestri@studenti.unipd.it,Italy,U Padova and INFN,INFN,Author since Jul 2024,y
+Alessia,Spolon,no,no,no,"Jan 1, 2018","Apr 30, 2023","Jul 1, 2018","Oct 31, 2023",,Student,alessia.spolon@pd.infn.it,Italy,U Padova and INFN,INFN,left Apr 2023,n
+Ilaria,Viale,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Student,ilariavialee@gmail.com,Italy,U Padova and INFN,INFN,,y
+Lisa,Zangrado,yes,no,no,"Jan 1, 2018",,,,,Technician,lisa.zangrando@pd.infn.it,Italy,U Padova and INFN,INFN,,y
+Gloria Maria,Cicciari,yes,yes,yes,"Jun 1, 2023",,"Dec 1, 2023",,Shift 2024,Student,gloriamaria.cicciari@community.unipa.it,Italy,U Palermo,INFN,joined June 2023,y
+Manuela,Mallamaci,yes,yes,yes,"Jun 1, 2023",,"Dec 1, 2023",,LST South,Scientist,manuela.mallamaci@unipa.it,Italy,U Palermo,INFN,joined June 2023,y
+Abhishek,(no last name),yes,yes,yes,"Mar 1, 2023",,"Sep 1, 2023",,"Daily Check 2024, LST South",Student,a.abhishek@student.unisi.it,Italy,U Siena and INFN,INFN,joined March 2023,y
+Andrea,Lorini,yes,yes,yes,"Jan 1, 2022",,"Jul 1, 2022",,,Student,andrea.lorini@pi.infn.it,Italy,U Siena and INFN,INFN,,y
+Maurizio,Massa,yes,yes,yes,"Apr 1, 2024",,"Oct 1, 2024",,LST South,Scientist,maurizio.massa@pi.infn.it,Italy,U Siena and INFN,INFN,joined April 2024,y
+Lisa,Nikolic,yes,yes,yes,"Mar 1, 2023",,"Sep 1, 2023",,Shift 2024,Student,nikolic.lisa@gmail.com,Italy,U Siena and INFN,INFN,joined March 2023,y
+Leonardo,Orsini,yes,yes,yes,"Apr 1, 2024",,"Oct 1, 2024",,LST South,Scientist,leonardo.orsini@pi.infn.it,Italy,U Siena and INFN,INFN,joined April 2024,y
+Pietro,Ottanelli,yes,yes,yes,"Jul 1, 2023",,"Jan 1, 2024",,"LST South, Camera (monitoring)",Scientist,pietro.ottanelli@pi.infn.it,Italy,U Siena and INFN,INFN,joined July 2023,y
+Riccardo,Paoletti,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,EB,Scientist,riccardo.paoletti@pi.infn.it,Italy,U Siena and INFN,INFN,,y
+Franjo,Podobnik,yes,yes,yes,"Jan 1, 2022",,"Jul 1, 2022",,"Shift 2023, Shift 2024, EB, TCB",Student,f.podobnik@student.unisi.it,Italy,U Siena and INFN,INFN,,y
+Fabio,Tramonti,yes,yes,yes,"Apr 1, 2024",,"Oct 1, 2024",,LST South,Scientist,fabio.tramonti@pi.infn.it,Italy,U Siena and INFN,INFN,joined April 2024,y
+Chiara,Ventani,no,no,no,"Apr 1, 2024","Jun 30, 2024",,,,Student,c.ventani@student.unisi.it,Italy,U Siena and INFN,INFN,joined April 2024,n
+Sofia,Ventura,yes,yes,yes,"Jan 1, 2018",,"May 1, 2024",,,Scientist,sofiaventura86@gmail.com,Italy,U Siena and INFN,INFN,,y
+Gaia,Verna,yes,yes,yes,"Mar 1, 2023",,"Sep 1, 2023",,"Shift 2023, shift 2024",Scientist,gaia.verna@unisi.it,Italy,U Siena and INFN,INFN,rejoined March 2023,y
+Francesco,Longo,yes,yes,yes,"Mar 1, 2021",,"Sep 1, 2021",,"BA 2024, SAPO",Scientist,francesco.longo@ts.infn.it,Italy,U Trieste INFN Trieste,INFN,,y
+Helena,Luciani,yes,yes,yes,"Feb 15, 2023",,"Mar 1, 2024",,FOA 2024,Student,helena.luciani@studenti.unipd.it,Italy,U Trieste INFN Trieste,INFN,joined Feb 2023,y
+Giacomo,Principe,no,no,no,"Oct 15, 2021","May 31, 2023","Apr 15, 2022","Nov 30, 2023",,Scientist,giacomo.principe91@gmail.com,Italy,U Trieste INFN Trieste,INFN,left May 2023,n
+Irene,Burelli,yes,yes,yes,"Jun 1, 2021",,"Dec 1, 2021",,Phys,Scientist,burelli.irene@spes.uniud.it,Italy,U Udine and INFN Trieste,INFN,,y
+Diego,Cauz,no,no,no,"Jan 1, 2018","Dec 31, 2023","Apr 15, 2022","Jun 30, 2024",,Scientist,diego.cauz@uniud.it,Italy,U Udine and INFN Trieste,INFN,retired Dec 2023,n
+Barbara,De Lotto,yes,yes,yes,"Jan 1, 2018",,"Apr 15, 2022",,,Scientist,barbara.delotto@uniud.it,Italy,U Udine and INFN Trieste,INFN,,y
+Jahanvi,(no last name),yes,yes,yes,"Jan 1, 2024",,"Jul 1, 2024",,,Student,jahanvi.jahanvi@spes.uniud.it,Italy,U Udine and INFN Trieste,INFN,joined Jan 2024,y
+Alessandro,Vigliano,yes,yes,yes,"Dec 1, 2021",,"Jun 1, 2022",,"Shift 2023, Shift 2024",Student,vigliano.alessandroarmando@spes.uniud.it,Italy,U Udine and INFN Trieste,INFN,,y
+Kazunori,Kohri,yes,yes,yes,"Sep 1, 2022",,"Mar 1, 2023",,SAPO,Scientist,kazunori.kohri@gmail.com,Japan,KEK & NAOJ,JAPAN,,y
+Kohei,Hayashi,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,SAPO,Scientist,k.hayasi@astr.tohoku.ac.jp,Japan,NIT Sendai College,JAPAN,,y
+Mika,Kagaya,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,Daily Check 2024,Scientist,mikagaya@sendai-nct.ac.jp,Japan,NIT Sendai College,JAPAN,,y
+Shigehiro,Nagataki,yes,yes,yes,"Apr 1, 2022",,"Oct 1, 2022",,,Scientist,shigehiro.nagataki@riken.jp,Japan,RIKEN,JAPAN,,y
+Pratik,Majumdar,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,pratik.majumdar@saha.ac.in,Japan,Saha Institute,JAPAN,,y
+Yuri,Sato,yes,yes,yes,"Apr 1, 2022",,"Oct 1, 2022",,SAPO,Scientist,yuris@phys.aoyama.ac.jp,Japan,U Aoyama-Gakuin,JAPAN,,y
+Shuta,Tanaka,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,SAPO,Scientist,sjtanaka@phys.aoyama.ac.jp,Japan,U Aoyama-Gakuin,JAPAN,,y
+Ryo,Yamazaki,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,ryo@phys.aoyama.ac.jp,Japan,U Aoyama-Gakuin,JAPAN,,y
+Susumu,Inoue,yes,yes,yes,"Nov 1, 2023",,"May 1, 2024",,,Scientist,sinoue@chiba-u.jp,Japan,U Chiba,JAPAN,joined Nov 2023,y
+Koji,Noda,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"EB, Optics",Scientist,nodak@icrr.u-tokyo.ac.jp,Japan,U Chiba,JAPAN,,y
+Hidetoshi,Sano,yes,yes,yes,"Jan 10, 2023",,"Jul 10, 2023",,SAPO,Scientist,hsano@gifu-u.ac.jp,Japan,U Gifu,JAPAN,joined Jan 2023,y
+Yasushi,Fukazawa,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,ESC,Scientist,fukazawa@astro.hiroshima-u.ac.jp,Japan,U Hiroshima,JAPAN,,y
+Masaki,Hashizume,yes,yes,yes,"Mar 12, 2024",,"Sep 12, 2024",,Optics shift 2024,Student,hasizume@astro.hiroshima-u.ac.jp,Japan,U Hiroshima,JAPAN,joined Mar 2024,y
+Ryo,Imazawa,yes,yes,yes,"May 1, 2020",,"Mar 1, 2022",,Shift 2024,Student,imazawa@astro.hiroshima-u.ac.jp,Japan,U Hiroshima,JAPAN,,y
+Tsunefumi,Mizuno,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,mizuno@astro.hiroshima-u.ac.jp,Japan,U Hiroshima,JAPAN,,y
+Norito,Nakano,yes,no,no,"Apr 25, 2024",,,,,Student,nakano@astro.hiroshima-u.ac.jp,Japan,U Hiroshima,JAPAN,joined Apr 2024,y
+Abhradeep,Roy,yes,yes,yes,"Feb 1, 2024",,"Aug 1, 2024",,Camera,Scientist,abhra@hiroshima-u.ac.jp,Japan,U Hiroshima,JAPAN,joined Feb 2024,y
+Yusuke,Suda,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,FOA 2024,Scientist,suda@astro.hiroshima-u.ac.jp,Japan,U Hiroshima,JAPAN,,y
+Hiromitsu,Takahashi,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018","Nov 30, 2024",,Scientist,hirotaka@astro.hiroshima-u.ac.jp,Japan,U Hiroshima,JAPAN,Author end Nov 2024,y
+Yudai,Hatsutori,no,no,no,"Apr 1, 2021","Mar 31, 2023",,,,Student,21nm154a@vc.ibaraki.ac.jp,Japan,U Ibaraki,JAPAN,left March 2023,n
+Hideaki,Katagiri,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,Camera,Scientist,hideaki.katagiri.sci@vc.ibaraki.ac.jp,Japan,U Ibaraki,JAPAN,,y
+Kanta,Sato,no,no,no,"May 25, 2023","Mar 31, 2024",,,,Student,23nm154r@vc.ibaraki.ac.jp,Japan,U Ibaraki,JAPAN,left March 2024,n
+Tatsuo,Yoshida,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,tatsuo.yoshida.sci@vc.ibaraki.ac.jp,Japan,U Ibaraki,JAPAN,,y
+Hiroshi,Muraishi,yes,yes,yes,"Apr 1, 2022",,"Oct 1, 2022",,Daily Check 2024,Scientist,muraishi@ahs.kitasato-u.ac.jp,Japan,U Kitasato,JAPAN,,y
+Masaya,Mizote,yes,yes,yes,"Jan 15, 2024",,"Jul 15, 2024",,,Student,masyaaaaan@gmail.com,Japan,U Konan,JAPAN,joined Jan 2024,y
+Tokonatsu,Yamamoto,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"ESC, SiPM, Daily Check",Scientist,tokonatu@konan-u.ac.jp,Japan,U Konan,JAPAN,,y
+Hiromu,Iwasaki,yes,no,no,"May 1, 2020",,,,,Student,iwasaki.hiromu.47n@st.kyoto-u.ac.jp,Japan,"U Kyoto, Physics and Astronomy",JAPAN,,y
+Tomohiko,Oka,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Student,oka.tomohiko.25n@gmail.com,Japan,"U Kyoto, Physics and Astronomy",JAPAN,,y
+Kenta,Terauchi,yes,yes,yes,"May 1, 2020",,"Mar 1, 2022",,Shift 2023,Student,terauchi.kenta.74s@st.kyoto-u.ac.jp,Japan,"U Kyoto, Physics and Astronomy",JAPAN,,y
+Daichi,Ando,yes,no,no,"Jun 17, 2024",,,,,Student,daichi.ando@nagoya-u.jp,Japan,"U Nagoya, ISEE",JAPAN,Joined June 2024,y
+Seonghyun,Bang,yes,no,no,"Apr 1, 2021",,,,,Student,bang.seonghyun@isee.nagoya-u.ac.jp,Japan,"U Nagoya, ISEE",JAPAN,,y
+Akira,Okumura,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,SiPM,Scientist,oxon@mac.com,Japan,"U Nagoya, ISEE",JAPAN,,y
+Hiroyasu,Tajima,yes,yes,yes,"Oct 1, 2020",,"Apr 1, 2021",,ESC,Scientist,tajima@nagoya-u.jp,Japan,"U Nagoya, ISEE",JAPAN,,y
+Mitsunari,Takahashi,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"Shift 2023, Camera",Scientist,takahashi.mitsunari@isee.nagoya-u.ac.jp,Japan,"U Nagoya, ISEE",JAPAN,,y
+Tatsuki,Fujiwara,yes,no,no,"Mar 12, 2024",,,,,Scientist,fujiwara@astro-osaka.jp,Japan,U Osaka,JAPAN,joined Mar 2024,y
+Yoshiyuki,Inoue,yes,no,no,"Dec 20, 2022",,,,,Scientist,yinoue@astro-osaka.jp,Japan,U Osaka,JAPAN,,y
+Ellis,Owen,yes,yes,yes,"Dec 20, 2022",,"Jun 20, 2023","Nov 30, 2024",,Scientist,erowen@astro-osaka.jp,Japan,U Osaka,JAPAN,Author end Nov 2024,y
+Takuto ,Kiyomoto ,yes,yes,yes,"Apr 1, 2023",,"Oct 1, 2024",,Shift 2024,Student,t.kiyomoto.997@ms.saitama-u.ac.jp,Japan,U Saitama,JAPAN,joined April 2023,y
+Dai,Tateishi,yes,yes,yes,"Oct 1, 2020",,"Apr 1, 2021",,,Student,d.tateishi.919@ms.saitama-u.ac.jp,Japan,U Saitama,JAPAN,,y
+Yukikatsu,Terada,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,terada@mail.saitama-u.ac.jp,Japan,U Saitama,JAPAN,,y
+Kazuki,Abe,yes,yes,yes,"Apr 1, 2021",,"Oct 1, 2022",,Shift 2023,Student,k.abe@star.tokai-u.jp,Japan,U Tokai,JAPAN,,y
+Tianshu,Han,yes,no,no,"Apr 1, 2023",,,,,Student,tokai-hantianshu@outlook.com,Japan,U Tokai,JAPAN,joined April 2023,y
+Junko,Kushida,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,ESC,Scientist,kushida@tokai-u.jp,Japan,U Tokai,JAPAN,,y
+Kyoshi,Nishijima,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,kyoshi@tokai-u.jp,Japan,U Tokai,JAPAN,,y
+Seiji,Sasa,no,no,no,"Dec 20, 2022","Mar 31, 2024",,,,Student,sasa.tokai22@gmail.com,Japan,U Tokai,JAPAN,left March 2024,n
+Yuki,Sato,yes,no,no,"May 1, 2024",,,,,Student,yukisato.utokai@gmail.com,Japan,U Tokai,JAPAN,joined May 2024,y
+Yi,Yao,yes,yes,yes,"Apr 1, 2023",,"Jun 1, 2024",,,Student,yaoyi.univtokai@gmail.com,Japan,U Tokai,JAPAN,joined April 2023,y
+Reiko,Orito,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,Daily Check,Scientist,reiko.orito@tokushima-u.ac.jp,Japan,U Tokushima,JAPAN,,y
+Aya,Bamba,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,bamba@phys.s.u-tokyo.ac.jp,Japan,"U Tokyo, GSS",JAPAN,,y
+Shotaro,Abe,yes,yes,yes,"May 1, 2020",,"Mar 1, 2022",,"Shift 2023, Analysis",Student,shotaro@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,,y
+Katsuaki,Asano,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,Phys,Scientist,asanok@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,,y
+Kyosuke,Awai,yes,no,no,"Jan 1, 2018",,,,,Engineer,awai@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,,n
+Joshua,Baxter,yes,yes,yes,"May 1, 2020",,"Mar 1, 2022",,"Shift 2023, FOA 2024",Student,joshua28@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,,y
+Yating,Chai,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,ytchai@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,moved from MPP to ICRR April 2024,y
+KS,Cheng,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,hrspksc@hku.hk,Japan,"U Tokyo, ICRR",JAPAN,,y
+Michiyuki,Chikawa,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,mchikawa@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,,y
+Satoshi,Fukami,no,no,no,"Jan 1, 2018","Aug 31, 2023","Jul 1, 2018","Feb 28, 2023",,Scientist,fukami@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,left Aug 2023,n
+Daniela,Hadasch,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"EB, Onsite IT",Scientist,hadasch@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,,y
+Kazuaki,Hashiyama,yes,no,no,"May 1, 2020",,"Mar 1, 2022","Dec 31, 2023",,Student,khashi@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,,y
+Nagisa,Hiroshima,yes,no,no,"Apr 1, 2022",,,,,Scientist,hirosima@sci.u-toyama.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,,y
+Kouichi,Hirotani,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,hirotani@tiara.sinica.edu.tw,Japan,"U Tokyo, ICRR",JAPAN,,y
+David,Hui,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,huichungyue@gmail.com,Japan,"U Tokyo, ICRR",JAPAN,,y
+Moritz,Hütten,no,no,no,"Jan 1, 2018","Jan 31, 2023","Jul 1, 2018","Jul 31, 2023",,Scientist,huetten@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,left Jan 2023,n
+Tomohiro,Inada,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,Phys,Scientist,tomohiro@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,,y
+Yusuke,Inome,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,sinome05@gmail.com,Japan,"U Tokyo, ICRR",JAPAN,,y
+Takumi,Itokawa,yes,yes,yes,"Apr 1, 2023",,"Oct 1, 2024",,Shift 2024,Student,itotaku@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,joined April 2023,y
+Shotaro,Kanamori,no,no,no,"Apr 1, 2021","Mar 31, 2023",,,,Student,kanamori@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,left March 2023,n
+Yukiho,Kobayashi,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"Onsite IT, Shift 2023",Student,yukihok@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,,y
+Albert,Kong,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,akong@phys.nthu.edu.tw,Japan,"U Tokyo, ICRR",JAPAN,,y
+Hidetoshi,Kubo,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"ESC, EB",Scientist,kubo@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,,y
+Daniel,Mazin,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"EB, Onsite IT, TCB",Scientist,mazin@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,,y
+Masataka,Miwa,no,no,no,"Apr 1, 2021","Mar 31, 2023",,,,Student,masataka@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,left March 2023,n
+Kohta,Murase,yes,no,no,"Jan 1, 2018",,"Jul 1, 2018","Aug 31, 2023",,Scientist,murase@ias.edu,Japan,"U Tokyo, ICRR",JAPAN,author end Aug 2023,y
+Michiko,Ohishi,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,Onsite IT (Webserver),Scientist,ohishi@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,,y
+Hideyuki,Ohoka,yes,no,no,"Jan 1, 2018",,,,,Engineer,hohoka@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,,n
+Yoshiki,Ohtani,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Student,ohtani@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,,y
+Takayuki,Saito,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"EB, Camera, SiPM",Scientist,tsaito@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,,y
+Shunsuke,Sakurai,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,Camera (PMT HV table),Student,ss.ph.cosmology@gmail.com,Japan,"U Tokyo, ICRR",JAPAN,,y
+Koichi,Sekino,yes,no,no,"Jan 1, 2018",,,,,Engineer,ksekino@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,,n
+Marcel,Strzys,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"Onsite IT, Shift 2024",Scientist,strzys@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,,y
+Midori,Sugahara,yes,no,no,"Jan 1, 2018",,,,,Administrator,sugahara@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,,y
+Akiko,Takagi,yes,no,no,"Sep 15, 2023",,,,,Administrator,takagia@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,,y
+Jumpei,Takata,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,twtakata@gmail.com,Japan,"U Tokyo, ICRR",JAPAN,,y
+Ryuji,Takeishi,yes,yes,yes,"May 1, 2020",,"Nov 1, 2020",,"Shift 2023, FOA 2024",Scientist,take@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,,y
+Thomas,Tam,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,grbtom@gmail.com,Japan,"U Tokyo, ICRR",JAPAN,,y
+Tomonobu,Tomura,yes,no,yes,"Jun 12, 2024",,"Dec 12, 2024",,UC,Engineer,tomura@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,joined Jun 2024,y
+Naomi,Tsuji,yes,no,no,"Sep 25, 2023",,,,,Scientist,ntsuji@kanagawa-u.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,joined Sep 2023,y
+Kazuki,Usui,no,no,no,"Dec 1, 2022","Mar 31, 2024",,,,Student,kazu0327@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,left Mar 2024,n
+Ievgen,Vovk,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"EB, Control, Optics, Onsite IT",Scientist,vovk@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,,y
+Lihong,Wan,yes,yes,yes,"Feb 14, 2023",,"Aug 14, 2023",,,Student,wanlh8@mail2.sysu.edu.cn,Japan,"U Tokyo, ICRR",JAPAN,joined Feb 2023,y
+Paul Kin Hang,Yeung,yes,yes,yes,"Apr 1, 2023",,"Oct 1, 2023",,,Scientist,pkh91yg@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,joined Apr 2023,y
+Takanori,Yoshikoshi,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,Onsite IT (Webserver),Scientist,tyoshiko@icrr.u-tokyo.ac.jp,Japan,"U Tokyo, ICRR",JAPAN,,y
+Jun,Kataoka,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018","Nov 30, 2024",,Scientist,kataoka.jun@waseda.jp,Japan,U Waseda,JAPAN,Author end Nov 2024,y
+Shuichi,Gunji,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,gunji@sci.kj.yamagata-u.ac.jp,Japan,U Yamagata,JAPAN,,y
+Takeshi,Nakamori,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,SAPO,Scientist,nakamori@sci.kj.yamagata-u.ac.jp,Japan,U Yamagata,JAPAN,,y
+Kanta,Sakamoto,no,no,no,"Apr 1, 2021","Mar 31, 2024",,,,Student,sakamoto@maxwell.kj.yamagata-u.ac.jp,Japan,U Yamagata,JAPAN,left March 2024,n
+Fuyuki,Tokanai,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,tokanai@sci.kj.yamagata‐u.ac.jp,Japan,U Yamagata,JAPAN,,y
+Kunihito,Ioka,yes,yes,yes,"Oct 1, 2021",,"Apr 1, 2022",,,Scientist,kunihito.ioka@kek.jp,Japan,"Yukawa Institute for Theoretical Physics, Kyoto University",JAPAN,,y
+Mathieu,de Bony de Lavergne,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"Shift 2023, Analysis",Student,mathieu.debony@cea.fr,France,IRFU,LAPP,,y
+Fabian,Schussler,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,BA 2024,Scientist,fabian.schussler@cea.fr,France,IRFU,LAPP,,y
+Pierre,Aubert,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,RTA,Engineer,Pierre.aubert@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,,y
+Gael,Balik,yes,no,no,"Jan 1, 2018",,,,,Engineer,balik@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,,n
+Jean-Philippe,Baud,yes,no,no,"Jan 1, 2018",,,,,Technician,,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,,n
+Pooja,Bhattacharjee,no,no,no,"Feb 1, 2022","Jan 31, 2024","Aug 1, 2022","Jul 31, 2024",,Scientist,bhattachar@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,left Jan 2024,n
+Laurent,Brunetti,yes,no,no,"Jan 1, 2018",,,,,Engineer,laurent.brunetti@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,,y
+Sami,Caroff,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"RTA, Shift 2023, Phys",Scientist,Sami.Caroff@lpnhe.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,,y
+Eric,Chabanne,yes,no,no,"Jan 1, 2018",,,,,Engineer,eric.chabanne@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,,y
+Guillaume,Deleglise,yes,no,no,"Jan 1, 2018",,"Jul 1, 2018","Dec 31, 2023",LST2-4,Engineer,guillaume.deleglise@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,author end Dec 2023,y
+Michael,Dellaiera,yes,yes,yes,"Nov 1, 2021",,"May 1, 2022",,"Shift 2023, Analysis",Student,dellaiera@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,,y
+Armand,Fiasson,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"EB, ESC, SCP",Scientist,armand.fiasson@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,,y
+Tom,Francois,yes,no,no,"May 1, 2024",,,,,Engineer,tom.francois@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,joined May 2024,y
+Nadia,Fouque,yes,no,no,"Jan 1, 2018",,,,,Engineer,fouque@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,,y
+Nicolas,Geffroy,yes,no,no,"Jan 1, 2018",,,,LST2-4,Engineer,nicolas.geffroy@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,,y
+Guillaume,Grolleron,no,no,no,"Dec 1, 2024",,"Jun 1, 2025",,,Scientist,guillaume.grolleron@cta-consortium.org,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,joined Dec 2024,y
+Laurent,Journet,yes,no,no,"Jan 1, 2018",,,,,Technician,laurent.journet@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,,n
+Giovanni,Lamanna,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,giovanni.lamanna@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,,y
+Thierry,Le Flour,no,no,no,"Jan 1, 2018","Jun 30, 2023","Jul 1, 2018","Dec 31, 2023",,Engineer,leflour@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,left June 2023,n
+Leo,Lemoigne,yes,yes,yes,"Mar 1, 2023",,"Sep 1, 2023",,Shift 2024,Student,leo.lemoigne@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,joined March 2023,y
+Bruno,Lieunard,yes,no,no,"Jan 1, 2018",,,,,Engineer,bruno.lieunard@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,,n
+Gilles,Maurin,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,gilles.maurin@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,,y
+Inocencio,Monteiro,yes,no,no,"Jan 1, 2018",,"Jul 1, 2018","Dec 31, 2023","Drive, LST2-4",Engineer,monteiro@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,author end Dec 2023,y
+Jean-Luc,Panazol,yes,no,no,"Jan 1, 2018",,,,"Camera, Aux",Engineer,panazol@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,,y
+Cyann,Plard,yes,yes,yes,"Mar 1, 2022",,"Sep 1, 2022",,Shift 2023,Student,cyann.plard@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,,y
+Vincent,Poireau,yes,no,no,"Jan 1, 2018",,"Jul 1, 2018","Dec 31, 2023",,Scientist,poireau@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,author end Dec 2023,y
+Vincent,Pollet,yes,no,no,"Mar 1, 2023",,,,RTA,Engineer,vincent.pollet@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,joined March 2023,y
+Estelle,Pons,no,no,no,"Jan 1, 2022","Jan 31, 2024","Jul 1, 2022","Jul 31, 2024",,Scientist,estelle.pons@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,left Jan 2024,n
+Julie,Prast,yes,no,no,"Jan 1, 2018",,"Jul 1, 2018","Dec 31, 2023",,Engineer,julie.prast@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,author end Dec 2023,y
+Olivier,Prevost,yes,no,no,"Jan 1, 2018",,,,,Technician,olivier.prevost@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,,n
+Edna,Ruiz,yes,yes,yes,"Nov 1, 2023",,"May 1, 2024",,BA 2024,Scientist,edna.ruiz@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,joined Nov 2023,y
+David,Sanchez,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"EB, Pointing (CDM)",Scientist,david.sanchez@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,,y
+Justine,Talpaert,yes,no,no,"Mar 15, 2024",,,,,Student,justine.talpaert@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,joined Mar 2024,y
+Thomas,Vuillaume,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,Analysis (Monte Carlo),Scientist,thomas.vuillaume@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,,y
+Brondon,Waffa Pagou,yes,no,no,"Feb 15, 2023",,,,,Student,waffapagou@lapp.in2p3.fr,France,"LAPP, Univ. Grenoble Alpes, Univ. Savoie Mont Blanc, CNRS-IN2P3, Annecy",LAPP,joined Feb 2023,y
+Francois,Toussenel,yes,no,no,"Jan 1, 2018",,,,,Engineer,toussnel@lpnhe.in2p3.fr,France,"Sorbonne Universite, LPNHE",LAPP,,y
+Włodek,Bednarek,yes,no,no,"Aug 1, 2024",,,,,Scientist,wlodzimierz.bednarek@uni.lodz.pl,Poland,U Lódź,LODZ,joined Aug 2024,
+Grzegorz,Borkowski,yes,yes,yes,"Oct 1, 2023",,"Apr 1, 2024",,Control,Student,grzegorz.borkowski@edu.uni.lodz.pl,Poland,U Lódź,LODZ,joined Oct 2023,y
+Pawel,Gliwny,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018","Dec 31, 2024",Onsite IT (XCat + software installation),Student,pawel.gliwny@unilodz.eu,Poland,U Lódź,LODZ,author end Dec 2024,y
+Kazuma,Ishio,no,no,no,"Jan 1, 2018","May 31, 2023","Jul 1, 2018","Nov 30, 2023",,Scientist,kazumai@icrr.u-tokyo.ac.jp,Poland,U Lódź,LODZ,left May 2023,n
+Julian,Sitarek,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"ESC, SCP, LST-MAGIC (analysis)",Scientist,jsitarek@uni.lodz.pl,Poland,U Lódź,LODZ,,y
+Joanna,Wójtowicz,yes,yes,yes,"Oct 1, 2023",,"Apr 1, 2024",,LST-MAGIC (pipeline),Student,joanna.wojtowicz@edu.uni.lodz.pl,Poland,U Lódź,LODZ,joined Oct 2023,y
+Natalia,Zywucka,yes,yes,yes,"Jan 1, 2022",,"Jul 1, 2022","Dec 31, 2024",Shift 2023,Scientist,n.zywucka@gmail.com,Poland,U Lódź,LODZ,author end Dec 2024,y
+Patricia,Marquez,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"EB, SE, Onsite Crew",Engineer,pmarquez@ifae.es,Spain,LST,LST,,y
+Axel,Arbet-Engels,yes,yes,yes,"Feb 1, 2022",,"Aug 1, 2022",,Onsite IT (SLURM),Scientist,aarbet@mpp.mpg.de,Germany,MPP,MPP,,y
+Alessio,Berti,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"EB, TCB, LST-MAGIC (analysis), Transient Handler",Scientist,AlessioBerti90@gmail.com,Germany,MPP,MPP,,y
+Giovanni,Ceribella,yes,yes,yes,"Oct 1, 2021",,"Apr 1, 2022",,,Scientist,giovanni@icrr.u-tokyo.ac.jp,Germany,MPP,MPP,,y
+Gayoung,Chon,yes,yes,yes,"Jul 1, 2023",,"Jan 1, 2024",,,Scientist,gchon@usm.lmu.de,Germany,MPP,MPP,joined Jul 2023,y
+Antonios,Dettlaff,yes,no,no,"Jan 1, 2018",,,,Optics,Technician,todettl@mpp.mpg.de,Germany,MPP,MPP,,y
+Josef,Eder,yes,no,no,"Jan 1, 2018",,,,Mechanics,Engineer,josef.eder@t-online.de,Germany,MPP,MPP,,y
+David,Green,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,EB,Scientist,damgreen@mpp.mpg.de,Germany,MPP,MPP,,y
+Jarred,Green,yes,yes,yes,"Nov 1, 2021",,"May 1, 2022",,"Shift 2023, Webcams",Student,jgreen@mpp.mpg.de,Germany,MPP,MPP,,y
+Alexander,Hahn,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Student,ahahn@mpp.mpg.de,Germany,MPP,MPP,,y
+Lea,Heckmann,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,FOA 2024,Scientist,heckmann@mpp.mpg.de,Germany,MPP,MPP,,y
+Christopher,Jablonski,yes,no,no,"Jan 1, 2018",,,,Mechanics,Engineer,jab@mpp.mpg.de,Germany,MPP,MPP,,y
+Irene,Jimenez Martinez,yes,yes,yes,"Jan 1, 2020",,"Jul 1, 2020",,FOA 2024,Scientist,irenejm@mpp.mpg.de,Germany,MPP,MPP,"left CIEMAT Oct 2023, joined MPP March 2024",y
+Razmik,Mirzoyan,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,razmik.mirzoyan@mpp.mpg.de,Germany,MPP,MPP,,y
+Seiya,Nozaki,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"Camera, Phys",Student,nozaki@cr.scphys.kyoto-u.ac.jp,Germany,MPP,MPP,,y
+David,Paneque,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Scientist,dpaneque@mppmu.mpg.de,Germany,MPP,MPP,,y
+Michele,Peresano,yes,yes,yes,"May 1, 2022",,"Nov 1, 2022",,Onsite IT (SLURM),Scientist,michele.peresano@to.infn.it,Germany,MPP,MPP,joined MPP March 2024,y
+Giorgio,Pirola,yes,yes,yes,"Oct 1, 2020",,"Apr 1, 2021",,"Shift 2023, Shift 2024",Student,gpirola@mpp.mpg.de,Germany,MPP,MPP,,y
+Felix,Schmuckermaier,yes,yes,yes,"Feb 1, 2022",,"Aug 1, 2022",,,Student,fschmuck@mpp.mpg.de,Germany,MPP,MPP,,y
+Thomas,Schweizer,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"ESC, EB",Scientist,tschweiz@mppmu.mpg.de,Germany,MPP,MPP,,y
+Robert,Stadler,yes,no,no,"Jan 1, 2018",,,,,Engineer,stadlerr@mpp.mpg.de,Germany,MPP,MPP,,n
+Masahiro,Teshima,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,EB,Scientist,masahiro.teshima@gmail.com,Germany,MPP,MPP,,y
+Juliane,van Scherpenberg,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Student,jvsch@mpp.mpg.de,Germany,MPP,MPP,,y
+Diana,Werner,yes,no,no,"Jan 1, 2018",,,,SCP,Administrator,dwerner@mpp.mpg.de,Germany,MPP,MPP,,y
+Holger,Wetteskind,yes,no,no,"Jan 1, 2018",,,,Mechanics,Engineer,wet@mpp.mpg.de,Germany,MPP,MPP,,y
+Martin,Will,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"EB, CF, Safety",Scientist,mwill@mppmu.mpg.de,Germany,MPP,MPP,,y
+Noelia,Castrejón,yes,yes,yes,"Oct 20, 2022",,"Jul 1, 2023",,OSA,Student,noelia.castrejon@uah.es,Spain,Universidad de Alcalá,UAH,,y
+Luis,Del Peral,yes,yes,yes,"Oct 20, 2022",,"Apr 20, 2023",,"ESC, Shift 2024",Scientist,luis.delperal@gmail.com,Spain,Universidad de Alcalá,UAH,,y
+Julio,Lozano Bahilo,yes,yes,yes,"Oct 20, 2022",,"Apr 20, 2023",,"SCP, OSA",Scientist,julio.lozano@uah.es,Spain,Universidad de Alcalá,UAH,,y
+Héctor,Prieto Alfonso,yes,no,no,"Oct 20, 2022",,,,SE,Engineer,hector.prieto@uah.es,Spain,Universidad de Alcalá,UAH,,y
+Maria Dolores,Rodríguez Frías,yes,yes,yes,"Oct 20, 2022",,"Apr 20, 2023",,Shift 2024,Scientist,dolores5.frias@gmail.com,Spain,Universidad de Alcalá,UAH,,y
+Arnau,Aguasca-Cabot,yes,yes,yes,"Jun 1, 2021",,"Dec 1, 2021",,"Shift 2024, BA 2024",Student,arnau.aguasca@fqa.ub.edu,Spain,ICC-UB,UB,,y
+Pol,Bordas,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,Phys,Scientist,pbordas@fqa.ub.edu,Spain,ICC-UB,UB,,y
+David,Gascon,yes,no,no,"Jan 1, 2018",,,,,Engineer,dgascon@fqa.ub.edu,Spain,ICC-UB,UB,,y
+Josep Maria,Paredes,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,SAPO,Scientist,jmparedes@ub.edu,Spain,ICC-UB,UB,,y
+Marine,Pihet,yes,yes,yes,"Feb 1, 2023",,"Aug 1, 2023",,,Student,mpihet@fqa.ub.edu,Spain,ICC-UB,UB,"moved to UB from INFN Padova Nov 8, 2024",y
+Marc,Ribó,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"ESC, SCP",Scientist,mribo@fqa.ub.edu,Spain,ICC-UB,UB,,y
+Andreu,Sanuy,yes,no,no,"Jan 1, 2018",,,,,Engineer,asanuy@fqa.ub.edu,Spain,ICC-UB,UB,,y
+Alba,Moreno Ramos,yes,yes,yes,"Apr 1, 2024",,"Oct 1, 2024",,,Engineer,albmor13@ucm.es,Spain,"UCM, Electronica",UCM-ELEC,joined Apr 2024,y
+Oibar,Martinez,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,SE,Engineer,oibarmar@ucm.es,Spain,"UCM, Electronica",UCM-ELEC,,y
+Jose Miguel,Miranda,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"ESC, SCP, Shift 2023, Shift 2024",Engineer,miranda@ucm.es,Spain,"UCM, Electronica",UCM-ELEC,,y
+Clara,Oliver,yes,no,no,"Jan 1, 2018",,,,,Engineer,claraoli@ucm.es,Spain,"UCM, Electronica",UCM-ELEC,,y
+Isidro,Aguado-Ruesga,no,no,no,"Jan 1, 2018","Oct 31, 2023",,,,Engineer,iaguador@gmail.com,Spain,"UCM, Altas Energías",UCM-GAE,left Oct 2023,n
+Nuria,Alvarez Crespo,no,yes,yes,"Mar 1, 2022","May 31, 2024","Sep 1, 2022","Nov 30, 2024",OSA,Scientist,nuriaa05@ucm.es,Spain,"UCM, Altas Energías",UCM-GAE,left May 2024,n
+Andres,Baquero Larriva,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,OSA,Scientist,obaquero@ucm.es,Spain,"UCM, Altas Energías",UCM-GAE,,y
+Juan Abel,Barrio,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"ESC, Camera",Scientist,barrio@gae.ucm.es,Spain,"UCM, Altas Energías",UCM-GAE,,y
+Jorge,Buces,yes,no,yes,"Nov 1, 2024",,"May 1, 2025",,,Student,jbuces@ucm.es,Spain,"UCM, Altas Energías",UCM-GAE,joined Nov 2024,y
+Alexander,Cerviño Cortínez,yes,yes,yes,"May 1, 2024",,"Nov 1, 2024",,,Student,rcervino@ucm.es,Spain,"UCM, Altas Energías",UCM-GAE,joined May 2024,y
+Jose Luis,Contreras,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,OSA,Scientist,contrera@gae.ucm.es,Spain,"UCM, Altas Energías",UCM-GAE,,y
+Maria,Lainez,yes,yes,yes,"Sep 1, 2021",,"Mar 1, 2022",,OSA,Student,malainez@ucm.es,Spain,"UCM, Altas Energías",UCM-GAE,,y
+Marcos,Lopez Moya,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2024",,,Scientist,marcos@gae.ucm.es,Spain,"UCM, Altas Energías",UCM-GAE,author end Apr 2022,y
+Dafne,Martin,yes,no,no,"Nov 1, 2024",,,,,Student,dafmar02@ucm.es,Spain,"UCM, Altas Energías",UCM-GAE,joined Nov 2024,
+Alvaro,Mas,yes,yes,no,"Jan 1, 2021","Jan 31, 2025","Jul 1, 2021","Jul 31, 2025",Analysis,Student,alvmas@ucm.es,Spain,"UCM, Altas Energías",UCM-GAE,,y
+Victor,Moya,yes,yes,no,"Oct 1, 2022",,"Apr 1, 2023","May 1, 2026","Shift 2023, Shift 2024",Student,victmoya@ucm.es,Spain,"UCM, Altas Energías",UCM-GAE,,y
+Daniel,Nieto,yes,yes,yes,"Jul 1, 2020",,"Jul 1, 2024",,SAPO,Scientist,d.nieto@ucm.es,Spain,"UCM, Altas Energías",UCM-GAE,author end Apr 2022,y
+Alejandro,Perez,yes,no,no,"May 1, 2020",,,,"SiPM, Camera (TIB)",Engineer,alejpe15@ucm.es,Spain,"UCM, Altas Energías",UCM-GAE,,y
+Luis Angel,Tejedor,yes,no,no,"Jan 1, 2018",,"Jul 1, 2018","Apr 15, 2022",,Engineer,luistejedor@fis.ucm.es,Spain,"UCM, Altas Energías",UCM-GAE,author end Apr 2022,y
+Etienne,Lyard,yes,no,no,"Nov 1, 2020",,,,,Engineer,etienne.lyard@unige.ch,Switzerland,University of Geneva - Astro,UGENEVA-ASTRO,,y
+Vitalii,Sliusar,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"EB, Control",Scientist,vitalii.sliusar@unige.ch,Switzerland,University of Geneva - Astro,UGENEVA-ASTRO,,y
+Roland,Walter,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,ESC,Scientist,roland.walter@unige.ch,Switzerland,University of Geneva - Astro,UGENEVA-ASTRO,,y
+Cyril,Alispach,yes,yes,yes,"Aug 1, 2023",,"Apr 1, 2024",,LST South,Scientist,cyril.alispach@unige.ch,Switzerland,University of Geneva - DPNC,UGENEVA-PHYSICS,joined Aug 2023,y
+Matteo,Balbo,yes,yes,yes,"Nov 15, 2023",,"May 15, 2024",,Control (eGUI),Scientist,matteo.balbo@unige.ch,Switzerland,University of Geneva - DPNC,UGENEVA-PHYSICS,joined Nov 2023,y
+Iaroslava,Bezshyiko,no,yes,yes,"Nov 1, 2023","Oct 31, 2024","May 1, 2024","Apr 30, 2025",SiPM,Scientist,iaroslava.bezshyiko@physik.uzh.ch,Switzerland,University of Geneva - DPNC,UGENEVA-PHYSICS,"joined Nov 2023, left Jun 2024",n
+Leonid,Burmistrov,yes,yes,yes,"Sep 1, 2022",,"Mar 1, 2023",,SiPM,Scientist,leonid.burmistrov@unige.ch,Switzerland,University of Geneva - DPNC,UGENEVA-PHYSICS,,y
+Mykhailo,Dalchenko,yes,yes,yes,"Jun 1, 2020",,"Dec 1, 2020",,"Pointing, Shift 2024",Scientist,mykhailo.dalchenko@cern.ch,Switzerland,University of Geneva - DPNC,UGENEVA-PHYSICS,,y
+Domenico,della Volpe,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"EB, SCP, SE",Scientist,domenico.della.volpe@cern.ch,Switzerland,University of Geneva - DPNC,UGENEVA-PHYSICS,,y
+Antonio,Di Pilato,no,no,no,"Nov 1, 2022","Apr 30, 2023","May 1, 2023","Oct 31, 2023",,Scientist,antonio.dipilato@unige.ch,Switzerland,University of Geneva - DPNC,UGENEVA-PHYSICS,left April 2023,n
+Luca,Giangrande,yes,no,no,"Nov 1, 2022",,,,,Engineer,luca.giangrande@unige.ch,Switzerland,University of Geneva - DPNC,UGENEVA-PHYSICS,,y
+Matthieu,Heller,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,EB,Scientist,matthieu.heller@cern.ch,Switzerland,University of Geneva - DPNC,UGENEVA-PHYSICS,,y
+Bastien,Lacave,yes,yes,yes,"Jan 1, 2024",,"Jul 1, 2024",,Analysis (DPPS),Student,bastien.lacave@unige.ch,Switzerland,University of Geneva - DPNC,UGENEVA-PHYSICS,joined Jan 2024,y
+Tjark,Miener,yes,yes,yes,"Jul 1, 2020",,"Jan 1, 2021",,"SiPM, Analysis",Scientist,tjark.miener@unige.ch,Switzerland,University of Geneva - DPNC,UGENEVA-PHYSICS,moved to UGeneva from UCM July 2023,y
+Teresa,Montaruli,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,ESC,Scientist,teresa.montaruli@cern.ch,Switzerland,University of Geneva - DPNC,UGENEVA-PHYSICS,,y
+Magdalena,Stodulska,yes,no,no,"Aug 15, 2021",,,,"EB, SE",Engineer,magdalena.stodulska@unige.ch,Switzerland,University of Geneva - DPNC,UGENEVA-PHYSICS,,y
+Christoph,Toennis,no,yes,yes,"Jan 1, 2024","Jun 30, 2024","Jul 1, 2024","Dec 31, 2024",Pointing,Scientist,christoph.toennis@unige.ch,Switzerland,University of Geneva - DPNC,UGENEVA-PHYSICS,joined Jan 2024,n
+Vadym,Voitsekhovskyi,yes,yes,yes,"May 1, 2023",,"Nov 1, 2023",,Shift 2024,Scientist,vadym.voitsekhovskyi@unige.ch,Switzerland,University of Geneva - DPNC,UGENEVA-PHYSICS,joined May 2023,y
+Georgios,Voutsinas,yes,yes,yes,"Sep 1, 2021",,"Mar 1, 2022",,"Shift 2023, SiPM, Analysis (Monte Carlo)",Scientist,Georgios.Voutsinas@unige.ch,Switzerland,University of Geneva - DPNC,UGENEVA-PHYSICS,,y
+Antonio,Penuela,yes,no,no,"Aug 1, 2024",,,,,Engineer,jpenuela@ujaen.es,Spain,U Jaén,UJA,,y
+Raul,Bautista Gonzalez,no,no,no,"Aug 1, 2020","Jun 1, 2024",,,,Engineer,rbautist@ujaen.es,Spain,U Jaén,UJA,left Jun 2024,n
+Pedro L.,Luque-Escamilla,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,SAPO,Scientist,peter@ujaen.es,Spain,U Jaén,UJA,,y
+Josep,Martí,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,"ESC, SCP",Scientist,jmarti@ujaen.es,Spain,U Jaén,UJA,,y
+Daniela,Dorner,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,SCP,Scientist,dorner@astro.uni-wuerzburg.de,Germany,U Würzburg,WÜRZBURG,,y
+Laura,Eisenberger,yes,yes,yes,"Oct 26, 2022",,"Apr 26, 2023",,"Shift 2023, Shift 2024",Student,laura.eisenberger@stud-mail.uni-wuerzburg.de,Germany,U Würzburg,WÜRZBURG,,y
+Patrick,Günther,yes,yes,yes,"Aug 1, 2022",,"Feb 1, 2023",,,Student,patrick.guenther@stud-mail.uni-wuerzburg.de,Germany,U Würzburg,WÜRZBURG,,y
+Karl,Mannheim,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,ESC,Scientist,mannheim@astro.uni-wuerzburg.de,Germany,U Würzburg,WÜRZBURG,,y
+Felix,Pfeiffle,yes,yes,yes,"Aug 1, 2022",,"Feb 1, 2023",,"Shift 2024, Structure Monitoring",Student,felix.pfeifle@stud-mail.uni-wuerzburg.de,Germany,U Würzburg,WÜRZBURG,,y
+Bernd,Schleicher,yes,yes,yes,"Jan 1, 2018",,"Jul 1, 2018",,,Student,berndschleicher90@gmail.com,Germany,U Würzburg,WÜRZBURG,,y
+Thomas,Siegert,yes,yes,yes,"Aug 1, 2022",,"Feb 1, 2023",,,Scientist,thomas.siegert@uni-wuerzburg.de,Germany,U Würzburg,WÜRZBURG,,y
+Marcel,Vorbrugg,yes,no,no,"May 10, 2023",,,,,Student,marcel.vorbrugg@cta-consortium.org,Germany,U Würzburg,WÜRZBURG,joined May 2023,y
