@@ -41,17 +41,22 @@
                 <label class="control-label">Publishing Affiliations</label>
                 <div id="affiliations-list">
                     {% for affiliation in affiliations %}
-                        <div class="form-group mb-3 d-flex align-items-center">
-                            <div class="dropdown-wrapper position-relative w-100">
-                                <select class="form-control rounded-0 me-2 dropdown-input" name="affiliations[]">
-                                    <option value="{{ affiliation.institute.id }}" selected>{{ affiliation.institute.name }}</option>
-                                    {% for institute in institute_list|dictsort:"name" %}
+                        <div class="affiliation-entry position-relative mt-2 mb-2">
+                            <div class="form-group mb-3 d-flex align-items-center indexPositive">
+                                <div class="dropdown-wrapper position-relative w-100">
+                                    <select class="form-control rounded-0 me-2 dropdown-input disabled affiliation_select" name="affiliation_id" data-id="{{affiliation.institute.id}}">
+                                        <option value="{{ affiliation.institute.id }}" selected>{{ affiliation.institute.name }}</option>
+                                        {% for institute in institute_list|dictsort:"name" %}
                                         <option value="{{ institute.id }}">{{ institute.name }}</option>
-                                    {% endfor %}
-                                </select>
-                                <span class="dropdown-caret position-absolute end-0 me-3">&#9662;</span>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <button type="button" class="btn btn-danger btn-sm remove-affiliation ms-2">Remove</button>
                             </div>
-                            <button type="button" class="btn btn-danger btn-sm remove-affiliation me-2">Remove</button>
+                            <div class="d-flex justify-content-center mt-1 indexPositive">
+                                <label for="af_inst_start_date" class="me-2">Start date</label>
+                                <input type="date" name="affiliation_start_date" class="af_inst_start_date" data-id="{{affiliation.institute.id}}" value="{{affiliation.creation_date | date:'Y-m-d'}}" requiered>
+                            </div>
                         </div>
                     {% endfor %}
                 </div>
@@ -62,30 +67,106 @@
 </div>
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script>
+    
     $(document).ready(function() {
         let affiliationCount = {{ affiliations|length }};
+        // Affiliatoion object creation
+        let affiliations = [];
+        $('#affiliations-list .affiliation-entry').each(function () {
+            let affiliation_id = $(this).find('select[name="affiliation_id"]').val();
+            let start_date = $(this).find('input[name="affiliation_start_date"]').val();
+            if (affiliation_id && start_date) {
+                affiliations.push({
+                    id: affiliation_id,
+                    start_date: start_date
+                });
+            }
+        });
+        // Remove the hiden input in case there is one
+        $('input[name="affiliations_json"]').remove();
+        // Adds the new affiliation hidden input with the parsed affiliations
+        $('<input>').attr({
+            type: 'hidden',
+            name: 'affiliations_json',
+            id: 'affiliations_json',
+            value: JSON.stringify(affiliations)
+        }).appendTo('#author-form');
+        $('#affiliations-list').on('change', '.af_inst_start_date[data-id]', function(e) {
+            console.log(affiliations)
+            if(e.target.dataset && e.target.dataset.id){
+                institute_id = e.target.dataset.id
+                element = affiliations.filter(element => element.id == institute_id)[0]
+                console.log(element)
+                element.start_date = e.target.value
+                document.getElementById('affiliations_json').value = JSON.stringify(affiliations)
+            }
+        })
         // Add new affiliation
         $('#add-affiliation').click(function () {
             //console.log("Add affiliation clicked.");
             affiliationCount += 1;
             const newAffiliationField = `
-                <div class="form-group mb-3 d-flex align-items-center">
-                    <select class="form-control rounded-0 me-2" name="affiliations[]">
-                        <option value="">Select an institute</option>
-                        {% for institute in institute_list|dictsort:"name" %}
-                            <option value="{{ institute.id }}">{{ institute.name }}</option>
-                        {% endfor %}
-                    </select>
-                    <button type="button" class="btn btn-danger btn-sm remove-affiliation me-2">Remove</button>
+                <div class="affiliation-entry mt-2 mb-2">
+                    <div class="form-group mt-3 mb-3 d-flex align-items-center">
+                        <div class="dropdown-wrapper position-relative w-100">
+                            <select class="form-control rounded-0 me-2 dropdown-input affiliation_select" name="affiliation_id">
+                                <option value="">Select an institute</option>
+                                {% for institute in institute_list|dictsort:"name" %}
+                                    <option value="{{ institute.id }}">{{ institute.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <span class="dropdown-caret position-absolute end-0 me-3">&#9662;</span>
+                        </div>
+                        <button type="button" class="btn btn-danger btn-sm remove-affiliation ms-2">Remove</button>
+                    </div>
+                    <div class="date-control d-flex justify-content-center mt-2">
+                        <label for="af_inst_start_date" class="me-2">Start date</label>
+                        <input type="date" name="affiliation_start_date" class="af_inst_start_date" value="{{affiliation.creation_date}}" disabled required>
+                    </div>
                 </div>`;
             $('#affiliations-list').append(newAffiliationField);
+            setTimeout(()=>{
+                document.querySelectorAll('.affiliation_select:not(.disabled)').forEach(element => {
+                    element.addEventListener('change', (e)=>{
+                        console.log(e.target)
+                        console.log(e.target.dataset)
+                        console.log(e.target.dataset.id)
+                        if(e.target.dataset && e.target.dataset.id){
+                            console.log(e.target.dataset.id)
+                            institute_id = e.target.dataset.id
+                            element = affiliations.filter(element => element.id = institute_id)[0]
+                            element.id = e.target.value
+                            e.target.dataset.id = e.target.value
+                            document.getElementById('affiliations_json').value = JSON.stringify(affiliations)
+                        }else{
+                            console.log(e.target)
+                            console.log(e.target.value)
+                            affiliations.push({id: e.target.value, start_date: null})
+                            console.log(affiliations)
+                            e.target.dataset.id = e.target.value
+                            e.target.closest('.affiliation-entry').querySelector('.af_inst_start_date:not([data-id])').removeAttribute("disabled")
+                            e.target.closest('.affiliation-entry').querySelector('.af_inst_start_date:not([data-id])').dataset.id = e.target.value
+                            document.getElementById('affiliations_json').value = JSON.stringify(affiliations)
+                            console.log(document.getElementById('affiliations_json'))
+                        }
+                    });
+                })
+            }, 300)
             //console.log("New affiliation field added.");
         });
 
         // Remove affiliation
-        $('#affiliations-list').on('click', '.remove-affiliation', function () {
+        $('#affiliations-list').on('click', '.remove-affiliation', function (e) {
             //console.log("Remove affiliation clicked.");
-            $(this).closest('.form-group').remove();
+            let id = e.target.closest('.affiliation-entry').querySelector('.affiliation_select').dataset.id;
+            console.log(id)
+
+            let foundIndex = affiliations.findIndex(element => element.id == id);
+            console.log(foundIndex)
+            console.log(affiliations.splice(foundIndex,1))
+            console.log(affiliations)
+            document.getElementById('affiliations_json').value = JSON.stringify(affiliations)
+            $(this).closest('.affiliation-entry').remove();
         });
 
         // Form submission

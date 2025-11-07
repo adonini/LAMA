@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set the base path to your Django project directory
-DJANGO_BASE_PATH="..."
+DJANGO_BASE_PATH="/run/media/antonio/DD_Antonio3/github/LAMA"
 
 # Load environment variables from .env
 set -a

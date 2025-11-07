@@ -10,6 +10,12 @@
             <div class="text-center">
                 <p class="fw-light fs-5">This application helps manage members of the collaboration.</p>
                 <p class="fw-light fs-5">Only authorized users can log in to view and manage member information.</p>
+                <div class="col-12 text-center mb-4">
+                    <p class="fw-light">
+                        Do you want to know more?
+                        Check the user manual <a href="{% static 'LST_LAMA_manual.pdf' %}" class="btn btn-sm btn-outline-primary shadow ms-2" download>Download User Manual</a>
+                    </p>
+                </div>
                 <br/>
                 <a href="{% url 'login' %}" class="btn btn-primary p-4 fs-5 font-weight-bold rounded shadow">Log In To Get Started!</a>
             </div>
@@ -18,7 +24,7 @@
 
         {% if user.is_authenticated %}
         <!-- Welcome Text -->
-        <div class="col-12 text-center mb-4">
+        <div class="col-12 text-center">
             <h1>Welcome to LAMA!</h1>
             <p><strong>LST Administration of Members and Authors</strong></p>
             <div class="col-12 text-center mb-4">
@@ -58,10 +64,10 @@
                 <div class="col-md-4 col-sm-6 mb-4">
                     <div class="card shadow">
                         <div class="card-header custom-card-header text-center">
-                            <i class="fa-regular fa-flag" style="color: #006d8f;"></i> Countries
+                            <i class="fa-solid fa-sack-dollar" style="color: #ffaa00;"></i> Members Contributing to CF
                         </div>
                         <div class="card-body text-center">
-                            <p class="card-text"><strong class="large-bold-number">{{ total_countries }}</strong></p>
+                            <p class="card-text"><strong class="large-bold-number">{{ cf }}</strong></p>
                         </div>
                     </div>
                 </div>
@@ -69,7 +75,7 @@
 
             <!-- Second Row with 4 Cards -->
             <div class="row justify-content-center">
-                <div class="col-md-3 col-sm-12 mb-4">
+                <div class="col-md-4 col-sm-6 mb-4">
                     <div class="card shadow">
                         <div class="card-header custom-card-header text-center">
                             <i class="fa-solid fa-arrow-right-to-bracket" style="color: #77bb41;"></i> Becoming Authors within 6 Months
@@ -80,7 +86,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-3 col-sm-12 mb-4">
+                <div class="col-md-4 col-sm-6 mb-4">
                     <div class="card shadow">
                         <div class="card-header custom-card-header text-center">
                             <i class="fa-solid fa-arrow-right-from-bracket" style="color: #e32400;"></i> Non-members leaving Authorship within 6 Months
@@ -91,7 +97,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-3 col-sm-12 mb-4">
+                <div class="col-md-4 col-sm-6 mb-4">
                     <div class="card shadow">
                         <div class="card-header custom-card-header text-center">
                             <i class="fa-solid fa-arrow-right-from-bracket" style="color: #e32400;"></i> Leaving Authorship within 6 Months
@@ -101,23 +107,21 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="col-md-3 col-sm-12 mb-4">
+            </div>
+            <!-- Third Row with 4 Cards-->
+            <div class="row justify-content-center">
+                <div class="col-md-4 col-sm-6 mb-4">
                     <div class="card shadow">
                         <div class="card-header custom-card-header text-center">
-                            <i class="fa-solid fa-sack-dollar" style="color: #ffaa00;"></i> Members Contributing to CF
+                            <i class="fa-regular fa-flag" style="color: #006d8f;"></i> Countries
                         </div>
                         <div class="card-body text-center">
-                            <p class="card-text"><strong class="large-bold-number">{{ cf }}</strong></p>
+                            <p class="card-text"><strong class="large-bold-number">{{ total_countries }}</strong></p>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Third Row with 2 Cards -->
-            <div class="row justify-content-center">
                 <!-- Groups Card -->
-                <div class="col-md-5 col-sm-12">
+                <div class="col-md-4 col-sm-6 mb-4" style="max-height: 9.5rem;">
                     <div class="card shadow">
                         <div class="card-header custom-card-header text-center">
                             <i class="fa-solid fa-people-roof"></i> Groups
@@ -144,7 +148,7 @@
                 </div>
 
                 <!-- Institutes Card -->
-                <div class="col-md-5 col-sm-12">
+                <div class="col-md-4 col-sm-6 mb-4" style="max-height: 9.5rem;">
                     <div class="card shadow">
                         <div class="card-header custom-card-header text-center">
                             <i class="fa-solid fa-building-columns"></i> Institutes
@@ -170,24 +174,66 @@
                     </div>
                 </div>
             </div>
+            <div class="row justify-content-center">
+                <!--Total duties-->
+                <div class="col-md-4 col-sm-6 mb-4" style="max-height: 9.5rem;">
+                    <div class="card shadow">
+                        <div class="card-header custom-card-header text-center">
+                            <i class="fa-solid fa-book-open" style="color: #77bb41;"></i> Filled duties
+                        </div>
+                        <div class="card-body text-center">
+                            <p class="card-text"><strong class="large-bold-number">{{ total_duties }}</strong></p>
+                        </div>
+                    </div>
+                </div>
+                <!--Available Duties-->
+                <div class="col-md-4 col-sm-6 mb-4" style="max-height: 9.5rem;">
+                    <div class="card shadow">
+                        <div class="card-header custom-card-header text-center">
+                            <i class="fa-solid fa-book-open" style="color: #e32400;"></i> Duties with vacancies
+                        </div>
+                        <div class="card-body text-center">
+                            <p class="card-text"><strong class="large-bold-number">{{ available_duties }}</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         {% endif %}
     </div>
 </div>
 
+
 <script>
     $(document).ready(function () {
+        const style = "max-height: 9.5rem;"
+        const toggleGroupsButton = document.getElementById('toggleGroups')
+        const toggleInstitutesButton = document.getElementById('toggleInstitutes')
+        toggleGroupsButton.addEventListener('click', function(e) {
+            const isExpanded = this.getAttribute('aria-expanded') === 'true'
+            if (isExpanded) {
+                e.target.parentNode.closest('.col-md-3').style = ''
+            }
+        })
+        toggleInstitutesButton.addEventListener('click', function(e) {
+            const isExpanded = this.getAttribute('aria-expanded') === 'true'
+            if (isExpanded) {
+                e.target.parentNode.closest('.col-md-3').style = ''
+            }
+        })
         // Handle Institutes toggle
         $('#institutesBreakdown').on('shown.bs.collapse', function () {
             $('#toggleInstitutes').addClass('rotated'); // Expand (Arrow up)
-        }).on('hidden.bs.collapse', function () {
+        }).on('hidden.bs.collapse', function (e) {
+            e.target.parentNode.closest('.col-md-3').style = style
             $('#toggleInstitutes').removeClass('rotated'); // Collapse (Arrow down)
         });
 
         // Handle Groups toggle
         $('#groupsBreakdown').on('shown.bs.collapse', function () {
             $('#toggleGroups').addClass('rotated'); // Expand (Arrow up)
-        }).on('hidden.bs.collapse', function () {
+        }).on('hidden.bs.collapse', function (e) {
+            e.target.parentNode.closest('.col-md-3').style = style
             $('#toggleGroups').removeClass('rotated'); // Collapse (Arrow down)
         });
     });

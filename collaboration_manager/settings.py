@@ -34,7 +34,7 @@ DEBUG = os.getenv('DJANGO_DEBUG', 'False')
 
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',')
 
-#CSRF_TRUSTED_ORIGINS = ['http://localhost:8083']
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8086']
 
 # Application definition
 
@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.postgres',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
@@ -143,8 +145,8 @@ AUTH_LDAP_ALWAYS_UPDATE_USER = True
 
 # Authentication Backends
 AUTHENTICATION_BACKENDS = [
-    'members.backends.ldap_backend.CustomLDAPBackend',
     'django.contrib.auth.backends.ModelBackend',
+    'members.backends.ldap_backend.CustomLDAPBackend',
 ]
 
 # Internationalization
@@ -185,6 +187,14 @@ LOGIN_URL = '/login'
 # replace default admin url
 ADMIN_URL = os.getenv('DJANGO_ADMIN_URL')
 
+#Email configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = "mailer"
+EMAIL_PORT = 25
+EMAIL_USE_TLS =False
+EMAIL_USE_SSL = False
+DEFAULT_FROM_EMAIL = "LAMA@cta-observatory.org"
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -212,12 +222,12 @@ LOGGING = {
         'django': {
             'handlers': ['console'],
             'level': 'INFO',
-            'propagate': True,
+            'propagate': False,
         },
         'members': {
             'handlers': ['console'],
             'level': 'DEBUG',
-            'propagate': True,
+            'propagate': False,
         },
         "django_auth_ldap": {
             "level": 'DEBUG',

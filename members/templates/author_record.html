@@ -54,9 +54,9 @@
                 <li class="list-group-item">
                     <strong class="text-dark fw-bold">Affiliations</strong>
                     <br>
-                    {% if author_details.institute_affiliations %}
+                    {% if institute_affiliations %}
                         <ul class="list-group list-group-flush mt-2">
-                            {% for affiliation in author_details.institute_affiliations.all %}
+                            {% for affiliation in institute_affiliations %}
                                 <li class="list-group-item">
                                     <strong class="text-dark fw-bold">{{ affiliation.order }}.</strong> {{ affiliation.institute.name }}
                                     <br>

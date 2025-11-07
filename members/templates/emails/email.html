@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summary of ending authorships</title>
+</head>
+<body>
+    <h4>Summary of ending authorships</h4>
+
+    <p>List of members:</p>
+
+    <ul>
+        {% for member in list %}
+            <li>
+                {% if member in added_members %}
+                    {% if not member.member.is_active_cf %}
+                        {{member.member.name}} {{member.member.surname}} | END DATE: {{member.end_date}} [NEW] (No CF)
+                    {% elif not member.member.has_active_duty %} 
+                        {{member.member.name}} {{member.member.surname}} | END DATE: {{member.end_date}} [NEW] (No Duty)
+                    {% else %}
+                        {{member.member.name}} {{member.member.surname}} | END DATE: {{member.end_date}} [NEW]
+                    {% endif %}
+                {% else %}
+                    {{member.member.name}} {{member.member.surname}} | END DATE: {{member.end_date}}
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+
+    <p>Total members on the list: <strong>{{count_list}}</strong></p>
+
+
+    <p>Number of added members: <strong>{{count_added}}</strong></p>
+    <p>Number of removed members: <strong>{{count_removed}}</strong></p>
+    {% if count_removed > 0 %}
+        <p>List of removed members: </p>
+        <ul>
+            {% for member in removed_members %}
+                <li>
+                    {{member.member.name}} {{member.member.surname}} | END DATE: {{member.end_date}}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    
+
+    <p><strong>{% now "d-m-Y" %}</strong></p>
+</body>
+</html>

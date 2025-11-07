@@ -93,3 +93,4 @@ staticfiles
 LST_members.csv
 members/management/commands/import_members.py
 populate.sh
+db_backup/

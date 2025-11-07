@@ -1,7 +1,6 @@
-Django==5.0.6
+Django>=5.2,<5.3
 pandas
-psycopg
-psycopg2-binary==2.9.9
+psycopg[binary]==3.2.10
 django-crispy-forms==2.3
 crispy-bootstrap5==2024.2
 python-dotenv==1.0.1
@@ -12,3 +11,7 @@ python-ldap>=3.0
 python-dateutil
 django-extensions
 pillow
+openpyxl
+pytest-django
+pytest
+pre-commit

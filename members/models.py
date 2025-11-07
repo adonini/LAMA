@@ -2,23 +2,32 @@ from django.db import models
 from django.utils import timezone
 from django.utils.timezone import now
 from django.db.models import Q
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 #from django.core.exceptions import ValidationError
+import logging
+
+logger = logging.getLogger('lama')
 
 
 class Country(models.Model):
     name = models.CharField(max_length=50)
 
+    class Meta:
+        ordering = ['name']
+
     def __str__(self):
         return self.name
-
 
 class Group(models.Model):
     name = models.CharField(max_length=50)
     country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='groups')
 
+    class Meta:
+        ordering = ['name']
+
     def __str__(self):
         return self.name
-
 
 class Institute(models.Model):
     name = models.CharField(max_length=100, unique=True, help_text="A unique short name (abbreviation) for the institute, to be used in the app.")
@@ -26,6 +35,9 @@ class Institute(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='institutes', null=True, blank=True)
     long_description = models.TextField(blank=True)
     is_lst = models.BooleanField(default=True)  # Flag to indicate LST-specific institutes
+
+    class Meta:
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -43,20 +55,65 @@ class Institute(models.Model):
         self.clean()  # Call clean to ensure validation
         super().save(*args, **kwargs)
 
+class DutyType(models.Model):
+    """
+    Represents a predefined list of duty types that can be assigned to duties.
+    """
+    name = models.CharField(max_length=100, unique=True)  # Duty type names must be unique
 
+    class Meta:
+        ordering = ['name']
+        verbose_name_plural = 'Duty_types'
+
+    def __str__(self):
+        return self.name
+    
+class Category(models.Model):
+    """
+    Represents a predefined list of categories that can be assigned to duties.
+    """
+    name = models.CharField(max_length=100, unique=True)  # Duty type names must be unique
+
+    class Meta:
+        ordering = ['name']
+        verbose_name_plural = 'Categories'
+
+    def __str__(self):
+        return self.name
+    
 class Duty(models.Model):
     """
     Represents a predefined list of duties that can be assigned to members.
     """
-    name = models.CharField(max_length=100, unique=True)  # Duty names must be unique
+    name = models.CharField(max_length=100)  # Duty names must be unique
     description = models.TextField(blank=True)  # Optional description for the duty
+    duty_type = models.ForeignKey(DutyType, on_delete=models.DO_NOTHING)
+    category = models.ForeignKey(Category, on_delete=models.DO_NOTHING)
+    maximum_members = models.IntegerField(null=True)
 
     class Meta:
+        ordering = ['name']
         verbose_name_plural = 'Duties'
+        constraints = [
+            models.UniqueConstraint(fields=['name', 'category'], name='unique_name_category')
+        ]
+
+    def get_active_members(self):
+        today = timezone.now().date()
+        return len(MemberDuty.objects.filter(duty=self).filter(Q(start_date__lte=today) & Q(end_date__gte=today) | Q(start_date__lte=today) & Q(end_date__isnull=True)))
+    
+    def get_short_active_members(self):
+        today = timezone.now().date()
+        yearStart = datetime(today.year, 1, 1)
+        yearEnd = datetime(today.year, 12, 31)
+        return len(MemberDuty.objects.filter(duty=self).filter(Q(start_date__gte=yearStart) & Q(start_date__lte=yearEnd)))
+    
+    def get_future_members(self):
+        today = timezone.now().date()
+        return len(MemberDuty.objects.filter(duty=self).filter(Q(start_date__gte=today) & Q(end_date__gt=today) | Q(start_date__gte=today) & Q(end_date__isnull=True)))
 
     def __str__(self):
         return self.name
-
 
 class MembershipPeriod(models.Model):
     member = models.ForeignKey('Member', on_delete=models.CASCADE, related_name='membership_periods')
@@ -64,24 +121,44 @@ class MembershipPeriod(models.Model):
     end_date = models.DateField(null=True, blank=True)  # Null means still active
     institute = models.ForeignKey('Institute', on_delete=models.SET_NULL, null=True, blank=True)
 
+    class Meta:
+        ordering = ['member__name']
+
     def is_active(self):
         return not self.end_date or self.end_date >= now().date()
 
     def __str__(self):
-        return f"{self.member.name} - {self.start_date} to {self.end_date or 'Active'}"
-
+        return f"{self.member.name} {self.member.surname} - {self.start_date} to {self.end_date or 'Active'}"
 
 class AuthorshipPeriod(models.Model):
     member = models.ForeignKey('Member', on_delete=models.CASCADE, related_name='authorship_periods')
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)  # Null means still active
 
+    class Meta:
+        ordering = ['member__name']
+        constraints = [
+            models.UniqueConstraint(fields=['member', 'end_date'], name='unique_member_end_date')
+        ]
+
     def is_active(self):
         return not self.end_date or self.end_date >= now().date()
 
     def __str__(self):
         return f"{self.member.name} - {self.start_date} to {self.end_date or 'Active'}"
+    
+class CommonFound(models.Model):
+    member = models.ForeignKey('Member', on_delete=models.CASCADE, related_name='common_found')
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    class Meta:
+        ordering = ['member__name']
 
+    def is_active(self):
+        return not self.end_date or self.end_date >= now().date()
+
+    def __str__(self):
+        return f"{self.member.name} {self.member.surname} - {self.start_date}"
 
 class Member(models.Model):
     ROLE_CHOICES = [
@@ -98,6 +175,9 @@ class Member(models.Model):
     primary_email = models.EmailField(unique=True)  # Mandatory
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
 
+    class Meta:
+        ordering = ['name']
+
     def clean(self):
         super().clean()
 
@@ -112,7 +192,7 @@ class Member(models.Model):
         else:
             # Return only the active membership
             return self.membership_periods.filter(
-                Q(start_date__lte=today) & (Q(end_date__isnull=True) | Q(end_date__gte=today))
+                Q(start_date__lte=today) & (Q(end_date__isnull=True) | Q(start_date__lte=today) & Q(end_date__gte=today))
             ).order_by('-start_date').first()
 
     def current_authorship(self, include_inactive=False):
@@ -127,8 +207,67 @@ class Member(models.Model):
         else:
             # Return only the active authorship
             return self.authorship_periods.filter(
-                Q(start_date__lte=today) & (Q(end_date__isnull=True) | Q(end_date__gte=today))
+                Q(start_date__lte=today) & (Q(end_date__isnull=True) | Q(start_date__lte=today) & Q(end_date__gte=today))
             ).order_by('-start_date').first()
+        
+    def dated_authorship(self, date):
+        """
+        Returns if the member will be author at the given date.
+        """
+        
+        # Return only the active authorship
+        return self.authorship_periods.filter(
+            Q(start_date__lte=date) & (Q(end_date__isnull=True) | Q(start_date__lte=date) & Q(end_date__gte=date))
+        ).order_by('-start_date').first()
+    
+    def dated_common_found(self, date):
+        """
+        Returns if the member will be cf at the given date.
+        """
+        
+        # Return only the active authorship
+        return self.common_found.filter(
+            Q(start_date__lte=date) & (Q(end_date__isnull=True) | Q(start_date__lte=date) & Q(end_date__gte=date))
+        ).order_by('-start_date').first()
+    
+    def current_cf(self, include_inactive=False):
+        """
+        Get the current active CF period or the most recent CF if include_inactive=True.
+        """
+        today = timezone.now().date()
+
+        if include_inactive:
+            # Return the most recent authorship, active or inactive
+            return self.common_found.order_by('-start_date').first()
+        else:
+            # Return only the active authorship
+            return self.common_found.filter(
+                (Q(end_date__isnull=True) | Q(end_date__gte=today))
+            ).order_by('-start_date').first()
+        
+    def cf_start(self):
+        """
+        Get the CF start date.
+        """
+        cf_periods = self.common_found.order_by('-start_date')
+        latest_period = None
+        for period in cf_periods:
+            if not latest_period:
+                latest_period = period
+            else:
+                if period.end_date:
+                    delta = latest_period.start_date - period.end_date
+                    if delta.days == 1:
+                        latest_period = period
+                    else:
+                        return latest_period.start_date
+                else:
+                    return latest_period.start_date
+        if latest_period:    
+            return latest_period.start_date
+        else:
+            return latest_period
+        
 
     def future_membership(self):
         """
@@ -163,6 +302,28 @@ class Member(models.Model):
         return self.authorship_periods.filter(
             Q(start_date__lte=today) & (Q(end_date__isnull=True) | Q(end_date__gte=today))
         ).exists()
+    
+    def is_active_cf(self):
+        """
+        Check if the member belongs to the Common Found.
+        Member belongs to the Common Found if its end_date is null or greater than today.
+        """
+        today = timezone.now().date()
+        return self.common_found.filter(
+            Q(start_date__lte=today) & (Q(end_date__isnull=True) | Q(start_date__lte=today) & Q(end_date__gte=today))
+        ).exists()
+    
+    def has_active_duty(self):
+        """
+        Check if the member has any active duties.
+        A duty is active if its end_date is null or greater than today.
+        """
+        today = timezone.now().date()
+        return self.duties.filter(
+            Q(start_date__lte=today) &
+            (Q(end_date__isnull=True) | Q(end_date__gte=today))
+        ).exists()
+    
 
     def current_institute(self, include_inactive=False):
         """
@@ -177,6 +338,14 @@ class Member(models.Model):
     def active_duties(self):
         """Get all active duties for this member."""
         return self.duties.filter(end_date__isnull=True) | self.duties.filter(end_date__gte=timezone.now().date())
+    
+    def has_valid_duty(self):
+        """Returns true or false if there is a valid duty for the member."""
+        return self.duties.filter(end_date__isnull=True).exists() | self.duties.filter(end_date__gte=timezone.now().date()).exists() | self.duties.filter(duty__duty_type__name='temporary', start_date__gte=datetime(timezone.now().date().year-1, 1, 1)).exists() | self.duties.filter(duty__duty_type__name='permanent').filter(Q(end_date__gte=datetime.now().date() - relativedelta(months=6))).exists()
+    
+    def has_valid_duty_dated(self, date):
+        """Returns true or false if there is a valid duty for the member."""
+        return self.duties.filter(start_date__lte=date ,end_date__isnull=True).exists() | self.duties.filter(start_date__lte=date, end_date__gte=date).exists() | self.duties.filter(duty__duty_type__name='temporary', start_date__gte=datetime(date.year-1, 1, 1), start_date__lte=date).exists() | self.duties.filter(duty__duty_type__name='permanent').filter(Q(start_date__lte=date) & Q(end_date__gte=date - relativedelta(months=6))).exists()
 
     def inactive_duties(self):
         """Get all inactive duties for this member."""
@@ -187,8 +356,6 @@ class Member(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-
-
 
 class AuthorDetails(models.Model):
     member = models.OneToOneField(Member, on_delete=models.CASCADE, related_name='author_details',
@@ -203,6 +370,10 @@ class AuthorDetails(models.Model):
                                      help_text="Email used for publications.")
     orcid = models.CharField(max_length=25, blank=True)  # ORCID has 19 characters including hyphens
 
+    class Meta:
+        ordering = ['member__name']
+        verbose_name_plural = 'AuthorDetails'
+
     def __str__(self):
         return f"Author Info: {self.member.name} {self.member.surname}"
 
@@ -210,11 +381,10 @@ class AuthorDetails(models.Model):
         """
         Return the institutes in the specified order.
         """
-        return [affiliation.institute for affiliation in self.institute_affiliations.all()]
+        return [affiliation.institute for affiliation in self.institute_affiliations.filter(end_date__isnull=True).order_by('-creation_date')]
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-
 
 class AuthorInstituteAffiliation(models.Model):
     author_details = models.ForeignKey('AuthorDetails', on_delete=models.CASCADE, related_name='institute_affiliations',
@@ -222,17 +392,18 @@ class AuthorInstituteAffiliation(models.Model):
     institute = models.ForeignKey('Institute', on_delete=models.CASCADE,
                                   help_text="Institute affiliated with this author.")
     order = models.PositiveIntegerField(help_text="The order in which the institute appears for the author.")
-
+    creation_date = models.DateTimeField(auto_now_add=False)
+    end_date = models.DateTimeField(auto_now_add=False, null=True)
     class Meta:
-        unique_together = ('author_details', 'institute')  # Prevent duplicates
-        ordering = ['order']  # Always return institutes in the specified order
+        ordering = ['author_details__member__name', 'order']
+        unique_together = ('author_details', 'institute', 'order', 'creation_date')  # Prevent duplicates
 
     def __str__(self):
         return f"{self.institute.name} ({self.order})"
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-
+    
 
 class MemberDuty(models.Model):
     """
@@ -244,6 +415,7 @@ class MemberDuty(models.Model):
     end_date = models.DateField(null=True, blank=True)  # Null means ongoing
 
     class Meta:
+        ordering = ['member__name']
         unique_together = ('member', 'duty', 'start_date')  # Prevent duplicate assignments for the same start date
         verbose_name_plural = 'Member Duties'
 
@@ -256,7 +428,6 @@ class MemberDuty(models.Model):
         Check if the duty assignment is currently active.
         """
         return self.end_date is None or self.end_date >= timezone.now().date()
-
 
 class ActiveDutyManager(models.Manager):
     """

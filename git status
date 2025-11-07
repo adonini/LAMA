@@ -1,0 +1,1377 @@
+[33mcommit 80496ea24971b72b4b5e1479dcf0952ebd0b7803[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mDutyFunc[m[33m)[m
+Author: Antonio Jose Penuela Lopez <antonio.penuela@cta-consortium.org>
+Date:   Tue Jul 1 13:45:03 2025 +0100
+
+    AdminPage update
+
+[33mcommit 8c3504fdaf986f2b2210f2d5cd65eae4252659e4[m
+Author: Antonio Jose Penuela Lopez <antonio.penuela@cta-consortium.org>
+Date:   Tue Jul 1 12:51:49 2025 +0100
+
+    updates-post-deploy
+
+[33mcommit 0f3476309fef9e9deb86fa61c96de1e7df1b8789[m
+Author: Antonio Jose Penuela Lopez <antonio.penuela@cta-consortium.org>
+Date:   Tue Jul 1 11:37:36 2025 +0100
+
+    Dump update
+
+[33mcommit ff1c79bf226d7c4cb180aae9e48879a81a6413c0[m
+Author: Antonio Jose Penuela Lopez <antonio.penuela@cta-consortium.org>
+Date:   Mon Jun 30 09:46:22 2025 +0100
+
+    Reverted the error on the test
+
+[33mcommit 771586e00c902840db4b46ce2f1cb0a336c7ece0[m
+Author: Antonio Jose Penuela Lopez <antonio.penuela@cta-consortium.org>
+Date:   Mon Jun 30 09:43:46 2025 +0100
+
+    Created simulation to the pre-push file inside .git folder
+
+[33mcommit 9f3804057479282e83462b579df72a873a684035[m
+Author: Antonio Jose Penuela Lopez <antonio.penuela@cta-consortium.org>
+Date:   Mon Jun 30 09:32:45 2025 +0100
+
+    Pre commit file updated
+
+[33mcommit 4a12111a74d46e03b3315390d1ece67625ed9a7f[m
+Author: Antonio Jose Penuela Lopez <antonio.penuela@cta-consortium.org>
+Date:   Mon Jun 30 09:20:36 2025 +0100
+
+    Intencionally added error to test pre-push configuration
+
+[33mcommit f4d924b1fc00b93f9ea57efbba90f17a844a05d9[m
+Author: Antonio Jose Penuela Lopez <antonio.penuela@cta-consortium.org>
+Date:   Mon Jun 30 09:17:18 2025 +0100
+
+    Adds duty management and refactors authorship/CF logic
+    
+    Introduces comprehensive UI and backend support for managing member duties, including creation, assignment, and ending of duties. Refactors the modeling and handling of authorship and Common Found (CF) periods, decoupling them, and updating associated forms, views, and templates accordingly. Adds new endpoints and logic for duty APIs, improves DataTable sorting, and enhances user experience with better modals and error handling. Fixes minor UI inconsistencies and updates Docker and environment settings for development.
+    
+    Facilitates more flexible and accurate tracking of member roles and responsibilities, supporting future administrative needs.
+    
+    Adds test to keep consistency of the app regarding the authroship periods.
+    
+    Added pre push test run to avoid errors.
+
+[33mcommit f2da566583bb3975ee5abe5eb27757612864103e[m
+Author: Antonio <ajpl1903@gmail.com>
+Date:   Fri May 2 09:58:20 2025 +0100
+
+    Functionality to allow the lists to have different affiliation information based on a date.
+
+[33mcommit bae1f0fd6d68743ee92438caf5d41743078dcde7[m
+Author: Antonio <ajpl1903@gmail.com>
+Date:   Wed Apr 30 09:08:28 2025 +0100
+
+    ButtonsFix
+
+[33mcommit d0f2f5c988d5d3fbc4ea2a379fba2b852f7b90c7[m
+Author: Antonio <ajpl1903@gmail.com>
+Date:   Fri Apr 11 10:59:51 2025 +0100
+
+    Tables optimization
+
+[33mcommit 51b7c0e759b2eb1a82aaedbeaa7a03f39dbb5627[m[33m ([m[1;32mmain[m[33m)[m
+Author: Antonio José Peñuela López <130789104+AntonioJPL@users.noreply.github.com>
+Date:   Thu Mar 20 08:38:02 2025 +0000
+
+    Author list (#31)
+    
+    * fix roles
+    
+    * alow modify email, and check if anything in auth changes
+    
+    * fix search column
+    
+    * fix clearing filters
+    
+    * fix filtering institutes
+    
+    * update admin site
+    
+    * sort alphabetically dropdown options
+    
+    * add author page to navbar
+    
+    * add authorlist view
+    
+    * add author list template
+    
+    * add Member admin search
+    
+    * add info model to author
+    
+    * update model for author
+    
+    * add urls
+    
+    * update admin models
+    
+    * filter out non lst institute
+    
+    * add migrations
+    
+    * update author list to export all the journals
+    
+    * add urls for journal export
+    
+    * add general functions to be reused
+    
+    * add AA export view
+    
+    * add apj export view
+    
+    * add arxiv export view
+    
+    * add mnras export view
+    
+    * add pos export view
+    
+    * add nature export view
+    
+    * add science export view
+    
+    * small fix to export views
+    
+    * add commands scripts
+    
+    * change unimodal
+    
+    * fix opening/closing of modals
+    
+    * add manage_author template
+    
+    * add style css dropdowns
+    
+    * add author urls
+    
+    * add addauhtor view
+    
+    * create authordetails entry for new authors
+    
+    * add authordetail for
+    
+    * update models
+    
+    * update manage_author
+    
+    * update ADDAuthor view
+    
+    * update manage author
+    
+    * update addauthor view
+    
+    * allow for changes in start date membership only
+    
+    * add institute list template and view
+    
+    * add institute record template and view
+    
+    * add institute urls
+    
+    * add institute form
+    
+    * add institute urls
+    
+    * fix uni modal
+    
+    * add add inst function
+    
+    * add manage inst
+    
+    * add manage inst
+    
+    * add nav item
+    
+    * add institute views
+    
+    * hide initial error message
+    
+    * add migration
+    
+    * add edit institute logic
+    
+    * update  error messages
+    
+    * update model institute
+    
+    * add clean logic to institute form
+    
+    * fix visulaization of group name for inst
+    
+    * fix display of official column data
+    
+    * add official lst filter
+    
+    * add alert message for authors
+    
+    * avoid adding authors with missing info in the tex
+    
+    * add notification authors list
+    
+    * fix display future authorship periods
+    
+    * small fix
+    
+    * add command to create authordetails
+    
+    * adapt navbar for small screens
+    
+    * allow modify name&surname member
+    
+    * add permission for sapo
+    
+    * add csv for adapting data
+    
+    * adapt for server
+    
+    * update_base
+    
+    * add ldap backend
+    
+    * update with latest changes
+    
+    ---------
+    
+    Co-authored-by: Alice Donini <alixd90@gmail.com>
+
+[33mcommit df326e22551a173657d46d3540eeb7710d94eb28[m
+Merge: b45f98c 9395d96
+Author: Alice Donini <40267450+adonini@users.noreply.github.com>
+Date:   Tue Jan 21 05:29:27 2025 +0000
+
+    Merge pull request #30 from adonini/new
+    
+    New
+
+[33mcommit 9395d961b18d0e3f63e479bc85901afee31af61d[m[33m ([m[1;31morigin/new[m[33m, [m[1;32mnew[m[33m)[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Jan 13 17:31:25 2025 +0000
+
+    Add memberadmin model with searchbar
+
+[33mcommit a1f12cbfed57803879d977644335757d21efac98[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sun Jan 12 20:08:25 2025 +0000
+
+    Sort dropdown options alphabetically
+
+[33mcommit 501c9ceffd86640ae58fc6d53139eb9ff5a248a1[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sun Jan 12 20:07:53 2025 +0000
+
+    Add model to admin panel
+
+[33mcommit 0280026a0f6440ab3752766ddde3ed9819d4b115[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Jan 9 20:41:26 2025 +0100
+
+    fix updating institute filters
+
+[33mcommit 7e680170ad9b75a0df1d45587302a5fc68a4b772[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Jan 9 20:15:56 2025 +0100
+
+    fix clear filter
+
+[33mcommit f27284ef8fd41166190972ece946458f21518dde[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Jan 9 20:06:33 2025 +0100
+
+    fix column filter search
+
+[33mcommit 5b4199c7867913e651eae0ac4b74ba51c9b66bb3[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Jan 9 19:48:22 2025 +0100
+
+    add roles choices
+
+[33mcommit c4bee58890d59ad19f788434daf114030474921a[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Jan 9 19:47:35 2025 +0100
+
+    fix roles models
+
+[33mcommit 7c25cc0cd5b0a6006c8c8cd3b8304600e2afe078[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Jan 9 19:46:30 2025 +0100
+
+    allow changing email
+
+[33mcommit 4a2a32db4a7d74e52d913c8dd72a6c7cf9539ba8[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Jan 9 14:27:45 2025 +0100
+
+    update settings
+
+[33mcommit 26b4a2f94ee53dc5299f642176e7d6efac23cb6a[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Jan 9 14:22:33 2025 +0100
+
+    update compose
+
+[33mcommit 18a98961b170fa15b568497c7a509008292abd8d[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Jan 9 14:17:00 2025 +0100
+
+    update run.sh
+
+[33mcommit 90528b36e518ec39c538f11d5f223a1bbbb2462c[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Jan 9 14:16:19 2025 +0100
+
+    update build script
+
+[33mcommit fee01a22efc2759eb27489fc547a3ed0a8aca9f5[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Jan 9 14:14:18 2025 +0100
+
+    update Dockerfile
+
+[33mcommit 93163adec9a134b7e8d1679261950b4e983d8a4e[m
+Merge: 4598cbb 3c91b6b
+Author: Alice Donini <40267450+adonini@users.noreply.github.com>
+Date:   Thu Jan 9 14:01:44 2025 +0100
+
+    Merge pull request #29 from adonini/histo_data
+    
+    Histo data
+
+[33mcommit 3c91b6bf3b24bd23a2753f5e5afbdef7fe3e71b5[m[33m ([m[1;31morigin/histo_data[m[33m)[m
+Merge: 5575973 4598cbb
+Author: Alice Donini <40267450+adonini@users.noreply.github.com>
+Date:   Thu Jan 9 14:01:01 2025 +0100
+
+    Merge branch 'new' into histo_data
+
+[33mcommit 4598cbb1371bbb6636cea111363a4f56cb0b9ced[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Jan 9 13:50:45 2025 +0100
+
+    update css
+
+[33mcommit 2173a6b5ff959009c372ee93f8114e2ef9611b5d[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Jan 9 13:49:39 2025 +0100
+
+    update manage_member
+
+[33mcommit b3c232e1ac267eff2da1b85599a9315fb4c4c8fa[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Jan 9 13:48:56 2025 +0100
+
+    update member_list
+
+[33mcommit ff3c044c0f06b60a04533f9fd93682193d49d363[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Jan 9 13:48:28 2025 +0100
+
+    update member_record
+
+[33mcommit e4f5854d6d3957bcaf24c4742f96666d65e8f7a1[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Jan 9 13:47:50 2025 +0100
+
+    update statistic page
+
+[33mcommit 07ae0f0bda650cb868f982d208c4fa8c74c22cf9[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Jan 9 13:46:51 2025 +0100
+
+    update forms
+
+[33mcommit abb3e6503aa40cb07491d4000c5a1889e7926c9a[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Jan 9 13:45:40 2025 +0100
+
+    update views
+
+[33mcommit 59c8d8f65c1839c2b05d06ff570ae95ad33a27a3[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Jan 9 13:44:08 2025 +0100
+
+    update models
+
+[33mcommit 5575973b3770bf01e55f888e4723afaa69a72cdf[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Jan 9 09:20:06 2025 +0100
+
+    a
+
+[33mcommit e170f7a862de715b0ede80bbad9e36ac3f62c4ba[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Jan 9 09:19:32 2025 +0100
+
+    modify avarage calculation function
+
+[33mcommit 90d124ebcc0f1e1d01c5a4c71bb4b1663053b00e[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Wed Jan 8 20:36:30 2025 +0100
+
+    fix active members calculation in statistic
+
+[33mcommit 8a6171b576b32fcb35c5a857f98ed2efc2752efe[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Tue Jan 7 14:38:22 2025 +0100
+
+    handle case of member and future author that stops being a member
+
+[33mcommit fd5d87e7100e7d15f15b0d36518eba667819852b[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Tue Jan 7 14:27:17 2025 +0100
+
+    handle case member and future author that changes institutes
+
+[33mcommit f54629f065db254bae928797546e3933b6988823[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Tue Jan 7 13:39:52 2025 +0100
+
+    adapt the monthly chart to new models
+
+[33mcommit 67f54c9f3ed0a7817cdb6365e3ff0db5731447d8[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Tue Jan 7 11:06:21 2025 +0100
+
+    not show future auth section for add new member modal
+
+[33mcommit f2e9682fd8a850846f8bd4dcf607a1500476d8a4[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Tue Jan 7 10:58:14 2025 +0100
+
+    show future authorship in the edit modal if any
+
+[33mcommit fe5739cfa2f49acf3b71849774b2099ebad1190f[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Tue Jan 7 10:57:14 2025 +0100
+
+    show future authorship periods in the info if any
+
+[33mcommit 1c24217bd63c02a1b9a8a27ab108f294a7b11fc4[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Tue Jan 7 07:11:42 2025 +0100
+
+    fix double call at chart inizialization
+
+[33mcommit 540cb74557ca90813ec908d40bbcb8eef2dd21f9[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Jan 6 22:16:58 2025 +0100
+
+    adapt statistic page to new models
+
+[33mcommit f989c6745ee24d6ac4732a3b1d8bd7ec015d2b54[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Jan 6 18:35:44 2025 +0100
+
+    add style to the info modal
+
+[33mcommit 770371db6d88deca568ce1dbef0d203a4b374e97[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Jan 6 18:01:35 2025 +0100
+
+    fix calculation of CF
+
+[33mcommit 5f4e76f4d02938c6872a395091c890ebb532cf88[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Jan 6 17:18:56 2025 +0100
+
+    fix institute variable to be an obj and not a string
+
+[33mcommit efbdfe38ffaea04cc60c675f44110674635311c1[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Jan 6 17:00:42 2025 +0100
+
+    update bootstrap to 5.3.3
+
+[33mcommit 2ecc84e08d324540e0fd0af661e87e04649bf11a[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Jan 6 17:00:14 2025 +0100
+
+    add toolpit info to authorship label
+
+[33mcommit fdfcaeb12d9658c5dc5bccb5a08994a4c9096903[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Jan 6 15:13:31 2025 +0100
+
+    fix edit membership, authorship and institute member
+
+[33mcommit e995fecf7220b148d0eae46e9e3456548bc8317a[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Jan 6 15:12:49 2025 +0100
+
+    fix calculation member and authors for the list
+
+[33mcommit 78603c5d74716fb3e84133a62d5f882e78b94046[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Jan 6 15:12:11 2025 +0100
+
+    add parsing date function
+
+[33mcommit f85976aa36be9862991e421dec5d504976bf763f[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Jan 6 10:59:34 2025 +0100
+
+    change handling add member form
+
+[33mcommit 391ea13c0b4336ab9b3c2fd39a01546533ce228d[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Jan 6 10:58:40 2025 +0100
+
+    add end date validation
+
+[33mcommit 78f333db0de202ced2b9eb6b8bf04e7e3a0b0079[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Jan 6 10:58:12 2025 +0100
+
+    fix modal footer
+
+[33mcommit 8c679ae9f78d4bc00660689ee19d36bc3197a7fb[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Dec 16 14:01:12 2024 +0000
+
+    index view fix active member calculation
+
+[33mcommit 646327e67dd1a2c3cde43a840867882077010353[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Dec 16 13:29:49 2024 +0000
+
+    fix member record template
+
+[33mcommit f53c17b53e87bae43c4a8a86ce96fcda34574a64[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Dec 16 13:29:30 2024 +0000
+
+    add logging
+
+[33mcommit b9c5f9e1cdc88772d04bc72b6319ab5b93501191[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Dec 16 13:29:11 2024 +0000
+
+    add future membership method and adapt views
+
+[33mcommit 897f1b81d3d400183553fd052c933c9e64cf1462[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sat Dec 14 18:46:04 2024 +0000
+
+    fix save button new member modal
+
+[33mcommit c27b214608e6968179983ec2c9948a417bd54b28[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sat Dec 14 08:49:31 2024 +0000
+
+    import now
+
+[33mcommit 1b1f4a0c1384343d3d24a3773631b103c00b28d3[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sat Dec 14 08:49:08 2024 +0000
+
+    update add member view
+
+[33mcommit cadbd69825351e29f7cf9886dbfa546f009d7553[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sat Dec 14 08:48:51 2024 +0000
+
+    update manage member view
+
+[33mcommit 376162beb587a8e12ec2c52b8bb9a18bb5095ea5[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sat Dec 14 08:48:30 2024 +0000
+
+    update member record view
+
+[33mcommit f389a807560a36187165d618da8d64b2b244b5a1[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sat Dec 14 08:47:42 2024 +0000
+
+    update save function member model
+
+[33mcommit 94100057bace518812670f2255fb7c11358726c4[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sat Dec 14 08:46:57 2024 +0000
+
+    update style table
+
+[33mcommit 714fd6ea476d11705f2d0ae8abebe004f476e5ec[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sat Dec 14 08:46:45 2024 +0000
+
+    restyle member info modal
+
+[33mcommit 4c8d418e81c0e195ff604e64efdf2cf63febf11e[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sat Dec 14 08:46:03 2024 +0000
+
+    adapt member record to new addmember view
+
+[33mcommit a05fa3d97d93fef1ed34c9eda719b5e35c5ae1e6[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sat Dec 14 08:44:04 2024 +0000
+
+    fix modal footer
+
+[33mcommit 0bc9c8500b7976083ec6fbc74eed561a566c0829[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Dec 12 09:10:38 2024 +0000
+
+    fix save button modal footer not appearing
+
+[33mcommit 43be78b66749615c967df1de938253bd6d8fe911[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Wed Dec 11 20:20:47 2024 +0000
+
+    update favicon
+
+[33mcommit 9a1e08b5b2d123cc80a82256b171ee810e6aeccb[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Wed Dec 11 19:52:26 2024 +0000
+
+    update member list template
+
+[33mcommit 236aaf25328f159654459dc301be8e61d293858b[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Wed Dec 11 19:52:04 2024 +0000
+
+    update member list view
+
+[33mcommit f1e5b0afdd9a3d25e1204359d1e788c307868de7[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Wed Dec 11 19:51:24 2024 +0000
+
+    update Member def
+
+[33mcommit 07ce561d9a1f250f081b62b66588351c70200152[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Tue Dec 10 10:14:11 2024 +0000
+
+    update import data script
+
+[33mcommit 9252a093e717fe0a9796edf53e8eb63d4f5b5170[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Tue Dec 10 10:13:49 2024 +0000
+
+    update index view with new models
+
+[33mcommit b4e1544ea7f3a7815c57f7e17a234071bb604555[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Tue Dec 10 10:11:51 2024 +0000
+
+    update models
+
+[33mcommit b45f98c68e7fdb6dfbea384f90e2b8d7a8330124[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Tue Dec 10 09:51:36 2024 +0000
+
+    remove secondary email field
+
+[33mcommit 2970dbfc1fa282ef55595b07edbfe18a71052206[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sun Dec 8 22:14:10 2024 +0000
+
+    add period class
+
+[33mcommit e88e46816839a6a889ecfc9abdc127f74e0715d1[m[33m ([m[1;31morigin/no_ldap[m[33m)[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sun Dec 8 22:04:29 2024 +0000
+
+    remove secondary email field
+
+[33mcommit 3097ab3672c3ec57e2d4acd05feba05884683ddd[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sun Dec 8 22:02:26 2024 +0000
+
+    add favicon
+
+[33mcommit 2fb294e277b679729931dc5f9edf6151d2de7baa[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Fri Nov 29 13:56:00 2024 +0000
+
+    update manual
+
+[33mcommit 34fabd4c5171747bb7c25d255e9f494b59198995[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Fri Nov 29 13:37:58 2024 +0000
+
+    fix month in hist2
+
+[33mcommit f05606a1b5ecdd4b8789907353f4730393e9fe47[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Fri Nov 29 13:37:28 2024 +0000
+
+    remove former member from table and add switch
+
+[33mcommit ac4e7bacb551075e4057dadc3bc4f0563aa138f9[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Fri Nov 29 13:35:58 2024 +0000
+
+    fix month display for current year in hist2
+
+[33mcommit 9064c972b1fd53183cc3e559bb95495c087cb015[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Nov 28 19:41:34 2024 +0000
+
+    add switch toggler
+
+[33mcommit 63ec88a374248ef6df38be620b1e977b196ea595[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Nov 28 13:25:16 2024 +0000
+
+    update README
+
+[33mcommit 69112c86e106b92f77a983662ca3b059c0ba8984[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Nov 28 09:41:26 2024 +0000
+
+    change group permission
+
+[33mcommit 945ad2edd836c3eddd02e72fcf7dc7bb1942de06[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Wed Nov 27 22:53:49 2024 +0000
+
+    add user manual
+
+[33mcommit 57634452b6998210f2b31c2ad3acdabacd43cfec[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Wed Nov 27 15:30:12 2024 +0000
+
+    add run.sh
+
+[33mcommit 0f08512097cefdc6ae30e475c8110b09922eee85[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Wed Nov 27 15:22:56 2024 +0000
+
+    Fix calculation avg 12 months
+
+[33mcommit bd86e283a72e57ea20f2e631844be2a6068281b4[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Wed Nov 27 15:17:32 2024 +0000
+
+    fix calculation of avg past 12 months
+
+[33mcommit faabd69d8d887d5a3b05814cdaf8c2fdf6fe1e95[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Tue Nov 26 20:53:33 2024 +0000
+
+    Fix insitute dropdown fill
+
+[33mcommit 1d6851de612a2aa672591354af70ebc55563674a[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Tue Nov 26 20:47:01 2024 +0000
+
+    change from timer to event listener for institute
+
+[33mcommit 6f33ee20446b50000355f64157bd24040e5d9a87[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Tue Nov 26 19:18:05 2024 +0000
+
+    add table style
+
+[33mcommit 87966aa91e258f3407e87a441c9e68a0bb559a34[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Tue Nov 26 19:11:05 2024 +0000
+
+    add manual
+
+[33mcommit 16a7bcc9b3778d0dde7a6737f19ef52b312b688d[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Tue Nov 26 19:08:28 2024 +0000
+
+    my
+
+[33mcommit 47e74aaf0b65ed6f8bb81f5907317acc347f618e[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Tue Nov 26 19:07:53 2024 +0000
+
+    my values
+
+[33mcommit 4f67f5f8b218ea694eb48e5af0686248e4009ae8[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Tue Nov 26 18:54:58 2024 +0000
+
+    small fix
+
+[33mcommit 0a4ab7dcad2f3d2e8e7a26e9cd44d0d7420e51df[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Tue Nov 26 18:50:29 2024 +0000
+
+    add expire session
+
+[33mcommit 2d046a2b4db56ec84cdb7d2f2c42be56d30aa48e[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Tue Nov 26 18:50:17 2024 +0000
+
+    add table responsiveness
+
+[33mcommit 36d72a30864bb2f2f46ad641e7e11d7d2d0fcab3[m
+Author: Antonio J.Penuela-Lopez <antonio.penuela@cta-consortium.org>
+Date:   Tue Nov 26 15:35:03 2024 +0000
+
+    Add automatic session expire
+
+[33mcommit accc81a80fee80ee7ec320b51f43fa957dcf82aa[m
+Author: Antonio J.Penuela-Lopez <antonio.penuela@cta-consortium.org>
+Date:   Tue Nov 26 12:20:53 2024 +0000
+
+    Fix member table responsivness
+
+[33mcommit 2ba9a48eb98ce3bdd0829a8ef2bafbd9c2d165e3[m
+Author: Antonio J.Penuela-Lopez <antonio.penuela@cta-consortium.org>
+Date:   Tue Nov 26 12:20:25 2024 +0000
+
+    Use custom ldap backend
+
+[33mcommit 603a3ed30ea6cad5006ca7d2cfbad1d3d1ea94cd[m
+Author: Antonio J.Penuela-Lopez <antonio.penuela@cta-consortium.org>
+Date:   Mon Nov 25 22:33:31 2024 +0000
+
+    fix typo
+
+[33mcommit 030e2ad0a2468896c2d9931e7ea2776d03927fe7[m
+Author: Antonio J.Penuela-Lopez <antonio.penuela@cta-consortium.org>
+Date:   Mon Nov 25 22:24:10 2024 +0000
+
+    changes
+
+[33mcommit 439b033ae4171e288d5a1f8bb06b2d9161fa2b00[m
+Merge: 996c2cb c05cc8f
+Author: Alice Donini <40267450+adonini@users.noreply.github.com>
+Date:   Mon Nov 25 22:11:32 2024 +0000
+
+    Merge pull request #27 from adonini/ldap
+    
+    Ldap
+
+[33mcommit c05cc8f229337c72bfff3a5addadb738562061d9[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Nov 25 22:11:15 2024 +0000
+
+    fix close button
+
+[33mcommit a877b7f9ca7678da2867bf5d10d095622cccab49[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Nov 25 22:02:35 2024 +0000
+
+    fix close button icon
+
+[33mcommit cf9a73bed1739415a67e5b58d2bcdfbd87106fe2[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Nov 25 22:01:34 2024 +0000
+
+    fix style
+
+[33mcommit 80c727c65c61b05b8accee71858825f87596d06b[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Nov 25 22:00:19 2024 +0000
+
+    fix navbar
+
+[33mcommit b5f0f96bb86fc319fe6210f7f64d917b926788cd[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Nov 25 21:59:01 2024 +0000
+
+    add csv
+
+[33mcommit e2ba03541cd6919d71195cbc8560282e1c0ad4c6[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Nov 25 21:37:33 2024 +0000
+
+    add script to create groups
+
+[33mcommit f0aaf209ff3e4523a73aed1460b4e28fa37e094d[m
+Author: Antonio J.Penuela-Lopez <antonio.penuela@cta-consortium.org>
+Date:   Mon Nov 25 19:57:48 2024 +0000
+
+    small changes
+
+[33mcommit 00ff14db02909268361c007f1ea0d9888d6261ec[m
+Author: Antonio J.Penuela-Lopez <antonio.penuela@cta-consortium.org>
+Date:   Mon Nov 25 18:30:55 2024 +0000
+
+    fix export of var
+
+[33mcommit 65f3ce237c232c52d5a3af510f924259797eecb6[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Nov 25 12:36:57 2024 +0000
+
+    add .env example
+
+[33mcommit 263c091f897ebf250b7410395fa9e6f1d5b19383[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Nov 25 12:34:22 2024 +0000
+
+    update ldap permission group
+
+[33mcommit 996c2cb484807337fe9c50fe2a7bd363f9e42e69[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Nov 25 12:31:18 2024 +0000
+
+    small fixes
+
+[33mcommit e384063ab2e207340893cb4f0d32685b2acaf4e6[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Nov 25 11:22:04 2024 +0000
+
+    add ldap settings
+
+[33mcommit f3a6b6415700bd38e0c5cf8d857f58267a8a6552[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Nov 25 10:45:03 2024 +0000
+
+    add files to import db from csv
+
+[33mcommit 427c05e62ec8e9a76eb67ba1783819ae5169dd63[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Nov 25 10:41:35 2024 +0000
+
+    update managing scripts
+
+[33mcommit 5d32335e247caaf9c65f82babab8c0ea4976a4d6[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Nov 25 10:37:32 2024 +0000
+
+    update Dockerfile
+
+[33mcommit 064e4e75296323fbe15f8794cd981431214e8700[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Nov 25 10:33:09 2024 +0000
+
+    update docker compose
+
+[33mcommit 173072ecc94c63e6f57d645bb66e5d91657fc262[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Nov 25 10:32:58 2024 +0000
+
+    update ngnix config
+
+[33mcommit 728379e496490dd752621e54428b2384a229439f[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Nov 25 10:21:41 2024 +0000
+
+    fix typo filtering author and cf column
+
+[33mcommit 5c62930c1ca44029c089389cfc8394f77ce0dfed[m
+Merge: 047168d f3cbf61
+Author: Alice Donini <40267450+adonini@users.noreply.github.com>
+Date:   Mon Nov 25 09:39:16 2024 +0000
+
+    Merge pull request #26 from adonini/statistic2
+    
+    Statistic2
+
+[33mcommit f3cbf6151a2704984d61dd7cde370e85810db30a[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Nov 25 09:34:49 2024 +0000
+
+    update statistic view and add urls
+
+[33mcommit 441e40a26f6f0e05b9d60f742f8da7a213122e98[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Nov 25 09:12:09 2024 +0000
+
+    make navbar responsive for small screens
+
+[33mcommit d0a2e4c33a7035f389637562111cf0f17f6b1c7f[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sun Nov 24 20:11:28 2024 +0000
+
+    update stat page responsiveness and tables style
+
+[33mcommit f4bb3fe0c72119df998963aa3e33558c2f7d439e[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sun Nov 24 20:10:29 2024 +0000
+
+    fix default data loding for second chart
+
+[33mcommit efc084f2bd9fc9ca96d57a180b434cd8be7d98ec[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sat Nov 23 15:04:13 2024 +0100
+
+    fix navbar at login
+
+[33mcommit 8fa2ce3c28c9c1139b71197d28c725b3c1797199[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sat Nov 23 11:13:38 2024 +0100
+
+    update plot java code
+
+[33mcommit c13f082de6ff99fcd735ab929bba12a67723173f[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Fri Nov 22 12:18:38 2024 +0100
+
+    make first plot update dynamically on request
+
+[33mcommit 27b53ebaca9bc8a8fc2d9558402fffc2a2941db9[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Fri Nov 22 09:28:24 2024 +0100
+
+    add
+
+[33mcommit d1c7f7f938fe74f3fa90ce06594833be836fe855[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Nov 21 17:06:45 2024 +0100
+
+    update avarage plot
+
+[33mcommit 6c4a70d2fd5954dc53beb6b6e94d78d99ddd69be[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Nov 21 15:14:16 2024 +0100
+
+    update dropdowns for plot
+
+[33mcommit 197c89a506d04375288cb8879d6208b39ab29448[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Nov 21 15:13:11 2024 +0100
+
+    update var type
+
+[33mcommit 047168d01eaee25a1048f66cdca16effb7af6402[m
+Merge: 691e640 1b67897
+Author: Alice Donini <40267450+adonini@users.noreply.github.com>
+Date:   Thu Nov 21 12:10:20 2024 +0100
+
+    Merge pull request #25 from adonini/stat
+    
+    Modals
+
+[33mcommit 1b678977e45b5f656242fc5b42933d164dea3f74[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Nov 21 10:40:02 2024 +0100
+
+    update info modal informations
+
+[33mcommit 780ed178b17ea5318d54cdea4d32562507ee6656[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Nov 21 09:57:36 2024 +0100
+
+    make institute field mandatory for adding members
+
+[33mcommit bc6b32b49167e76d0533dfdab93739be9a3c863b[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Nov 21 09:57:14 2024 +0100
+
+    remove footer from info modal
+
+[33mcommit 6fe062182c2ee7e7b71e72d5d84b0275ae83e16c[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Nov 21 09:52:14 2024 +0100
+
+    fix closing button edit modal
+
+[33mcommit 691e640cd1ad2deaa68b2fccae08ff6d43923f52[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Wed Nov 20 09:12:49 2024 +0100
+
+    add migrations
+
+[33mcommit 67499e43b09572f0ac8e7556632ab955aefbca20[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Wed Nov 20 09:12:33 2024 +0100
+
+    add new roles
+
+[33mcommit 8547492c5a2a218997eea52dfc0d19a5abba116c[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Tue Nov 19 23:18:28 2024 +0100
+
+    populate institute dropdown
+
+[33mcommit 50258e66eb3cae97ffc74a61523be9401f922ada[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Tue Nov 19 22:51:31 2024 +0100
+
+    fix toggling of authorship fields for edit modal
+
+[33mcommit 05c074ed4ecb2ed3d3202bf80fd3a39f95e9fc4a[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Tue Nov 19 12:51:17 2024 +0100
+
+    update modal closing
+
+[33mcommit 5e25d2089e1ddf8bc2945da96f01e7d256646de9[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Nov 18 17:18:27 2024 +0100
+
+    update style filters
+
+[33mcommit b84255ccf421127289207d1dd9fa395576ce35c2[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Nov 18 14:17:48 2024 +0100
+
+    update layout filters and top part member page
+
+[33mcommit 2f3fd6dfefacb824d2bbe1866a57e244907ef899[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Nov 18 09:05:56 2024 +0100
+
+    fix filtering behaviour
+
+[33mcommit ef861f4db43c904b7c767ce32d3c506fc561050e[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Nov 18 09:03:18 2024 +0100
+
+    fix data format for filtering
+
+[33mcommit 3f03aa5b7ff602403d58cfd9265d1ef2d77f21a9[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sun Nov 17 23:42:12 2024 +0100
+
+    make filters dynamically update based on choice
+
+[33mcommit 9c768cd969386071ff99d68b31cc80abea4b1ecb[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sun Nov 17 23:31:19 2024 +0100
+
+    add filters and change style
+
+[33mcommit 2b10260117fb8f92a6273fea38dae2574dad2e4a[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sun Nov 17 19:05:39 2024 +0100
+
+    add color to icons
+
+[33mcommit 337ccbc4467b47a6d72d663da7000bbc82465454[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sun Nov 17 18:33:06 2024 +0100
+
+    adding CF calculations
+
+[33mcommit b02854b9bd4e15ea39dfbd6e9b91302c1c416415[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sun Nov 17 17:03:34 2024 +0100
+
+    fix typo
+
+[33mcommit f152a001476a30e9ebf07b444f8ed46ed14e53e3[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sun Nov 17 17:02:59 2024 +0100
+
+    fix collapsable card
+
+[33mcommit 2b8d70e3192a2616597fe97edaa2376eabccccc1[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sat Nov 16 11:38:24 2024 +0100
+
+    update style and design of home page
+
+[33mcommit 55b2365dea5ee63f3e23ae883d939df1bffa3e55[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sat Nov 16 09:57:09 2024 +0100
+
+    add logo and date to navbar
+
+[33mcommit 35081daeed9d9183d4d1cd8d68b608a4dfdd1a18[m
+Merge: a3a9b17 1694962
+Author: Antonio José Peñuela López <130789104+AntonioJPL@users.noreply.github.com>
+Date:   Fri Nov 15 14:54:03 2024 +0000
+
+    Merge pull request #22 from adonini/FixURLError
+    
+    Fixed the Modal display
+
+[33mcommit 1694962c75bee6656008a1f7bc5978db892bbe6d[m
+Author: Antonio <ajpl1903@gmail.com>
+Date:   Fri Nov 15 14:53:36 2024 +0000
+
+    Fixed the Modal display
+    
+    Added the pk attribute to the member object that was missing for the modals to work.
+
+[33mcommit a3a9b17851a5e2db163573a7cd0624ffeab5e781[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Fri Nov 15 11:31:18 2024 +0100
+
+    calculate/update is_author flag for members
+
+[33mcommit 95898ffdfb045f6645ab0d45bbcbaa59b656c2a1[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Fri Nov 15 10:45:31 2024 +0100
+
+    change N/A to None value
+
+[33mcommit a989affc1ccac44581323fa7ba1effc5a3dde0e6[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Fri Nov 15 10:42:38 2024 +0100
+
+    update pagination button style
+
+[33mcommit 50d012f4ae6e79ea4cd6c435427d767d598d0038[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Thu Nov 14 19:28:44 2024 +0100
+
+    add groups and country to table and filters
+
+[33mcommit bd9488784d6d727e91bfae2197fbc8aaa54c8a68[m
+Merge: b546404 d8b8e06
+Author: Alice Donini <40267450+adonini@users.noreply.github.com>
+Date:   Thu Nov 14 16:18:43 2024 +0100
+
+    Merge pull request #19 from adonini/statistic_page
+    
+    Statistic page
+
+[33mcommit d8b8e060536b68d49db02e6ae8bf19cd939ee7a1[m
+Merge: d90e1b5 b546404
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Wed Nov 13 14:10:53 2024 +0100
+
+    Merge remote-tracking branch 'origin/main' into statistic_page
+
+[33mcommit b546404e0cfde0b7cc7743e421267d935fec96d3[m
+Merge: 3181711 1ef5c5c
+Author: Antonio José Peñuela López <130789104+AntonioJPL@users.noreply.github.com>
+Date:   Wed Nov 13 12:54:20 2024 +0000
+
+    Merge pull request #18 from adonini/MemberInformation
+    
+    Fixed Issue #5
+
+[33mcommit 1ef5c5c10dd4fe72ab712bae9d78bf47f707926e[m
+Author: Antonio <ajpl1903@gmail.com>
+Date:   Wed Nov 13 12:53:29 2024 +0000
+
+    Fixed #5
+    
+    Fixed the issue number #5
+
+[33mcommit d90e1b5d4179089ae7a1ca94bf45aa65cf59f325[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Wed Nov 13 12:00:55 2024 +0100
+
+    add scripts to fill db from csv member list
+
+[33mcommit 490140b0fe2388905109fc630d349886f4febed1[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Wed Nov 13 12:00:08 2024 +0100
+
+    add statistic template
+
+[33mcommit 7b0be7f997eed969bc1854832daadb920d79ac04[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Wed Nov 13 11:59:51 2024 +0100
+
+    add statistic link to navbar
+
+[33mcommit ecc4e5b23e442185fb1cb945ea0349a08dd412b0[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Wed Nov 13 11:59:35 2024 +0100
+
+    update base links
+
+[33mcommit 45f53b69c29bb9df7333e3a8ff4eb6d3518d1fd1[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Wed Nov 13 11:59:15 2024 +0100
+
+    add statistic view
+
+[33mcommit e58da51d3a5bd58102cde9f1c3611e9ec6377396[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Wed Nov 13 11:58:44 2024 +0100
+
+    add statistic page to url
+
+[33mcommit 3181711ae7359f1cd884d06964231335926ba9c2[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Wed Nov 13 08:10:11 2024 +0100
+
+    fix calculations of members, autohors
+
+[33mcommit 872f2f3da5aeaf682f6e8d8ada466548453d0d09[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Wed Nov 13 08:07:07 2024 +0100
+
+    fix str def for Member
+
+[33mcommit 4488f6a9ca369a59d03f19d26e4ca81b2d2275cd[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Wed Nov 13 08:06:42 2024 +0100
+
+    fix institute lenght
+
+[33mcommit 13b148df00ee268690d582fbb00453fa380cbb48[m
+Merge: 39b4344 283a3ae
+Author: Alice Donini <40267450+adonini@users.noreply.github.com>
+Date:   Tue Nov 12 10:40:17 2024 +0100
+
+    Merge pull request #14 from adonini/statistic_cards
+    
+    add general statistic
+
+[33mcommit 283a3aeebf4c81f9c6d8c8a63b4c1e4ba6d5f111[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Tue Nov 12 10:36:18 2024 +0100
+
+    add general statistic
+
+[33mcommit 39b434454a262e66cdd4c11b328ff8f9b10a9406[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Tue Nov 12 08:41:58 2024 +0100
+
+    add statistic cards home page
+
+[33mcommit a669af1a6ecfd4c5959a384ad6195ae2e28a79a1[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Mon Nov 11 22:00:03 2024 +0100
+
+    add institute filter, search, export buttons and css styling
+
+[33mcommit 0a07daa1299b34102d48671e24613e5dd5cd5559[m
+Merge: dfd0908 ef9e643
+Author: Antonio José Peñuela López <130789104+AntonioJPL@users.noreply.github.com>
+Date:   Mon Nov 11 19:19:14 2024 +0000
+
+    Merge pull request #11 from adonini/DateList
+    
+    Fix Issues #10 & #9
+
+[33mcommit ef9e6434d269ec88b18726124f484ddd568e543d[m
+Author: Antonio José Peñuela López <ajpl1903@gmail.com>
+Date:   Mon Nov 11 19:18:37 2024 +0000
+
+    Fix Issues #10 & #9
+    
+    Fixed the issues #10 & #9
+
+[33mcommit dfd09081d271404f00b5a056a4760164f791f35c[m
+Merge: 24f370f 9a163b7
+Author: Antonio José Peñuela López <130789104+AntonioJPL@users.noreply.github.com>
+Date:   Mon Nov 11 12:23:20 2024 +0000
+
+    Merge pull request #8 from adonini/AuthorData
+    
+    [FIX] Issue #6
+
+[33mcommit 9a163b75b49715bf0ba4382d54c369dba16f6839[m
+Author: Antonio <ajpl1903@gmail.com>
+Date:   Mon Nov 11 12:22:25 2024 +0000
+
+    Fixed the Author information
+    
+    Fixed the author information not being displayed
+
+[33mcommit 24f370f2722f993b2ea198b40f50cbd22961026d[m
+Merge: 45ba137 f4ae1d4
+Author: Antonio José Peñuela López <130789104+AntonioJPL@users.noreply.github.com>
+Date:   Mon Nov 11 11:54:07 2024 +0000
+
+    Merge pull request #7 from adonini/ModalComunication
+    
+    [FIX] Issues #1 & #2
+
+[33mcommit f4ae1d4d47be65343e3d10e4b66f95bb8b4001a4[m
+Author: Antonio <ajpl1903@gmail.com>
+Date:   Mon Nov 11 11:53:13 2024 +0000
+
+    [FIX] Issues #1 & #2
+    
+    Solved the problems on Issues #1 & #2
+
+[33mcommit 45ba13785228c5a924950feef442cdf648608ab7[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sun Nov 10 21:57:39 2024 +0100
+
+    second commit
+
+[33mcommit bab4ec15b046adca493d96f81c957b8a98ab085f[m
+Author: Alice Donini <alixd90@gmail.com>
+Date:   Sun Nov 10 21:31:13 2024 +0100
+
+    first commit

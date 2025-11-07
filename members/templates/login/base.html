@@ -154,7 +154,11 @@
         window._conf = function($msg = '', $func = '', $params = []) {
             let modal = document.querySelector('#uni_modal')
             $('#confirm_modal .modal-body').html($msg)
-            $('#confirm_modal').modal('show')
+            var modalElement = new bootstrap.Modal(document.getElementById('confirm_modal'), {
+                backdrop: 'static',
+                keyboard: false
+            });
+            modalElement.show();
             $('#confirm_modal #confirm').off('click')
             $('#confirm_modal #confirm').on('click', function() {
                 window[$func](...$params);
@@ -173,9 +177,56 @@
                 }, 3500)
             }
         })
-
+        function endDuty(id){
+            var _this = $('.container')
+            $('.err-msg').remove();
+            var el = $('<div>')
+            el.addClass("alert alert-danger err-msg")
+            el.hide()
+            $.ajax({
+                url: "{% url 'end_duty' %}",
+                headers: {'X-CSRFToken': "{{csrf_token}}"},
+                data: {
+                    'id': id,
+                },
+                cache: false,
+                method: 'POST',
+                type: 'POST',
+                dataType: 'json',
+                error: function(err) {
+                    console.log("AJAX Error:", err);
+                    // Provide detailed error message
+                    el.text("An error occurred while processing the request. Please try again.");
+                    _this.prepend(el);
+                    el.show('slow');
+                    end_loader();
+                },
+                success: function(resp) {
+                    // Check if response is an object and has status
+                    if (resp.status == 'success') {
+                        // Success response
+                        el.removeClass("alert alert-danger err-msg").addClass("alert alert-success");
+                        el.text("Duty successfully ended!");
+                        _this.prepend(el);
+                        el.show('slow');
+                        location.reload();  // Reload page on success
+                    } else if (resp.status == 'failed' && resp.msg) {
+                        // Failure response with a message
+                        el.html(resp.msg);
+                        _this.prepend(el);
+                        el.show('slow');
+                    } else {
+                        // If response structure is unexpected
+                        el.text("An unexpected error occurred. Please try again.");
+                        _this.prepend(el);
+                        el.show('slow');
+                    }
+                    end_loader();
+                }
+            })
+        }
         // Remove all messages after a certain duration
-        let alertElement = document.querySelector('.alert')
+        let alertElements = document.querySelectorAll('.alert')
         alertElements.forEach(function(alertElement) {
             // Only auto-close alerts that are not the "authorsMissingDetailsAlert"
             if (alertElement.id !== 'authorsMissingDetailsAlert') {
