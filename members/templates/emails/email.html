@@ -3,17 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Summary of ending authorships</title>
+    <title>Summary of authorships</title>
 </head>
 <body>
-    <h4>Summary of ending authorships</h4>
+    <h2>Summary of authorships</h2>
 
-    <p>List of members:</p>
+    {% if count_starting_today > 0 %}
+        <h4>Authorships starting today</h4>
+        <ul>
+            {% for member in starting_today %}
+                <li>
+                    {{member.member.name}} {{member.member.surname}} | START DATE: {{member.start_date}}
+                </li>
+            {% endfor %}
+        </ul>
+        <p>Total authors starting today: <strong>{{count_starting_today}}</strong></p>
+    {% else %}
+        <p>No authors start today.</p>
+    {% endif %}
+
+    <hr>
+
+    <h4>Ending authorships</h4>
+
+    <p>List of authors:</p>
 
     <ul>
         {% for member in list %}
             <li>
-                {% if member in added_members %}
+                {% if member.member_id in added_ids_set %}
                     {% if not member.member.is_active_cf %}
                         {{member.member.name}} {{member.member.surname}} | END DATE: {{member.end_date}} [NEW] (No CF)
                     {% elif not member.member.has_active_duty %} 
@@ -28,13 +46,12 @@
         {% endfor %}
     </ul>
 
-    <p>Total members on the list: <strong>{{count_list}}</strong></p>
+    <p>Total authors on the list: <strong>{{count_list}}</strong></p>
 
-
-    <p>Number of added members: <strong>{{count_added}}</strong></p>
-    <p>Number of removed members: <strong>{{count_removed}}</strong></p>
+    <p>Number of added authors: <strong>{{count_added}}</strong></p>
+    <p>Number of removed authors: <strong>{{count_removed}}</strong></p>
     {% if count_removed > 0 %}
-        <p>List of removed members: </p>
+        <p>List of removed authors: </p>
         <ul>
             {% for member in removed_members %}
                 <li>
@@ -43,7 +60,6 @@
             {% endfor %}
         </ul>
     {% endif %}
-    
 
     <p><strong>{% now "d-m-Y" %}</strong></p>
 </body>

@@ -5,17 +5,22 @@ from django.db.models import OuterRef, Subquery, F
 from django.core.mail import EmailMultiAlternatives
 
 
-def send_digest(periods):
-    if not periods:
+def send_digest(periods, starting_today):
+    if not periods and not starting_today:
         return
 
-    subject = "List of members ending membership today"
+    subject = "List of members starting/ending membership today"
     html_content = render_to_string(
         "emails/membership_ending_today.html",
-        {"periods": periods, "count": len(periods)},
+        {
+            "periods": periods,
+            "count": len(periods),
+            "starting_today": starting_today,
+            "count_starting_today": len(starting_today),
+        },
     )
 
-    to_addr = "lst-telescope-manager@cta-observatory.org"
+    to_addr = "lst-telescope-manager@cta-observatory.org" #lst-telescope-manager@cta-observatory.org
     from_addr = "LAMA@cta-observatory.org"
 
     msg = EmailMultiAlternatives(
@@ -46,5 +51,11 @@ def run():
         .order_by("member__name", "member__surname")
     )
 
-    if periods:
-        send_digest(periods)
+    starting_today = list(
+        MembershipPeriod.objects.filter(start_date=today)
+        .select_related("member", "institute")
+        .order_by("member__name", "member__surname")
+    )
+
+    if periods or starting_today:
+        send_digest(periods, starting_today)

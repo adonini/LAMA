@@ -1,4 +1,4 @@
-from ..models import ( AuthorshipPeriod, Member)
+from ..models import (AuthorshipPeriod, Member)
 from django.template.loader import render_to_string
 import os
 from dateutil.relativedelta import relativedelta
@@ -10,8 +10,9 @@ import json, tempfile, time
 from uuid import uuid4
 
 LIST_PATH = "endingAuthorsList.txt"
-def send_digest(added_members, removed_authors, lst):
-    if not added_members and not removed_authors:
+
+def send_digest(added_members, removed_authors, lst, starting_today, added_ids_set):
+    if not added_members and not removed_authors and not starting_today:
         return
 
     subject = "List of authors ending authorship in 6 months"
@@ -19,9 +20,12 @@ def send_digest(added_members, removed_authors, lst):
         "added_members": added_members,
         "removed_members": removed_authors,
         "list": lst,
+        "starting_today": starting_today,
         "count_added": len(added_members),
         "count_removed": len(removed_authors),
         "count_list": len(lst),
+        "count_starting_today": len(starting_today),
+        "added_ids_set": added_ids_set,
     })
 
     to_addr = "lst-telescope-manager@cta-observatory.org" #lst-telescope-manager@cta-observatory.org
@@ -56,7 +60,15 @@ def run():
                 continue
 
     now = timezone.now()
+    today = timezone.localdate()
     six_months = now + relativedelta(months=6)
+
+    starting_today = list(
+        AuthorshipPeriod.objects
+        .filter(start_date=today)
+        .select_related("member")
+        .order_by("member__surname", "member__name")
+    )
 
     last_end = (
         AuthorshipPeriod.objects
@@ -106,8 +118,15 @@ def run():
     print(f"Count Added Members: {len(added_members)}")
     print(f"Removed IDs: {removed_ids}")
     print(f"Removed Members: {removed_members}")
+    print(f"Starting Today Count: {len(starting_today)}")
 
-    if added_ids or removed_ids:
-        send_digest(added_members, removed_members, periods_qs)
+    if added_ids or removed_ids or starting_today:
+        send_digest(
+            added_members,
+            removed_members,
+            periods_qs,
+            starting_today,
+            set(added_ids),
+        )
 
     print("Done !")

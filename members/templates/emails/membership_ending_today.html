@@ -3,28 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Members ending membership today</title>
+  <title>Summary of memberships</title>
 </head>
 <body>
-  <h4>Members ending membership today</h4>
+  <h2>Summary of memberships</h2>
 
-  <p>List of members:</p>
+  {% if count_starting_today > 0 %}
+    <h4>Memberships starting today</h4>
+      <ul>
+          {% for member in starting_today %}
+              <li>
+                  {{member.member.name}} {{member.member.surname}} | START DATE: {{member.start_date}}
+              </li>
+          {% endfor %}
+      </ul>
+      <p>Total members starting today: <strong>{{count_starting_today}}</strong></p>
+  {% else %}
+      <strong>No members starting today.</strong>
+  {% endif %}
 
-  <ul>
-    {% for period in periods %}
-      <li>
-        {% if not period.member.is_active_cf %}
-          {{ period.member.name }} {{ period.member.surname }} | END DATE: {{ period.end_date }} (No CF)
-        {% elif not period.member.has_active_duty %}
-          {{ period.member.name }} {{ period.member.surname }} | END DATE: {{ period.end_date }} (No Duty)
-        {% else %}
+  {% if count %}
+    <hr>
+
+    <h4>Memberships ending today</h4>
+
+    <p>List of members:</p>
+
+    <ul>
+      {% for period in periods %}
+        <li>
           {{ period.member.name }} {{ period.member.surname }} | END DATE: {{ period.end_date }}
-        {% endif %}
-      </li>
-    {% endfor %}
-  </ul>
-
-  <p>Total members on the list: <strong>{{ count }}</strong></p>
+        </li>
+      {% endfor %}
+    </ul>
+    <p>Total members on the list: <strong>{{ count }}</strong></p>
+  {% else %}
+      <strong>No members ending today.</strong>
+  {% endif %}
 
   <p><strong>{% now "d-m-Y" %}</strong></p>
 </body>
