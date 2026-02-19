@@ -560,11 +560,18 @@ class MemberRecord(LoginRequiredMixin, View):
                 Q(start_date__lte=today, end_date__gte=today, duty__duty_type=DutyType.objects.get(name='permanent')) |
                 Q(start_date__lte=today, end_date__isnull=True, duty__duty_type=DutyType.objects.get(name='permanent'))
             ).order_by('-start_date')
+            logger.info(permanentDuties)
             temporaryDuties = MemberDuty.objects.filter(member=member).filter(
                 Q(start_date__gte=start_year_last, end_date__lte=end_year, duty__duty_type=DutyType.objects.get(name='temporary')) |
                 Q(start_date__gte=start_year, end_date__lte=end_next_year, duty__duty_type=DutyType.objects.get(name='temporary'))
             ).order_by('-start_date')
-            totalDuties = len(MemberDuty.objects.filter(member=member))
+            logger.info(temporaryDuties)
+            logger.info(f"Looking for start date: {start_year_last} and end date: {end_year}")
+            totalDuties = len(MemberDuty.objects.filter(member=member).filter(
+                Q(end_date=None) | 
+                (Q(start_date__gte=start_year_last) & Q(end_date__lte=end_year))
+            ))
+            logger.info(f"Total duties: {totalDuties}")
             showingDuties = len(permanentDuties) + len(temporaryDuties)
 
             # Pass all membership periods
