@@ -440,3 +440,13 @@ class ActiveDutyManager(models.Manager):
     def inactive(self):
         today = timezone.now().date()
         return self.filter(end_date__lt=today)
+    
+class DigestReportState(models.Model):
+    report_key = models.CharField(max_length=100, unique=True)
+    last_run_at = models.DateTimeField(null=True, blank=True)
+    last_window_end = models.DateField(null=True, blank=True)
+    payload = models.JSONField(default=dict, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.report_key} | last_window_end={self.last_window_end}"
