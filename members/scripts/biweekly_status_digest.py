@@ -9,7 +9,10 @@ from ..models import AuthorshipPeriod, MembershipPeriod, DigestReportState
 
 
 REPORT_KEY = "membership_authorship_biweekly_digest"
-TO_ADDR = "lst-telescope-manager@cta-observatory.org"
+TO_ADDR = [
+    "apenuela@ifae.es",
+    "lst-telescope-manager@cta-observatory.org",
+]
 FROM_ADDR = "LAMA@cta-observatory.org"
 
 
@@ -229,7 +232,7 @@ def send_digest(context):
         subject=subject,
         body="This email requires an HTML-capable client.",
         from_email=FROM_ADDR,
-        to=[TO_ADDR],
+        to=TO_ADDR,
         headers={
             "List-Unsubscribe": "<mailto:unsub@example.com>",
         },
