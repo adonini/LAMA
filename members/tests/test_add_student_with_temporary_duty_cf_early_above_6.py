@@ -47,5 +47,5 @@ def test_add_student_with_temporary_duty_cf_early_above_6(client):
     autorship = AuthorshipPeriod.objects.filter(member=member).first()
     print(autorship.end_date)
     assert AuthorshipPeriod.objects.filter(member=member).exists()
-    assert autorship.start_date == datetime(2023, 1, 1).date()
+    assert autorship.start_date == datetime(2023, 4, 5).date()
     assert autorship.end_date == datetime(2024, 12, 31).date() #Ask about this

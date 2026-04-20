@@ -59,10 +59,9 @@ def test_add_member_with_permanent_duty_cf_early_above_6_ends_member(client):
     print(payload)
     response = client.post(url, data=payload)
     assert response.status_code == 200
-    assert not member.is_active_member()
-    assert not member.is_active_cf()
-    assert member.is_active_author()
     assert MembershipPeriod.objects.filter(member=member).first().end_date == datetime(2025, 5, 5).date()
+    assert member.current_cf().end_date == datetime(2025, 5, 5).date()
     autorship = AuthorshipPeriod.objects.filter(member=member).first()
     assert autorship.end_date == datetime(2025, 11, 5).date()
-
+    assert member.dated_authorship(datetime(2025, 11, 5).date()) is not None
+    assert member.dated_authorship(datetime(2025, 11, 6).date()) is None

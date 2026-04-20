@@ -7,6 +7,8 @@ from dateutil.relativedelta import relativedelta
 import json
 from datetime import datetime
 
+from members.tests.helpers import assert_single_authorship_period
+
 @pytest.mark.django_db
 def test_add_member_with_permanent_duty_cf_early_above_6_institute_chage_cf_unticked_duty_ended(client):
     user = User.objects.create_user(username='testuser', password='testpass')
@@ -53,10 +55,7 @@ def test_add_member_with_permanent_duty_cf_early_above_6_institute_chage_cf_unti
     assert member is not None
     assert MemberDuty.objects.filter(member=member, duty=duty).exists()
     assert CommonFound.objects.filter(member=member).exists()
-    autorship = AuthorshipPeriod.objects.filter(member=member).first()
-    print(autorship)
-    assert AuthorshipPeriod.objects.filter(member=member).exists()
-    assert autorship.start_date == datetime(2023, 10, 15).date()
+    assert_single_authorship_period(member, datetime(2023, 10, 15).date(), None)
     end_date = (datetime(2025,3,10).date() + relativedelta(months=6) - relativedelta(days=1))
     duty_payload={
         'id': MemberDuty.objects.filter(member=member, duty=duty).first().id,
@@ -66,9 +65,7 @@ def test_add_member_with_permanent_duty_cf_early_above_6_institute_chage_cf_unti
     assert response.status_code == 200
     assert MemberDuty.objects.filter(member=member, duty=duty).exists()
     assert MemberDuty.objects.filter(member=member, duty=duty, end_date__isnull=False).exists()
-    print(MemberDuty.objects.filter(member=member).first().end_date)
-    assert not member.has_active_duty()
-    assert member.has_valid_duty()
+    assert MemberDuty.objects.filter(member=member, duty=duty).first().end_date == datetime(2025,3,9).date()
 
     payload['institute'] = str(institute2.id)
     payload['start_date'] = datetime(2025,3,10).date().isoformat()
@@ -76,13 +73,11 @@ def test_add_member_with_permanent_duty_cf_early_above_6_institute_chage_cf_unti
     print(payload)
     response = client.post(url, data=payload)
     assert response.status_code == 200
-    autorship = AuthorshipPeriod.objects.filter(member=member).order_by("-start_date").first()
-    assert AuthorshipPeriod.objects.filter(member=member).exists()
-    assert autorship.start_date == datetime(2023, 10, 15).date()
-    assert autorship.end_date == end_date
-    assert member.is_active_author()
-    assert not member.is_active_cf()
-    assert member.current_membership().start_date == datetime(2025,3,10).date()
+    assert_single_authorship_period(member, datetime(2023, 10, 15).date(), end_date)
+    assert member.dated_authorship(end_date) is not None
+    assert member.dated_authorship(end_date + relativedelta(days=1)) is None
+    assert member.current_cf().end_date == datetime(2025,3,10).date()-relativedelta(days=1)
+    assert member.membership_periods.order_by("-start_date").first().start_date == datetime(2025,3,10).date()
     assert MemberDuty.objects.filter(member=member, duty=duty).exists()
     assert CommonFound.objects.filter(member=member).exists()
-    assert CommonFound.objects.filter(member=member).first().end_date == datetime(2025,3,10).date()-relativedelta(days=1)
+    assert CommonFound.objects.filter(member=member).order_by("-start_date").first().end_date == datetime(2025,3,10).date()-relativedelta(days=1)

@@ -5,7 +5,6 @@ from members.models import Member, AuthorshipPeriod, Institute, Duty, DutyType, 
 from django.contrib.auth.models import User
 import json
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
 
 @pytest.mark.django_db
 def test_add_member_with_temporary_and_permanent_duty_cf_late_finished_long(client):
@@ -65,4 +64,4 @@ def test_add_member_with_temporary_and_permanent_duty_cf_late_finished_long(clie
         'end-date': datetime(2024, 11, 26).date().isoformat(),
     })
     autorship = AuthorshipPeriod.objects.filter(member=member).first()
-    assert autorship.end_date == datetime(2024,11,26).date() + relativedelta(months=6)
+    assert autorship.end_date == datetime(2024, 12, 31).date()

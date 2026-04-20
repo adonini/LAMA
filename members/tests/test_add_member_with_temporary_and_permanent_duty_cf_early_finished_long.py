@@ -68,4 +68,4 @@ def test_add_member_with_temporary_and_permanent_duty_cf_early_finished_long(cli
         'end-date': datetime(2024, 11, 26).date().isoformat(),
     })
     autorship = AuthorshipPeriod.objects.filter(member=member).first()
-    assert autorship.end_date == datetime(2024,11,26).date() + relativedelta(months=6)
+    assert autorship.end_date == datetime(2024, 12, 31).date()

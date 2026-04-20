@@ -53,4 +53,4 @@ def test_add_member_with_permanent_duty_cf_late(client):
     autorship = AuthorshipPeriod.objects.filter(member=member).first()
     print(autorship)
     assert AuthorshipPeriod.objects.filter(member=member).exists()
-    assert autorship.start_date == datetime(2023, 4, 5).date()
+    assert autorship.start_date == datetime(2024, 2, 12).date()

@@ -98,57 +98,106 @@
                 <div class="dutiesSection col-md-12 {% if not duties %} hidden {% endif %}">
                     <label class="control-label">Duties</label>
                     {% if duties %}
-                        <ul class="list-group">
-                            {% for duty in permanentDuties %}
-                                <li class="list-group-item">
-                                    <div class="row d-flex justify-content-start">
-                                        <div class="col-md-5 col-sm-12 d-flex align-items-center">
-                                            <p class="mb-0">{{ duty.duty.name }}</p>
-                                        </div>
-                                        <div class="col-md-7 col-sm-12 d-flex {% if duty.end_date == None %}flex-row justify-content-between align-items-center{% else %}flex-column align-items-start justify-content-center{% endif %}">
-                                            <div class="d-flex align-items-center">
-                                                <strong class="me-1">Start: </strong> {{ duty.start_date|date:"Y-m-d" }}
+                        {% if validDuties %}
+                            <p class="text-muted mb-2">Valid duties</p>
+                            <ul class="list-group mb-3">
+                                {% for duty in validDuties %}
+                                    <li class="list-group-item">
+                                        <div class="row d-flex justify-content-start">
+                                            <div class="col-md-4 col-sm-12 d-flex flex-column justify-content-center">
+                                                <p class="mb-0">{{ duty.duty.name }}</p>
                                             </div>
-                                            {% if duty.end_date == None %}
+                                            <div class="col-md-5 col-sm-12 d-flex {% if duty.end_date == None %}flex-row justify-content-between align-items-center{% else %}flex-column align-items-start justify-content-center{% endif %}">
                                                 <div class="d-flex align-items-center">
-                                                    <button class="btn btn-sm btn-clear rounded-xl mt-0 endBtn" data-id="{{duty.pk}}">End</button>
+                                                    <strong class="me-1">Start: </strong> {{ duty.start_date|date:"Y-m-d" }}
                                                 </div>
-                                            {% else %}
-                                                <div class="d-flex align-items-center">
-                                                    <strong class="end-mar">End: </strong> {{ duty.end_date|date:"Y-m-d" }}
-                                                </div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </li>
-                            {% endfor %}
-                            {% for duty in temporaryDuties %}
-                                <li class="list-group-item">
-                                    <div class="row d-flex justify-content-start">
-                                        <div class="col-md-5 col-sm-12 d-flex align-items-center">
-                                            <p class="mb-0">{{ duty.duty.name }}</p>
-                                        </div>
-                                        <div class="col-md-7 col-sm-12 d-flex {% if duty.duty.duty_type.name == 'temporary' and duty.end_date == None %}flex-row justify-content-between align-items-center{% else %}flex-column align-items-start justify-content-center{% endif %}">
-                                            <div class="d-flex align-items-center">
-                                                <strong class="me-1">Start: </strong> {{ duty.start_date|date:"Y-m-d" }}
-                                            </div>
-                                            {% if duty.duty.duty_type.name == 'temporary' and duty.end_date == None %}
-                                                <div class="d-flex align-items-center">
-                                                    <button class="btn btn-sm btn-clear rounded-xl mt-0 endBtn" data-id="{{duty.pk}}">End</button>
-                                                </div>
-                                            {% else %}
-                                                {% if not duty.end_date == None %}
+                                                {% if duty.end_date != None %}
                                                     <div class="d-flex align-items-center">
                                                         <strong class="end-mar">End: </strong> {{ duty.end_date|date:"Y-m-d" }}
                                                     </div>
                                                 {% endif %}
+                                            </div>
+                                            {% if user|has_group:"admin" %}
+                                                <div class="col-md-3 col-sm-12 d-flex align-items-center gap-2">
+                                                    {% if duty.end_date == None %}
+                                                        <button class="btn btn-sm btn-clear rounded-xl mt-0 endBtn" data-id="{{duty.pk}}">End</button>
+                                                    {% endif %}
+                                                    <button class="btn btn-sm btn-clear rounded-xl mt-0 deleteDutyBtn" data-id="{{duty.pk}}">Delete</button>
+                                                </div>
                                             {% endif %}
                                         </div>
-                                    </div>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                        <p class="text-muted">Showing {{showingDuties}} of {{totalDuties}} duties</p>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                        {% if pastDuties %}
+                            <p class="text-muted mb-2">Past duties</p>
+                            <ul class="list-group">
+                                {% for duty in pastDuties|slice:":2" %}
+                                    <li class="list-group-item">
+                                        <div class="row d-flex justify-content-start">
+                                            <div class="col-md-4 col-sm-12 d-flex flex-column justify-content-center">
+                                                <p class="mb-0">{{ duty.duty.name }}</p>
+                                            </div>
+                                            <div class="col-md-5 col-sm-12 d-flex {% if duty.end_date == None %}flex-row justify-content-between align-items-center{% else %}flex-column align-items-start justify-content-center{% endif %}">
+                                                <div class="d-flex align-items-center">
+                                                    <strong class="me-1">Start: </strong> {{ duty.start_date|date:"Y-m-d" }}
+                                                </div>
+                                                {% if duty.end_date != None %}
+                                                    <div class="d-flex align-items-center">
+                                                        <strong class="end-mar">End: </strong> {{ duty.end_date|date:"Y-m-d" }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            {% if user|has_group:"admin" %}
+                                                <div class="col-md-3 col-sm-12 d-flex align-items-center gap-2">
+                                                    {% if duty.end_date == None %}
+                                                        <button class="btn btn-sm btn-clear rounded-xl mt-0 endBtn" data-id="{{duty.pk}}">End</button>
+                                                    {% endif %}
+                                                    <button class="btn btn-sm btn-clear rounded-xl mt-0 deleteDutyBtn" data-id="{{duty.pk}}">Delete</button>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                            {% if pastDuties|length > 2 %}
+                                <div id="past-duties-extra" class="hidden mt-2">
+                                    <ul class="list-group">
+                                        {% for duty in pastDuties|slice:"2:" %}
+                                            <li class="list-group-item">
+                                                <div class="row d-flex justify-content-start">
+                                                    <div class="col-md-4 col-sm-12 d-flex flex-column justify-content-center">
+                                                        <p class="mb-0">{{ duty.duty.name }}</p>
+                                                        <small class="text-muted text-capitalize">{{ duty.duty.duty_type.name }}</small>
+                                                    </div>
+                                                    <div class="col-md-5 col-sm-12 d-flex {% if duty.end_date == None %}flex-row justify-content-between align-items-center{% else %}flex-column align-items-start justify-content-center{% endif %}">
+                                                        <div class="d-flex align-items-center">
+                                                            <strong class="me-1">Start: </strong> {{ duty.start_date|date:"Y-m-d" }}
+                                                        </div>
+                                                        {% if duty.end_date != None %}
+                                                            <div class="d-flex align-items-center">
+                                                                <strong class="end-mar">End: </strong> {{ duty.end_date|date:"Y-m-d" }}
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                    {% if user|has_group:"admin" %}
+                                                        <div class="col-md-3 col-sm-12 d-flex align-items-center gap-2">
+                                                            {% if duty.end_date == None %}
+                                                                <button class="btn btn-sm btn-clear rounded-xl mt-0 endBtn" data-id="{{duty.pk}}">End</button>
+                                                            {% endif %}
+                                                            <button class="btn btn-sm btn-clear rounded-xl mt-0 deleteDutyBtn" data-id="{{duty.pk}}">Delete</button>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-clear mt-2" id="toggle-past-duties">Show all past duties</button>
+                            {% endif %}
+                        {% endif %}
+                        <p class="text-muted">Showing all {{totalDuties}} duties</p>
                     {% endif %}
                 </div>  
             {% endif %}
@@ -517,6 +566,29 @@
                 }
             }
         })
+        $('.deleteDutyBtn').on('click', function(e){
+            e.preventDefault()
+            const dutyId = e.currentTarget.dataset.id
+            _conf(
+                "This will permanently delete the duty assignment and recalculate authorship periods for the member. Continue?",
+                'deleteDuty',
+                [dutyId]
+            )
+        })
+        const pastDutiesToggle = document.getElementById('toggle-past-duties')
+        const pastDutiesExtra = document.getElementById('past-duties-extra')
+        if (pastDutiesToggle && pastDutiesExtra) {
+            pastDutiesToggle.addEventListener('click', function() {
+                const isHidden = pastDutiesExtra.classList.contains('hidden')
+                if (isHidden) {
+                    pastDutiesExtra.classList.remove('hidden')
+                    pastDutiesToggle.textContent = 'Show fewer past duties'
+                } else {
+                    pastDutiesExtra.classList.add('hidden')
+                    pastDutiesToggle.textContent = 'Show all past duties'
+                }
+            })
+        }
         $('.endBtn').on('click', function(e){
             e.preventDefault()
             // Create header for the modal

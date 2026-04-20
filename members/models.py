@@ -341,11 +341,11 @@ class Member(models.Model):
     
     def has_valid_duty(self):
         """Returns true or false if there is a valid duty for the member."""
-        return self.duties.filter(end_date__isnull=True).exists() | self.duties.filter(end_date__gte=timezone.now().date()).exists() | self.duties.filter(duty__duty_type__name='temporary', start_date__gte=datetime(timezone.now().date().year-1, 1, 1)).exists() | self.duties.filter(duty__duty_type__name='permanent').filter(Q(end_date__gte=datetime.now().date() - relativedelta(months=6))).exists()
+        return self.duties.filter(end_date__isnull=True).exists() | self.duties.filter(end_date__gte=timezone.now().date()).exists() | self.duties.filter(duty__duty_type__name='temporary', start_date__gte=datetime(timezone.now().date().year-1, 1, 1)).exists()
     
     def has_valid_duty_dated(self, date):
         """Returns true or false if there is a valid duty for the member."""
-        return self.duties.filter(start_date__lte=date ,end_date__isnull=True).exists() | self.duties.filter(start_date__lte=date, end_date__gte=date).exists() | self.duties.filter(duty__duty_type__name='temporary', start_date__gte=datetime(date.year-1, 1, 1), start_date__lte=date).exists() | self.duties.filter(duty__duty_type__name='permanent').filter(Q(start_date__lte=date) & Q(end_date__gte=date - relativedelta(months=6))).exists()
+        return self.duties.filter(start_date__lte=date ,end_date__isnull=True).exists() | self.duties.filter(start_date__lte=date, end_date__gte=date).exists() | self.duties.filter(duty__duty_type__name='temporary', start_date__gte=datetime(date.year-1, 1, 1), start_date__lte=date).exists()
 
     def inactive_duties(self):
         """Get all inactive duties for this member."""

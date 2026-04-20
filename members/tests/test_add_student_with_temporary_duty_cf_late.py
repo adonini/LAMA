@@ -6,6 +6,8 @@ from django.contrib.auth.models import User
 import json
 from datetime import datetime
 
+from members.tests.helpers import assert_single_authorship_period
+
 @pytest.mark.django_db
 def test_add_member_with_temporary_duty_cf_late(client):
     user = User.objects.create_user(username='testuser', password='testpass')
@@ -41,7 +43,7 @@ def test_add_member_with_temporary_duty_cf_late(client):
 
     payload['id'] = member.id
     payload['is_cf'] = 'on'
-    payload['cf_start'] = datetime(2024,2,12).date().isoformat(),
+    payload['cf_start'] = datetime(2024,2,12).date().isoformat()
     del payload['new_duties']
     print(payload)
     response = client.post(url, data=payload)
@@ -49,8 +51,8 @@ def test_add_member_with_temporary_duty_cf_late(client):
     assert member is not None
     assert MemberDuty.objects.filter(member=member, duty=duty).exists()
     assert CommonFound.objects.filter(member=member).exists()
-    autorship = AuthorshipPeriod.objects.filter(member=member).first()
-    print(autorship)
-    assert AuthorshipPeriod.objects.filter(member=member).exists()
-    assert autorship.start_date == datetime(2023, 1, 1).date()
-    assert autorship.end_date == datetime(2024, 12, 31).date()
+    assert_single_authorship_period(
+        member,
+        datetime(2024, 2, 12).date(),
+        datetime(2024, 12, 31).date(),
+    )

@@ -5,7 +5,8 @@ from members.models import Member, AuthorshipPeriod, Institute, Duty, DutyType, 
 from django.contrib.auth.models import User
 import json
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
+
+from members.tests.helpers import assert_authorship_periods
 
 @pytest.mark.django_db
 def test_authorship_end_start_next_year2(client):
@@ -48,10 +49,10 @@ def test_authorship_end_start_next_year2(client):
     assert member is not None
     assert MemberDuty.objects.filter(member=member, duty=duty1).exists()
     assert CommonFound.objects.filter(member=member).exists()
-    autorship = AuthorshipPeriod.objects.filter(member=member).order_by('-start_date').first()
-    assert AuthorshipPeriod.objects.filter(member=member).exists()
-    assert autorship.start_date == datetime(2025, 5, 5).date()
-    assert autorship.end_date == datetime(2025,12,31).date()
+    assert_authorship_periods(
+        member,
+        [(datetime(2024, 7, 1).date(), datetime(2025, 12, 31).date())],
+    )
     authDetails = AuthorDetails.objects.filter(member=member)
     print(f'The author details for the user are: {authDetails}')
     client.post(add_url, data={
@@ -60,8 +61,12 @@ def test_authorship_end_start_next_year2(client):
                     "start_date": datetime(2026,4,15).date().isoformat(),
                     "end_date": datetime(2026,5,6).date().isoformat(),
                 })
-    assert AuthorshipPeriod.objects.filter(member=member).exists()
-    autorship = AuthorshipPeriod.objects.filter(member=member).order_by('-start_date').first()
     print(AuthorshipPeriod.objects.filter(member=member).order_by('-start_date'))
-    assert autorship.start_date == datetime(2026, 1, 1).date()
-    assert autorship.end_date == datetime(2027,12,31).date()
+    assert_authorship_periods(
+        member,
+        [(datetime(2024, 7, 1).date(), datetime(2027, 12, 31).date())],
+    )
+    assert member.dated_authorship(datetime(2026, 1, 1).date()) is not None
+    assert member.dated_authorship(datetime(2026, 10, 14).date()) is not None
+    assert member.dated_authorship(datetime(2027, 12, 31).date()) is not None
+    assert member.dated_authorship(datetime(2028, 1, 1).date()) is None

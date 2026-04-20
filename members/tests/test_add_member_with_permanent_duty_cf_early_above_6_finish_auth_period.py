@@ -63,6 +63,6 @@ def test_add_member_with_permanent_duty_cf_early_above_6(client):
     response = client.post(endUrl, data=end_payload)
     assert response.status_code == 200
     autorship = AuthorshipPeriod.objects.filter(member=member).first()
-    assert autorship.end_date == datetime(2025, 8, 5).date()
-    assert not member.dated_authorship(datetime(2025, 8, 6).date())
-    assert member.dated_authorship(datetime(2025, 8, 5).date())
+    assert autorship.end_date == datetime(2025, 2, 5).date()
+    assert not member.dated_authorship(datetime(2025, 2, 6).date())
+    assert member.dated_authorship(datetime(2025, 2, 5).date())

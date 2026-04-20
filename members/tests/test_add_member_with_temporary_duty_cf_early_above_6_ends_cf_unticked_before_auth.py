@@ -5,7 +5,6 @@ from members.models import Member, AuthorshipPeriod, Institute, Duty, DutyType, 
 from django.contrib.auth.models import User
 import json
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
 
 @pytest.mark.django_db
 def test_add_member_with_temporary_duty_cf_early_above_6_ends_cf_unticked_before_auth(client):
@@ -45,7 +44,7 @@ def test_add_member_with_temporary_duty_cf_early_above_6_ends_cf_unticked_before
     assert CommonFound.objects.filter(member=member).exists()
     autorship = AuthorshipPeriod.objects.filter(member=member).first()
     assert AuthorshipPeriod.objects.filter(member=member).exists()
-    assert autorship.start_date == datetime(2024, 10, 5).date()
+    assert autorship.start_date == datetime(2024, 7, 1).date()
     assert autorship.end_date == datetime(2025, 12, 31).date()
     assert member.is_active_cf()
     payload['id'] = member.id
@@ -55,8 +54,6 @@ def test_add_member_with_temporary_duty_cf_early_above_6_ends_cf_unticked_before
     response = client.post(url, data=payload)
     print(response.json())
     assert response.status_code == 200
-    autorship = AuthorshipPeriod.objects.filter(member=member).first()
-    assert member.current_cf().end_date == datetime.now().date()
-    print(autorship.end_date)
-    assert autorship.start_date == datetime(2024, 10, 5).date()
-    assert autorship.end_date == datetime.now().date() + relativedelta(month=12)
+    assert member.current_cf().end_date == datetime(2024, 6, 1).date()
+    assert not AuthorshipPeriod.objects.filter(member=member).exists()
+    assert not member.future_authorship()

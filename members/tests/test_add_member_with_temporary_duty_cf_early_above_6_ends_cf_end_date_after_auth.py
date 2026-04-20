@@ -62,4 +62,4 @@ def test_add_member_with_temporary_duty_cf_early_above_6_ends_cf_end_date_bofore
     autorship = AuthorshipPeriod.objects.filter(member=member).first()
     print(autorship.end_date)
     assert autorship.start_date == datetime(2023, 10, 15).date()
-    assert autorship.end_date == datetime(2024, 12, 31).date()
+    assert autorship.end_date == datetime(2025, 1, 15).date()

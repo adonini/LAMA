@@ -71,4 +71,3 @@ def test_add_member_with_permanent_duty_cf_early_above_6_later_add_other_permane
     assert AuthorshipPeriod.objects.filter(member=member).exists()
     assert autorship.start_date == datetime(2023, 10, 15).date()
     assert autorship.end_date == None
-

@@ -47,10 +47,12 @@ def test_add_member_with_temporary_duty_cf_early_above_6_ends_cf_unticked_after_
     assert AuthorshipPeriod.objects.filter(member=member).exists()
     assert autorship.start_date == datetime(2023, 10, 15).date()
     assert autorship.end_date == datetime(2024, 12, 31).date()
+    payload['id'] = str(member.id)
     payload['is_cf'] = 'off'
+    del payload['new_duties']
     response = client.post(url, data=payload)
     assert response.status_code == 200
     autorship = AuthorshipPeriod.objects.filter(member=member).first()
     print(autorship.end_date)
     assert autorship.start_date == datetime(2023, 10, 15).date()
-    assert autorship.end_date == datetime(2024, 12, 31).date()
+    assert autorship.end_date == datetime(2024, 12, 1).date()

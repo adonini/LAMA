@@ -46,6 +46,7 @@ urlpatterns = [
     path('add_institute/<int:pk>', views.AddInstitute.as_view(), name='add-institute-pk'),
     path('duties/', views.DutyList.as_view(), name='duty_list'),
     path('end-duty/', views.end_duty, name='end_duty'),
+    path('delete-duty/', views.delete_duty, name='delete_duty'),
     path('add-duty/', views.add_duty, name='add_duty'),
     path('new_duty/', views.AddDuty.as_view(), name='new-duty'),
     path('new_duty/<int:pk>', views.AddDuty.as_view(), name='new-duty-pk'),
