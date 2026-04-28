@@ -2124,9 +2124,7 @@ def generate_aa_email(request):
         if author.member.name == 'AaaTest':
             logger.info(f"This is the affiliation: {affiliations}")
 
-        institute_indices = sorted(
-            [institute_dict[aff.institute.name] for aff in affiliations if aff.institute.name in institute_dict]
-        )
+        institute_indices = [institute_dict[aff.institute.name] for aff in affiliations if aff.institute.name in institute_dict]
         indices_str = ",".join(map(str, institute_indices))
         latex_content.append(f"{author.author_name.replace(' ', '~')}\\inst{{{indices_str}}}\\email{{{author.author_email}}} \\and\n")
 
@@ -2216,9 +2214,7 @@ def generate_aa(request):
             author_details=author,
             id__in=Subquery(latest_affiliations)
         ).order_by('order', '-creation_date').distinct('order')
-        institute_indices = sorted(
-            [institute_dict[aff.institute.name] for aff in affiliations]
-        )
+        institute_indices = [institute_dict[aff.institute.name] for aff in affiliations]
         indices_str = ",".join(map(str, institute_indices))
         latex_content.append(f"{author.author_name.replace(' ', '~')}\\inst{{{indices_str}}} \\and\n")
 
@@ -2379,7 +2375,7 @@ def generate_arxiv(request):
             id__in=Subquery(latest_affiliations)
         ).order_by('order', '-creation_date').distinct('order')
 
-        institute_indices = sorted([institute_dict[aff.institute.name] for aff in affiliations])
+        institute_indices = [institute_dict[aff.institute.name] for aff in affiliations]
         indices_str = ",".join(map(str, institute_indices))
         author_strings.append(f"{author.author_name} ({indices_str})")
 
@@ -2685,9 +2681,7 @@ def generate_nature(request):
             author_details=author,
             id__in=Subquery(latest_affiliations)
         ).order_by('order', '-creation_date').distinct('order')
-        institute_indices = sorted(
-            [institute_dict[aff.institute.name] for aff in affiliations]
-        )
+        institute_indices = [institute_dict[aff.institute.name] for aff in affiliations]
         author_string += ",".join(str(idx) for idx in institute_indices) + "}$"
 
         if index != len(authors) - 1:
@@ -2789,9 +2783,7 @@ def generate_science(request):
             author_details=author,
             id__in=Subquery(latest_affiliations)
         ).order_by('order', '-creation_date').distinct('order')
-        institute_indices = sorted(
-            [institute_dict[aff.institute.name] for aff in affiliations]
-        )
+        institute_indices = [institute_dict[aff.institute.name] for aff in affiliations]
         author_string += ",".join(str(idx) for idx in institute_indices) + "}$"
 
         if index != len(authors) - 1:
