@@ -146,7 +146,7 @@ AUTH_LDAP_ALWAYS_UPDATE_USER = True
 # Authentication Backends
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
-#    'members.backends.ldap_backend.CustomLDAPBackend',
+    'members.backends.ldap_backend.CustomLDAPBackend',
 ]
 
 # Internationalization
