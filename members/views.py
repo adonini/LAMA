@@ -140,7 +140,7 @@ def _candidate_start_for_segment(member, member_duty, segment, apply_initial_del
 
     if member.role == 'student':
         candidate = max(
-            duty_start,
+            duty_eligibility_start,
             segment['cf_start'],
             segment['membership_start'] + relativedelta(months=6),
         )

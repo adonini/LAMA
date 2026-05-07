@@ -43,6 +43,6 @@ def test_student_gap_between_temporary_duties_creates_two_periods():
         member,
         [
             (d(2026, 9, 10), d(2027, 12, 31)),
-            (d(2029, 2, 5), d(2030, 12, 31)),
+            (d(2029, 1, 1), d(2030, 12, 31)),
         ],
     )
