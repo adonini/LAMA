@@ -142,6 +142,57 @@ def test_temporary_support_windows_touching_by_one_day_are_continuous():
 
 
 @pytest.mark.django_db
+def test_data_taking_shifts_from_cutoff_only_grants_single_year_temporary_support():
+    institute, member = create_member("DataTakingCutoff")
+    MembershipPeriod.objects.create(member=member, institute=institute, start_date=d(2025, 3, 10))
+    CommonFound.objects.create(member=member, start_date=d(2025, 4, 9))
+    add_temporary_duty(
+        member,
+        d(2026, 11, 27),
+        end_date=d(2026, 12, 15),
+        name="Data Taking Shifts",
+    )
+
+    recalculate_authorship_periods(member)
+
+    assert_authorship_periods(member, [(d(2026, 7, 1), d(2026, 12, 31))])
+
+
+@pytest.mark.django_db
+def test_data_taking_shifts_before_cutoff_keeps_two_year_temporary_support():
+    institute, member = create_member("DataTakingLegacy")
+    MembershipPeriod.objects.create(member=member, institute=institute, start_date=d(2025, 3, 10))
+    CommonFound.objects.create(member=member, start_date=d(2025, 4, 9))
+    add_temporary_duty(
+        member,
+        d(2026, 11, 26),
+        end_date=d(2026, 12, 15),
+        name="Data Taking Shifts",
+    )
+
+    recalculate_authorship_periods(member)
+
+    assert_authorship_periods(member, [(d(2026, 7, 1), d(2027, 12, 31))])
+
+
+@pytest.mark.django_db
+def test_data_taking_shifts_name_match_is_case_and_whitespace_insensitive():
+    institute, member = create_member("DataTakingNormalized")
+    MembershipPeriod.objects.create(member=member, institute=institute, start_date=d(2025, 3, 10))
+    CommonFound.objects.create(member=member, start_date=d(2025, 4, 9))
+    add_temporary_duty(
+        member,
+        d(2026, 12, 13),
+        end_date=d(2026, 12, 20),
+        name="  data   taking SHIFTS  ",
+    )
+
+    recalculate_authorship_periods(member)
+
+    assert_authorship_periods(member, [(d(2026, 7, 1), d(2026, 12, 31))])
+
+
+@pytest.mark.django_db
 def test_overlapping_cf_periods_do_not_create_duplicate_authorship_periods():
     institute, member = create_member("OverlappingCf")
     MembershipPeriod.objects.create(member=member, institute=institute, start_date=d(2026, 1, 1))

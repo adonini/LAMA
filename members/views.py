@@ -25,6 +25,9 @@ import logging
 
 logger = logging.getLogger('lama')
 
+DATA_TAKING_SHIFTS_NAME = "data taking shifts"
+DATA_TAKING_SHIFTS_SINGLE_YEAR_FROM = date(2026, 11, 27)
+
 
 def parse_date(date_string):
     try:
@@ -54,11 +57,23 @@ def _extends_or_touches(current_end, next_start):
     return current_end is None or next_start <= current_end + relativedelta(days=1)
 
 
+def _normalize_duty_name(name):
+    return " ".join((name or "").split()).casefold()
+
+
+def _is_single_year_temporary_duty(member_duty):
+    return (
+        _normalize_duty_name(member_duty.duty.name) == DATA_TAKING_SHIFTS_NAME
+        and _to_date(member_duty.start_date) >= DATA_TAKING_SHIFTS_SINGLE_YEAR_FROM
+    )
+
+
 def _duty_support_window(member_duty):
     duty_start = _to_date(member_duty.start_date)
     duty_end = _to_date(member_duty.end_date)
     if member_duty.duty.duty_type.name == 'temporary':
-        return date(duty_start.year, 1, 1), date(duty_start.year + 1, 12, 31)
+        support_end_year = duty_start.year if _is_single_year_temporary_duty(member_duty) else duty_start.year + 1
+        return date(duty_start.year, 1, 1), date(support_end_year, 12, 31)
     if duty_end:
         return duty_start, duty_end
     return duty_start, None
