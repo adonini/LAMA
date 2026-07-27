@@ -36,6 +36,23 @@ def parse_date(date_string):
         return None
 
 
+def active_membership_period_q(reference_date):
+    return (
+        Q(start_date__lte=reference_date)
+        & (Q(end_date__isnull=True) | Q(end_date__gte=reference_date))
+    )
+
+
+def active_member_q(reference_date):
+    return (
+        Q(membership_periods__start_date__lte=reference_date)
+        & (
+            Q(membership_periods__end_date__isnull=True)
+            | Q(membership_periods__end_date__gte=reference_date)
+        )
+    )
+
+
 def _to_date(value):
     if value is None:
         return None
@@ -706,22 +723,20 @@ def api_member(request):
     members = Member.objects.order_by('name', 'surname')
     # Apply filters
     if not show_all:
-        members = members.filter(
-            Q(membership_periods__start_date__lte=today) & Q(membership_periods__end_date__isnull=True) | Q(membership_periods__start_date__lte=today) & Q(membership_periods__end_date__gte=today)
-        )
+        members = members.filter(active_member_q(today))
     if country and country != 'All':
         groups = Group.objects.filter(country__name=country)
         institutes = Institute.objects.filter(group__in=groups)
-        member_ids = MembershipPeriod.objects.filter(end_date=None, institute__in=institutes).values_list('member', flat=True)
+        member_ids = MembershipPeriod.objects.filter(active_membership_period_q(today), institute__in=institutes).values_list('member', flat=True)
         members = members.filter(id__in=member_ids)
     if group and group != 'All':
         groups = Group.objects.filter(name=group)
         institutes = Institute.objects.filter(group__in=groups)
-        member_ids = MembershipPeriod.objects.filter(end_date=None, institute__in=institutes).values_list('member', flat=True)
+        member_ids = MembershipPeriod.objects.filter(active_membership_period_q(today), institute__in=institutes).values_list('member', flat=True)
         members = members.filter(id__in=member_ids)
     if institute and institute != 'All':
         institutes = Institute.objects.filter(name=institute)
-        member_ids = MembershipPeriod.objects.filter(end_date=None, institute__in=institutes).values_list('member', flat=True)
+        member_ids = MembershipPeriod.objects.filter(active_membership_period_q(today), institute__in=institutes).values_list('member', flat=True)
         members = members.filter(id__in=member_ids)
     if author and author != 'All':
         authorships = AuthorshipPeriod.objects.filter(Q(start_date__lte=today) & (Q(end_date__isnull=True) | Q(end_date__gte=today))).order_by('-start_date')
@@ -747,6 +762,8 @@ def api_member(request):
             surname__icontains=search_value
         )
         members = members.filter(query)
+
+    members = members.distinct()
 
     # Total of entries
     total_records = members.count()
@@ -1778,16 +1795,16 @@ def api_author(request):
     if country and country != 'All':
         groups = Group.objects.filter(country__name=country)
         institutes = Institute.objects.filter(group__in=groups)
-        member_ids = MembershipPeriod.objects.filter(end_date=None, institute__in=institutes).values_list('member', flat=True)
+        member_ids = MembershipPeriod.objects.filter(active_membership_period_q(today), institute__in=institutes).values_list('member', flat=True)
         authors = authors.filter(id__in=member_ids)
     if group and group != 'All':
         groups = Group.objects.filter(name=group)
         institutes = Institute.objects.filter(group__in=groups)
-        member_ids = MembershipPeriod.objects.filter(end_date=None, institute__in=institutes).values_list('member', flat=True)
+        member_ids = MembershipPeriod.objects.filter(active_membership_period_q(today), institute__in=institutes).values_list('member', flat=True)
         authors = authors.filter(id__in=member_ids)
     if institute and institute != 'All':
         institutes = Institute.objects.filter(name=institute)
-        member_ids = MembershipPeriod.objects.filter(end_date=None, institute__in=institutes).values_list('member', flat=True)
+        member_ids = MembershipPeriod.objects.filter(active_membership_period_q(today), institute__in=institutes).values_list('member', flat=True)
         authors = authors.filter(id__in=member_ids)
 
     # Search logic
@@ -3102,23 +3119,21 @@ def get_member_duty(request):
 
     # First fetch
     members = Member.objects.order_by('name', 'surname')
-    members = members.filter(
-        Q(membership_periods__start_date__lte=today) & Q(membership_periods__end_date__isnull=True) | Q(membership_periods__start_date__lte=today) & Q(membership_periods__end_date__gte=today)
-    )
+    members = members.filter(active_member_q(today))
 
     if country and country != 'All':
         groups = Group.objects.filter(country__name=country)
         institutes = Institute.objects.filter(group__in=groups)
-        member_ids = MembershipPeriod.objects.filter(end_date=None, institute__in=institutes).values_list('member', flat=True)
+        member_ids = MembershipPeriod.objects.filter(active_membership_period_q(today), institute__in=institutes).values_list('member', flat=True)
         members = members.filter(id__in=member_ids)
     if group and group != 'All':
         groups = Group.objects.filter(name=group)
         institutes = Institute.objects.filter(group__in=groups)
-        member_ids = MembershipPeriod.objects.filter(end_date=None, institute__in=institutes).values_list('member', flat=True)
+        member_ids = MembershipPeriod.objects.filter(active_membership_period_q(today), institute__in=institutes).values_list('member', flat=True)
         members = members.filter(id__in=member_ids)
     if institute and institute != 'All':
         institutes = Institute.objects.filter(name=institute)
-        member_ids = MembershipPeriod.objects.filter(end_date=None, institute__in=institutes).values_list('member', flat=True)
+        member_ids = MembershipPeriod.objects.filter(active_membership_period_q(today), institute__in=institutes).values_list('member', flat=True)
         members = members.filter(id__in=member_ids)
 
     # Search logic
@@ -3140,6 +3155,8 @@ def get_member_duty(request):
         )
         periods = periods.filter(query)
         members = members.filter(pk__in=[element['member__pk'] for element in periods.values('member__pk')])
+
+    members = members.distinct()
 
     # Total of entries
     total_records = members.count()
