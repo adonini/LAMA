@@ -179,7 +179,10 @@ def _candidate_start_for_segment(member, member_duty, segment, apply_initial_del
     else:
         if apply_initial_delay:
             if is_temporary:
-                delay_anchor = max(support_start, min(duty_start, segment['start']))
+                if _is_single_year_temporary_duty(member_duty):
+                    delay_anchor = support_start
+                else:
+                    delay_anchor = max(support_start, min(duty_start, segment['start']))
             else:
                 delay_anchor = duty_start
             candidate = max(

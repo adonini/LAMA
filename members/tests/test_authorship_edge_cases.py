@@ -159,6 +159,23 @@ def test_data_taking_shifts_from_cutoff_only_grants_single_year_temporary_suppor
 
 
 @pytest.mark.django_db
+def test_existing_data_taking_shift_starts_authorship_at_late_cf_start_after_initial_delay():
+    institute, member = create_member("DataTakingLateCf", role="researcher")
+    MembershipPeriod.objects.create(member=member, institute=institute, start_date=d(2026, 1, 14))
+    CommonFound.objects.create(member=member, start_date=d(2026, 9, 1))
+    add_temporary_duty(
+        member,
+        d(2026, 12, 8),
+        end_date=d(2026, 12, 21),
+        name="Data Taking Shifts",
+    )
+
+    recalculate_authorship_periods(member)
+
+    assert_authorship_periods(member, [(d(2026, 9, 1), d(2026, 12, 31))])
+
+
+@pytest.mark.django_db
 def test_data_taking_shifts_before_cutoff_keeps_two_year_temporary_support():
     institute, member = create_member("DataTakingLegacy")
     MembershipPeriod.objects.create(member=member, institute=institute, start_date=d(2025, 3, 10))
