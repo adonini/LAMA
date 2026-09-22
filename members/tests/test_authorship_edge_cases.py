@@ -158,6 +158,35 @@ def test_data_taking_shifts_from_cutoff_only_grants_single_year_temporary_suppor
     assert_authorship_periods(member, [(d(2026, 7, 1), d(2026, 12, 31))])
 
 
+@pytest.mark.parametrize(
+    ("case_name", "duty_end", "expected_authorship_end"),
+    [
+        ("FewerDaysNextYear", d(2027, 1, 11), d(2026, 12, 31)),
+        ("EqualDaysNextYear", d(2027, 1, 12), d(2026, 12, 31)),
+        ("MoreDaysNextYear", d(2027, 1, 13), d(2027, 12, 31)),
+    ],
+)
+@pytest.mark.django_db
+def test_data_taking_shifts_cross_year_support_depends_on_majority_of_duty_days(
+    case_name,
+    duty_end,
+    expected_authorship_end,
+):
+    institute, member = create_member(case_name)
+    MembershipPeriod.objects.create(member=member, institute=institute, start_date=d(2025, 3, 10))
+    CommonFound.objects.create(member=member, start_date=d(2025, 4, 9))
+    add_temporary_duty(
+        member,
+        d(2026, 12, 20),
+        end_date=duty_end,
+        name="Data Taking Shifts",
+    )
+
+    recalculate_authorship_periods(member)
+
+    assert_authorship_periods(member, [(d(2026, 7, 1), expected_authorship_end)])
+
+
 @pytest.mark.django_db
 def test_existing_data_taking_shift_starts_authorship_at_late_cf_start_after_initial_delay():
     institute, member = create_member("DataTakingLateCf", role="researcher")

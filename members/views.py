@@ -85,11 +85,25 @@ def _is_single_year_temporary_duty(member_duty):
     )
 
 
+def _data_taking_shifts_supports_following_year(member_duty):
+    duty_start = _to_date(member_duty.start_date)
+    duty_end = _to_date(member_duty.end_date)
+    if duty_end is None or duty_end.year != duty_start.year + 1:
+        return False
+
+    days_in_start_year = (date(duty_start.year, 12, 31) - duty_start).days + 1
+    days_in_following_year = (duty_end - date(duty_end.year, 1, 1)).days + 1
+    return days_in_following_year > days_in_start_year
+
+
 def _duty_support_window(member_duty):
     duty_start = _to_date(member_duty.start_date)
     duty_end = _to_date(member_duty.end_date)
     if member_duty.duty.duty_type.name == 'temporary':
-        support_end_year = duty_start.year if _is_single_year_temporary_duty(member_duty) else duty_start.year + 1
+        is_single_year_duty = _is_single_year_temporary_duty(member_duty)
+        support_end_year = duty_start.year + 1
+        if is_single_year_duty and not _data_taking_shifts_supports_following_year(member_duty):
+            support_end_year = duty_start.year
         return date(duty_start.year, 1, 1), date(support_end_year, 12, 31)
     if duty_end:
         return duty_start, duty_end
