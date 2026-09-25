@@ -188,7 +188,7 @@ def test_data_taking_shifts_cross_year_support_depends_on_majority_of_duty_days(
 
 
 @pytest.mark.django_db
-def test_existing_data_taking_shift_starts_authorship_at_late_cf_start_after_initial_delay():
+def test_single_year_data_taking_shift_has_no_authorship_when_initial_delay_exceeds_support():
     institute, member = create_member("DataTakingLateCf", role="researcher")
     MembershipPeriod.objects.create(member=member, institute=institute, start_date=d(2026, 1, 14))
     CommonFound.objects.create(member=member, start_date=d(2026, 9, 1))
@@ -201,7 +201,53 @@ def test_existing_data_taking_shift_starts_authorship_at_late_cf_start_after_ini
 
     recalculate_authorship_periods(member)
 
-    assert_authorship_periods(member, [(d(2026, 9, 1), d(2026, 12, 31))])
+    assert_authorship_periods(member, [])
+
+
+@pytest.mark.django_db
+def test_first_cross_year_data_taking_shift_applies_initial_cf_delay():
+    institute, member = create_member("DataTakingFirstDuty", role="researcher")
+    MembershipPeriod.objects.create(member=member, institute=institute, start_date=d(2026, 9, 1))
+    CommonFound.objects.create(member=member, start_date=d(2026, 9, 1))
+    add_temporary_duty(
+        member,
+        d(2026, 12, 28),
+        end_date=d(2027, 1, 19),
+        name="Data Taking Shifts",
+    )
+
+    recalculate_authorship_periods(member)
+
+    assert_authorship_periods(member, [(d(2027, 3, 1), d(2027, 12, 31))])
+
+
+@pytest.mark.django_db
+def test_cross_year_data_taking_shift_does_not_repeat_consumed_initial_delay():
+    institute, member = create_member("DataTakingPreviousAuthor", role="researcher")
+    MembershipPeriod.objects.create(member=member, institute=institute, start_date=d(2024, 1, 1))
+    CommonFound.objects.create(member=member, start_date=d(2024, 1, 1))
+    add_permanent_duty(
+        member,
+        d(2024, 1, 1),
+        end_date=d(2024, 12, 31),
+        name="Previous Permanent Duty",
+    )
+    add_temporary_duty(
+        member,
+        d(2026, 12, 28),
+        end_date=d(2027, 1, 19),
+        name="Data Taking Shifts",
+    )
+
+    recalculate_authorship_periods(member)
+
+    assert_authorship_periods(
+        member,
+        [
+            (d(2024, 7, 1), d(2024, 12, 31)),
+            (d(2026, 1, 1), d(2027, 12, 31)),
+        ],
+    )
 
 
 @pytest.mark.django_db
