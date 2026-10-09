@@ -115,7 +115,17 @@
                             <i class="fa-solid fa-arrow-right-from-bracket" style="color: #e32400;"></i> Non-members leaving Authorship within 6 Months
                         </div>
                         <div class="card-body text-center">
-                            <p class="card-text"><strong class="large-bold-number">{{ non_members_with_authorship }}</strong></p>
+                            <div class="dashboard-card-summary">
+                                <p class="card-text dashboard-card-summary-number"><strong class="large-bold-number">{{ non_members_with_authorship }}</strong></p>
+                                {% if non_members_with_authorship > 0 %}
+                                <a href="{% url 'export_non_members_leaving_authorship' %}"
+                                   class="btn btn-sm btn-outline-secondary dashboard-card-download"
+                                   title="Download non-members leaving authorship CSV"
+                                   aria-label="Download non-members leaving authorship CSV">
+                                    <i class="fa-solid fa-download" aria-hidden="true"></i>
+                                </a>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -126,7 +136,17 @@
                             <i class="fa-solid fa-arrow-right-to-bracket" style="color: #77bb41;"></i> Members becoming Authors within 6 Months
                         </div>
                         <div class="card-body text-center">
-                            <p class="card-text"><strong class="large-bold-number">{{ members_becoming_authors }}</strong></p>
+                            <div class="dashboard-card-summary">
+                                <p class="card-text dashboard-card-summary-number"><strong class="large-bold-number">{{ members_becoming_authors }}</strong></p>
+                                {% if members_becoming_authors > 0 %}
+                                <a href="{% url 'export_members_becoming_authors' %}"
+                                   class="btn btn-sm btn-outline-secondary dashboard-card-download"
+                                   title="Download members becoming authors CSV"
+                                   aria-label="Download members becoming authors CSV">
+                                    <i class="fa-solid fa-download" aria-hidden="true"></i>
+                                </a>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>

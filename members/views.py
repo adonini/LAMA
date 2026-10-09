@@ -1,3 +1,4 @@
+import csv
 import json
 from datetime import date, datetime, time
 from .forms import LoginForm, AddMemberForm, AddAuthorDetailsForm, AddInstituteForm
@@ -9,6 +10,7 @@ from dateutil.relativedelta import relativedelta
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.views.generic import TemplateView
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -557,6 +559,118 @@ def get_missing_authors(valid_authors):
     return missing_authors
 
 
+def _members_becoming_authors_periods(today):
+    return AuthorshipPeriod.objects.filter(
+        start_date__gt=today,
+        start_date__lte=today + relativedelta(months=6),
+    )
+
+
+def _non_members_leaving_authorship_periods(today):
+    return AuthorshipPeriod.objects.filter(
+        end_date__gte=today,
+        end_date__lte=today + relativedelta(months=6),
+        member__membership_periods__end_date__lte=today,
+    ).exclude(
+        member__membership_periods__start_date__lte=today,
+        member__membership_periods__end_date__isnull=True,
+    ).exclude(
+        member__membership_periods__start_date__lte=today,
+        member__membership_periods__end_date__gte=today,
+    )
+
+
+def _authorship_periods_by_member(periods, date_field):
+    selected_periods = {}
+    for period in periods.select_related('member').order_by(
+        'member__surname',
+        'member__name',
+        date_field,
+        'id',
+    ):
+        selected_periods.setdefault(period.member_id, period)
+    return selected_periods.values()
+
+
+def _membership_for_csv(member, today):
+    active_membership = member.membership_periods.filter(
+        start_date__lte=today,
+    ).filter(
+        Q(end_date__isnull=True) | Q(end_date__gte=today),
+    ).select_related('institute__group__country').order_by('-start_date').first()
+    if active_membership:
+        return active_membership
+    return member.membership_periods.select_related(
+        'institute__group__country'
+    ).order_by('-end_date', '-start_date').first()
+
+
+def _authorship_csv_response(periods, date_field, filename_prefix, today):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = (
+        f'attachment; filename="{filename_prefix}_{today.isoformat()}.csv"'
+    )
+    writer = csv.writer(response)
+    writer.writerow([
+        'Member ID',
+        'First Name',
+        'Last Name',
+        'Email',
+        'Role',
+        'Institute',
+        'Group',
+        'Country',
+        'Membership Start',
+        'Membership End',
+        'Authorship Start',
+        'Authorship End',
+    ])
+
+    for period in _authorship_periods_by_member(periods, date_field):
+        member = period.member
+        membership = _membership_for_csv(member, today)
+        institute = membership.institute if membership else None
+        group = institute.group if institute else None
+        country = group.country if group else None
+        writer.writerow([
+            member.id,
+            member.name,
+            member.surname,
+            member.primary_email,
+            member.get_role_display(),
+            institute.name if institute else '',
+            group.name if group else '',
+            country.name if country else '',
+            membership.start_date if membership else '',
+            membership.end_date if membership and membership.end_date else '',
+            period.start_date,
+            period.end_date or '',
+        ])
+    return response
+
+
+@login_required
+def export_non_members_leaving_authorship(request):
+    today = timezone.now().date()
+    return _authorship_csv_response(
+        _non_members_leaving_authorship_periods(today),
+        'end_date',
+        'non_members_leaving_authorship',
+        today,
+    )
+
+
+@login_required
+def export_members_becoming_authors(request):
+    today = timezone.now().date()
+    return _authorship_csv_response(
+        _members_becoming_authors_periods(today),
+        'start_date',
+        'members_becoming_authors',
+        today,
+    )
+
+
 class Index(TemplateView):
     template_name = 'login/index.html'
 
@@ -584,22 +698,13 @@ class Index(TemplateView):
         total_authors = active_authorships.values('member').distinct().count()
 
         # Members that will become authors within the next 6 months
-        members_becoming_authors = AuthorshipPeriod.objects.filter(
-            start_date__gt=today,
-            start_date__lte=six_months_future
+        members_becoming_authors = _members_becoming_authors_periods(
+            today
         ).values('member').distinct().count()
 
         # Members without active membership whose authorship ends within the next 6 months
-        non_members_with_authorship = AuthorshipPeriod.objects.filter(
-            end_date__gte=today,
-            end_date__lte=six_months_future,
-            member__membership_periods__end_date__lte=today
-        ).exclude(
-            member__membership_periods__start_date__lte=today,
-            member__membership_periods__end_date__isnull=True
-        ).exclude(
-            member__membership_periods__start_date__lte=today,
-            member__membership_periods__end_date__gte=today
+        non_members_with_authorship = _non_members_leaving_authorship_periods(
+            today
         ).values('member').distinct().count()
 
         active_cf_members = Member.objects.filter(
