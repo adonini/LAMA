@@ -90,6 +90,10 @@ class Duty(models.Model):
     duty_type = models.ForeignKey(DutyType, on_delete=models.DO_NOTHING)
     category = models.ForeignKey(Category, on_delete=models.DO_NOTHING)
     maximum_members = models.IntegerField(null=True)
+    grants_authorship_without_cf = models.BooleanField(
+        default=False,
+        help_text="Grant authorship for the assignment period without requiring Common Fund status.",
+    )
 
     class Meta:
         ordering = ['name']

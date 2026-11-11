@@ -121,7 +121,10 @@ def _duty_still_affects_authorship(member_duty, reference_date=None):
 
 def _merged_support_blocks(member):
     duties = list(
-        MemberDuty.objects.filter(member=member)
+        MemberDuty.objects.filter(
+            member=member,
+            duty__grants_authorship_without_cf=False,
+        )
         .select_related('duty__duty_type')
         .order_by('start_date', 'id')
     )
@@ -171,6 +174,34 @@ def _eligibility_segments(member):
             })
 
     return sorted(segments, key=lambda item: (item['start'], item['end'] or date.max))
+
+
+def _authorship_periods_without_cf(member):
+    memberships = list(member.membership_periods.order_by('start_date', 'id'))
+    duties = list(
+        MemberDuty.objects.filter(
+            member=member,
+            duty__grants_authorship_without_cf=True,
+        ).order_by('start_date', 'id')
+    )
+    periods = []
+
+    for member_duty in duties:
+        duty_start = _to_date(member_duty.start_date)
+        duty_end = _to_date(member_duty.end_date)
+        for membership in memberships:
+            membership_start = _to_date(membership.start_date)
+            membership_end = _to_date(membership.end_date)
+            start = max(duty_start, membership_start)
+            end = _min_end(duty_end, membership_end)
+            if end is not None and start > end:
+                continue
+            _append_or_extend_period(periods, {
+                'start': start,
+                'end': end,
+            })
+
+    return periods
 
 
 def _candidate_start_for_segment(member, member_duty, segment, apply_initial_delay):
@@ -319,8 +350,9 @@ def recalculate_authorship_periods(member):
         if current_period:
             _append_or_extend_period(periods, current_period)
 
+    all_periods = periods + _authorship_periods_without_cf(member)
     merged_periods = []
-    for period in sorted(periods, key=lambda item: (item['start'], item['end'] or date.max)):
+    for period in sorted(all_periods, key=lambda item: (item['start'], item['end'] or date.max)):
         _append_or_extend_period(merged_periods, period)
 
     member.authorship_periods.all().delete()
