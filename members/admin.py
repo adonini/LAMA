@@ -14,9 +14,9 @@ class InstituteAdmin(admin.ModelAdmin):
     list_filter = ['name']
 
 class DutyAdmin(admin.ModelAdmin):
-    list_display = ['name', 'duty_type', 'grants_authorship_without_cf']
+    list_display = ['name']
     search_fields = ['name']
-    list_filter = ['duty_type', 'grants_authorship_without_cf']
+    list_filter = ['name']
 
 class GroupAdmin(admin.ModelAdmin):
     list_display = ['name']
